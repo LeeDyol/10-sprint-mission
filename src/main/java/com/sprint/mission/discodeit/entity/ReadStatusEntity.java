@@ -10,26 +10,19 @@ import java.util.UUID;
 public class ReadStatusEntity extends BaseEntity {
     private UUID userId;                        // 사용자 고유 id (변경 불가능)
     private UUID channelId;                     // 채널 고유 id (변경 불가능)
-    private ReadStatusType readStatusType;      // 읽음 상태 타입
-    private Instant lastReadTime;               // 해당 채널에서 마지막으로 메시지를 읽은 시간 (변경 가능)
+    private Instant lastReadAt;                 // 해당 채널에서 마지막으로 메시지를 읽은 시간 (변경 가능)
 
     public ReadStatusEntity(ReadStatusCreateRequest readStatusCreateRequest) {
         this.id = UUID.randomUUID();
-        this.userId = readStatusCreateRequest.memberId();
+        this.userId = readStatusCreateRequest.userId();
         this.channelId = readStatusCreateRequest.channelId();
-        this.readStatusType = ReadStatusType.READ;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
-        this.lastReadTime = Instant.now();
+        this.lastReadAt = Instant.now();
     }
 
-    public void updateLastReadTime() {
-        this.lastReadTime = Instant.now();
-        this.updatedAt = Instant.now();
-    }
-
-    public void updateReadStatusType(ReadStatusType readStatusType) {
-        this.readStatusType = readStatusType;
+    public void updateLastReadTime(Instant newLastReadAt) {
+        this.lastReadAt = newLastReadAt;
         this.updatedAt = Instant.now();
     }
 }
