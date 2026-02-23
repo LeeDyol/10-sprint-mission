@@ -6,14 +6,14 @@ import lombok.Builder;
 import java.util.UUID;
 
 @Builder
-public record ReadStatusCreateRequestDTO (
+public record ReadStatusCreateRequest(
     @NotNull
     UUID memberId,
 
     @NotNull
     UUID channelId
 ) {
-    public ReadStatusCreateRequestDTO(UUID memberId, UUID channelId) {
+    public ReadStatusCreateRequest(UUID memberId, UUID channelId) {
         this.memberId = memberId;
         this.channelId = channelId;
     }

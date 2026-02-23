@@ -1,8 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.request.readStatus.ReadStatusCreateRequestDTO;
-import com.sprint.mission.discodeit.dto.request.readStatus.ReadStatusUpdateRequestDTO;
-import com.sprint.mission.discodeit.dto.response.ReadStatusResponseDTO;
+import com.sprint.mission.discodeit.dto.request.readStatus.ReadStatusCreateRequest;
+import com.sprint.mission.discodeit.dto.request.readStatus.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.ChannelEntity;
 import com.sprint.mission.discodeit.entity.ReadStatusEntity;
 import com.sprint.mission.discodeit.entity.ReadStatusType;
@@ -26,53 +25,48 @@ public class BasicReadStatusService implements ReadStatusService {
 
     // 읽음 상태 생성
     @Override
-    public ReadStatusResponseDTO create(ReadStatusCreateRequestDTO readStatusCreateRequestDTO) {
-        UserEntity targetUser = userRepository.findById(readStatusCreateRequestDTO.memberId())
+    public ReadStatusEntity create(ReadStatusCreateRequest readStatusCreateRequest) {
+        UserEntity targetUser = userRepository.findById(readStatusCreateRequest.memberId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
-        ChannelEntity targetChannel = channelRepository.findById(readStatusCreateRequestDTO.channelId())
+        ChannelEntity targetChannel = channelRepository.findById(readStatusCreateRequest.channelId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 채널이 존재하지 않습니다."));
 
         existsByUserIdAndChannelId(targetUser.getId(), targetChannel.getId());
 
-        ReadStatusEntity newReadStatus = new ReadStatusEntity(readStatusCreateRequestDTO);
+        ReadStatusEntity newReadStatus = new ReadStatusEntity(readStatusCreateRequest);
         readStatusRepository.save(newReadStatus);
 
-        return toResponseDTO(newReadStatus);
+        return newReadStatus;
     }
 
     // 읽음 상태 단건 조회
     @Override
-    public ReadStatusResponseDTO findById(UUID id) {
-        ReadStatusEntity targetReadStatus = findEntityById(id);
-
-        return toResponseDTO(targetReadStatus);
+    public ReadStatusEntity findById(UUID id) {
+        return readStatusRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 메시지 읽음 상태가 존재하지 않습니다."));
     }
 
     // 읽음 상태 전체 조회
     @Override
-    public List<ReadStatusResponseDTO> findAll() {
-        return readStatusRepository.findAll().stream()
-                .map(this::toResponseDTO)
-                .toList();
+    public List<ReadStatusEntity> findAll() {
+        return readStatusRepository.findAll();
     }
 
     // 특정 사용자의 읽음 상태 조회
     @Override
-    public ReadStatusResponseDTO findByUserId(UUID userId) {
+    public List<ReadStatusEntity> findAllByUserId(UUID userId) {
         return readStatusRepository.findAll().stream()
                 .filter(readStatus -> readStatus.getUserId().equals(userId))
-                .findFirst()
-                .map(this::toResponseDTO)
-                .orElse(null);
+                .toList();
     }
 
     // 읽음 상태 수정
     @Override
-    public ReadStatusResponseDTO update(UUID readStatusId, ReadStatusUpdateRequestDTO readStatusUpdateRequestDTO) {
-        ReadStatusEntity targetReadStatus = findEntityById(readStatusId);
+    public ReadStatusEntity update(UUID readStatusId, ReadStatusUpdateRequest readStatusUpdateRequest) {
+        ReadStatusEntity targetReadStatus = findById(readStatusId);
 
-        if (readStatusUpdateRequestDTO.readStatusType() != null) {
-            targetReadStatus.updateReadStatusType(readStatusUpdateRequestDTO.readStatusType());
+        if (readStatusUpdateRequest.readStatusType() != null) {
+            targetReadStatus.updateReadStatusType(readStatusUpdateRequest.readStatusType());
         }
         else {
             targetReadStatus.updateReadStatusType(ReadStatusType.READ);
@@ -81,13 +75,13 @@ public class BasicReadStatusService implements ReadStatusService {
         targetReadStatus.updateLastReadTime();
         readStatusRepository.save(targetReadStatus);
 
-        return toResponseDTO(targetReadStatus);
+        return targetReadStatus;
     }
 
     // 읽음 상태 삭제
     @Override
     public void delete(UUID id) {
-        ReadStatusEntity targetReadStatus = findEntityById(id);
+        ReadStatusEntity targetReadStatus = findById(id);
         readStatusRepository.delete(targetReadStatus);
     }
 
@@ -96,23 +90,5 @@ public class BasicReadStatusService implements ReadStatusService {
         if (readStatusRepository.existsByUserIdAndChannelId(userId, channelId)) {
             throw new RuntimeException("관련된 상태 정보가 이미 존재합니다.");
         }
-    }
-
-    // 단일 엔티티 조회 및 반환
-    public ReadStatusEntity findEntityById(UUID readStatusId) {
-        return readStatusRepository.findById(readStatusId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
-    }
-
-    // 응답 DTO 생성 및 반환
-    public ReadStatusResponseDTO toResponseDTO(ReadStatusEntity readStatus) {
-        return ReadStatusResponseDTO.builder()
-                .id(readStatus.getId())
-                .userId(readStatus.getUserId())
-                .channelId(readStatus.getChannelId())
-                .createdAt(readStatus.getCreatedAt())
-                .updatedAt(readStatus.getUpdatedAt())
-                .lastReadTime(readStatus.getLastReadTime())
-                .build();
     }
 }

@@ -4,7 +4,7 @@ import com.sprint.mission.discodeit.dto.request.channel.ChannelMemberRequestDTO;
 import com.sprint.mission.discodeit.dto.request.channel.PublicChannelUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.channel.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.channel.PublicChannelCreateRequest;
-import com.sprint.mission.discodeit.dto.request.readStatus.ReadStatusCreateRequestDTO;
+import com.sprint.mission.discodeit.dto.request.readStatus.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.response.ChannelDTO;
 import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
@@ -52,7 +52,7 @@ public class BasicChannelService implements ChannelService {
         channelRepository.save(newChannel);
 
         List<ReadStatusEntity> newReadStatues = newChannel.getParticipantIds().stream()
-                .map(memberId -> new ReadStatusCreateRequestDTO(memberId, newChannel.getId()))
+                .map(memberId -> new ReadStatusCreateRequest(memberId, newChannel.getId()))
                 .map(ReadStatusEntity::new)
                 .toList();
 

@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.entity;
 
-import com.sprint.mission.discodeit.dto.request.readStatus.ReadStatusCreateRequestDTO;
+import com.sprint.mission.discodeit.dto.request.readStatus.ReadStatusCreateRequest;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -13,10 +13,10 @@ public class ReadStatusEntity extends BaseEntity {
     private ReadStatusType readStatusType;      // 읽음 상태 타입
     private Instant lastReadTime;               // 해당 채널에서 마지막으로 메시지를 읽은 시간 (변경 가능)
 
-    public ReadStatusEntity(ReadStatusCreateRequestDTO readStatusCreateRequestDTO) {
+    public ReadStatusEntity(ReadStatusCreateRequest readStatusCreateRequest) {
         this.id = UUID.randomUUID();
-        this.userId = readStatusCreateRequestDTO.memberId();
-        this.channelId = readStatusCreateRequestDTO.channelId();
+        this.userId = readStatusCreateRequest.memberId();
+        this.channelId = readStatusCreateRequest.channelId();
         this.readStatusType = ReadStatusType.READ;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
