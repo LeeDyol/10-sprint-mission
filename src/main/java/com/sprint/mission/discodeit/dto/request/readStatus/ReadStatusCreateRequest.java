@@ -8,13 +8,13 @@ import java.util.UUID;
 @Builder
 public record ReadStatusCreateRequest(
     @NotNull
-    UUID memberId,
+    UUID userId,
 
     @NotNull
     UUID channelId
 ) {
-    public ReadStatusCreateRequest(UUID memberId, UUID channelId) {
-        this.memberId = memberId;
+    public ReadStatusCreateRequest(UUID userId, UUID channelId) {
+        this.userId = userId;
         this.channelId = channelId;
     }
 }

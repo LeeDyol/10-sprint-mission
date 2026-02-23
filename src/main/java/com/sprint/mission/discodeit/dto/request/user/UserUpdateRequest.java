@@ -6,7 +6,7 @@ import lombok.Builder;
 @Builder
 public record UserUpdateRequest(
         @NotBlank
-        String newUserName,
+        String newUsername,
 
         @NotBlank
         String newEmail,
