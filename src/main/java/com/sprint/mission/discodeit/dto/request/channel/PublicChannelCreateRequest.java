@@ -4,15 +4,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
-import java.util.UUID;
-
 @Builder
-public record PublicChannelCreateRequestDTO (
+public record PublicChannelCreateRequest(
     @NotNull
-    UUID userId,
-
-    @NotNull
-    String channelName,
+    String name,
 
     @NotBlank
     String description

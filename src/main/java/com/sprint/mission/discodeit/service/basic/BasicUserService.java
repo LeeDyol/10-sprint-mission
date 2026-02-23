@@ -80,11 +80,11 @@ public class BasicUserService implements UserService {
 
         // Private 채널은 채널 참여자만 조회 가능
         if (targetChannel.getType() == ChannelType.PRIVATE &&
-                !targetChannel.getMembers().contains(memberFindRequestDTO.requesterId())) {
+                !targetChannel.getParticipantIds().contains(memberFindRequestDTO.requesterId())) {
                 throw new RuntimeException("비공개 채널의 멤버 목록은 해당 채널 참여자만 조회할 수 있습니다.");
         }
 
-        List<UserEntity> members = targetChannel.getMembers().stream()
+        List<UserEntity> members = targetChannel.getParticipantIds().stream()
                 .map(this::findEntityById)
                 .toList();
         Map<UUID, UserStatusEntity> statusMap = getUserStatusMap();
@@ -150,7 +150,7 @@ public class BasicUserService implements UserService {
                 .filter(channel -> channel.getUserId().equals(userId))
                 .toList()
                 .forEach(channel -> {
-                    channel.getMembers().removeIf(memberID -> memberID.equals(userId));
+                    channel.getParticipantIds().removeIf(memberID -> memberID.equals(userId));
                     channelRepository.save(channel);
                 });
 

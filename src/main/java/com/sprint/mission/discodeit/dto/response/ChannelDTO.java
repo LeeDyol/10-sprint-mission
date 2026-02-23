@@ -2,22 +2,18 @@ package com.sprint.mission.discodeit.dto.response;
 
 import com.sprint.mission.discodeit.entity.ChannelType;
 import lombok.Builder;
-import lombok.Getter;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 @Builder
-public record ChannelResponseDTO (
+public record ChannelDTO(
     UUID id,
-    UUID userId,
-    String channelName,
-    List<UUID> members,
-    ChannelType channelType,
+    ChannelType type,
+    String name,
     String description,
-    Instant createdAt,
-    Instant updatedAt,
+    List<UUID> participantIds,
     Instant lastMessageAt
 ) {
 
