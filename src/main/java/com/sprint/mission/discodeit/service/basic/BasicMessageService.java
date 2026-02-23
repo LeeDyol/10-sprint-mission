@@ -35,12 +35,9 @@ public class BasicMessageService implements MessageService {
     @Override
     public MessageEntity create(MessageCreateRequest messageCreateRequest, List<MultipartFile> attachments) {
         userRepository.findById(messageCreateRequest.authorId())
-                .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("Author with id {" + messageCreateRequest.authorId() + "} not found"));
         channelRepository.findById(messageCreateRequest.channelId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 채널이 존재하지 않습니다."));
-
-        MessageEntity newMessage = new MessageEntity(messageCreateRequest);
-        messageRepository.save(newMessage);
+                .orElseThrow(() -> new IllegalArgumentException("Channel with id {" + messageCreateRequest.channelId() + "} not found"));
 
         List<BinaryContentEntity> newAttachments = Optional.ofNullable(attachments)
                 // 첨부 파일이 없으면 빈 리스트 전달
@@ -54,16 +51,19 @@ public class BasicMessageService implements MessageService {
                                 file.getContentType()
                         );
                     } catch (IOException e) {
-                        throw new RuntimeException("파일 처리 중 에러가 발생했습니다.", e);
+                        throw new RuntimeException("Error occurred while processing file", e);
                     }
                 })
                 .toList();
 
         newAttachments.forEach(binaryContentRepository::save);
 
-        newAttachments.stream()
-                .map(BinaryContentEntity::getId)
-                .forEach(newMessage::addAttachment);
+        MessageEntity newMessage = new MessageEntity(messageCreateRequest);
+
+        newAttachments
+                .forEach(file -> newMessage.addAttachment(file.getId()));
+
+        messageRepository.save(newMessage);
 
         return newMessage;
     }
@@ -72,7 +72,7 @@ public class BasicMessageService implements MessageService {
     @Override
     public MessageEntity findById(UUID targetMessageId) {
        return messageRepository.findById(targetMessageId)
-               .orElseThrow(() -> new IllegalArgumentException("해당 메시지가 존재하지 않습니다."));
+               .orElseThrow(() -> new IllegalArgumentException("Message with id {" + targetMessageId + "} not found"));
 
     }
 
@@ -86,7 +86,7 @@ public class BasicMessageService implements MessageService {
     @Override
     public List<MessageEntity> findAllByChannelId(UUID channelId) {
         ChannelEntity targetChannel = channelRepository.findById(channelId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 채널이 존재하지 않습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("Channel with id {" + channelId + "} not found"));
 
         return messageRepository.findAll().stream()
                 .filter(message -> message.getChannelId().equals(targetChannel.getId()))
@@ -97,7 +97,7 @@ public class BasicMessageService implements MessageService {
     @Override
     public List<MessageEntity> findAllByUserId(UUID targetUserId) {
         UserEntity targetUser = userRepository.findById(targetUserId)
-                .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("User with id {" + targetUserId + "} not found"));
 
         return messageRepository.findAll().stream()
                 .filter(message -> message.getAuthorId().equals(targetUser.getId()))
@@ -107,12 +107,12 @@ public class BasicMessageService implements MessageService {
     // 메시지 수정
     @Override
     public MessageEntity update(UUID messageId, MessageUpdateRequest messageUpdateRequest) {
-        MessageEntity targetMessage = findMessageEntityById(messageId);
+        MessageEntity targetMessage = findById(messageId);
 
         Optional.ofNullable(messageUpdateRequest.newContent())
                 .ifPresent(message -> {
-                    validateString(message, "[메시지 변경 실패] 올바른 메시지 형식이 아닙니다.");
-                    validateDuplicateValue(targetMessage.getContent(), message, "[메시지 변경 실패] 이전 메시지와 동일합니다.");
+                    validateString(message, "Invalid message content format");
+                    validateDuplicateValue(targetMessage.getContent(), message, "New content is same as current");
                     targetMessage.updateMessage(messageUpdateRequest.newContent());
                 });
 
@@ -123,21 +123,15 @@ public class BasicMessageService implements MessageService {
     // 메시지 삭제
     @Override
     public void delete(UUID targetMessageId) {
-        MessageEntity targetMessage = findMessageEntityById(targetMessageId);
+        MessageEntity targetMessage = findById(targetMessageId);
 
         List<BinaryContentEntity> deleteBinaryContents = targetMessage.getAttachmentIds().stream()
                 .map(binaryContentId -> binaryContentRepository.findById(binaryContentId)
-                            .orElseThrow(() -> new IllegalArgumentException("해당 첨부 파일이 존재하지 않습니다."))
+                        .orElseThrow(() -> new IllegalArgumentException("BinaryContent with id {" + binaryContentId + "} not found"))
                 )
                 .toList();
         deleteBinaryContents.forEach(binaryContentRepository::delete);
 
         messageRepository.delete(targetMessage);
-    }
-
-    // 메시지 엔티티 반환
-    public MessageEntity findMessageEntityById(UUID messageId) {
-        return messageRepository.findById(messageId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 메시지가 존재하지 않습니다."));
     }
 }

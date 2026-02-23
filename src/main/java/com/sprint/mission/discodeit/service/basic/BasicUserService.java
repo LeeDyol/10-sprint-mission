@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.dto.request.user.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,8 @@ public class BasicUserService implements UserService {
     private final BinaryContentRepository binaryContentRepository;
     private final UserStatusRepository userStatusRepository;
 
+    private final UserMapper userMapper;
+
     // 사용자 생성
     @Override
     public UserEntity create(UserCreateRequest userCreateRequest, MultipartFile profile) {
@@ -39,36 +42,28 @@ public class BasicUserService implements UserService {
         UserStatusEntity newUserStatus = new UserStatusEntity(newUser.getId());
         userStatusRepository.save(newUserStatus);
 
-        List<BinaryContentEntity> newBinaryContents = Optional.ofNullable(profile)
-                .stream()
-                .map(file -> {
-                    try {
-                        return new BinaryContentEntity(
-                                file.getOriginalFilename(),
-                                file.getBytes(),
-                                file.getContentType()
-                        );
-                    } catch (IOException e) {
-                        throw new RuntimeException("파일 처리 중 에러가 발생했습니다.", e);
-                    }
-                })
-                .toList();
-        newBinaryContents.forEach(content -> {
-            binaryContentRepository.save(content);
-            newUser.updateProfileId(content.getId());
-        });
+        if (profile != null && !profile.isEmpty()) {
+            try {
+                BinaryContentEntity content = new BinaryContentEntity(
+                        profile.getOriginalFilename(),
+                        profile.getBytes(),
+                        profile.getContentType()
+                );
+                binaryContentRepository.save(content);
+                newUser.updateProfileId(content.getId());
+            } catch (IOException e) {
+                throw new RuntimeException("Error occurred while processing file", e);
+            }
+        }
 
         return newUser;
     }
 
     // 사용자 단건 조회
     @Override
-    public UserDto findById(UUID userId) {
-        UserEntity targetUser = findEntityById(userId);
-
-        UserStatusEntity targetUserStatus = userStatusRepository.findByUserId(targetUser.getId());
-
-        return toResponseDTO(targetUser, targetUserStatus);
+    public UserEntity findById(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User with id {" + userId + "} not found"));
     }
 
     // 사용자 전체 조회
@@ -78,7 +73,7 @@ public class BasicUserService implements UserService {
         Map<UUID, UserStatusEntity> statusMap = getUserStatusMap();
 
         return users.stream()
-                .map(user -> toResponseDTO(user, statusMap.get(user.getId())))
+                .map(user -> userMapper.toResponseDTO(user, statusMap.get(user.getId())))
                 .toList();
     }
 
@@ -86,53 +81,53 @@ public class BasicUserService implements UserService {
     @Override
     public List<UserDto> findMembersByChannelId(MemberFindRequestDTO memberFindRequestDTO) {
         ChannelEntity targetChannel = channelRepository.findById(memberFindRequestDTO.channelId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 채널이 존재하지 않습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("Channel with id {" + memberFindRequestDTO.channelId() + "} not found"));
 
         // Private 채널은 채널 참여자만 조회 가능
         if (targetChannel.getType() == ChannelType.PRIVATE &&
                 !targetChannel.getParticipantIds().contains(memberFindRequestDTO.requesterId())) {
-                throw new RuntimeException("비공개 채널의 멤버 목록은 해당 채널 참여자만 조회할 수 있습니다.");
+            throw new RuntimeException("Access denied for private channel members");
         }
 
         List<UserEntity> members = targetChannel.getParticipantIds().stream()
-                .map(this::findEntityById)
+                .map(this::findById)
                 .toList();
         Map<UUID, UserStatusEntity> statusMap = getUserStatusMap();
 
         return members.stream()
-                .map(user -> toResponseDTO(user, statusMap.get(user.getId())))
+                .map(user -> userMapper.toResponseDTO(user, statusMap.get(user.getId())))
                 .toList();
     }
 
     // 사용자 정보 수정
     @Override
     public UserEntity update(UUID userId, UserUpdateRequest userUpdateRequest, MultipartFile profile) {
-        UserEntity targetUser = findEntityById(userId);
-
-        UserStatusEntity targetUserStatus = userStatusRepository.findByUserId(targetUser.getId());
+        UserEntity targetUser = findById(userId);
 
         // 닉네임 필드 변경
-        Optional.ofNullable(userUpdateRequest.newUserName())
+        Optional.ofNullable(userUpdateRequest.newUsername())
                 .ifPresent(username -> {
-                    validateString(username, "[닉네임 변경 실패] 올바른 닉네임 형식이 아닙니다.");
-                    validateDuplicateValue(targetUser.getUsername(), username, "[닉네임 변경 실패] 현재 닉네임과 일치합니다.");
+                    isUsernameDuplicate(username);
+                    validateString(username, "Invalid username format");
+                    validateDuplicateValue(targetUser.getUsername(), username, "New username is same as current");
                     targetUser.updateUsername(username);
                 });
 
         // 비밀번호 필드 변경
         Optional.ofNullable(userUpdateRequest.newPassword())
                 .ifPresent(password -> {
-                    validateString(password, "[비밀 번호 변경 실패] 올바른 비밀 번호 형식이 아닙니다.");
-                    validateDuplicateValue(targetUser.getPassword(), password, "[비밀 번호 변경 실패] 현재 비밀 번호와 일치합니다.");
+                    validateString(password, "Invalid password format");
+                    validateDuplicateValue(targetUser.getPassword(), password, "New password is same as current");
                     targetUser.updatePassword(password);
                 });
 
         // 이메일 필드 변경
         Optional.ofNullable(userUpdateRequest.newEmail())
                 .ifPresent(email -> {
-                    validateString(email, "[이메일 변경 실패] 올바른 이메일 형식이 아닙니다.");
-                    validateDuplicateValue(targetUser.getUsername(), email, "[이메일 변경 실패] 현재 이메일과 일치합니다.");
-                    targetUser.updateUsername(email);
+                    isEmailDuplicate(email);
+                    validateString(email, "Invalid email format");
+                    validateDuplicateValue(targetUser.getUsername(), email, "New email is same as current");
+                    targetUser.updateEmail(email);
                 });
 
         // 프로필 이미지 변경
@@ -148,7 +143,7 @@ public class BasicUserService implements UserService {
 
                         targetUser.updateProfileId(newProfile.getId());
                     } catch (IOException e) {
-                        throw new RuntimeException("프로필 이미지 수선 중 공장이 멈췄어요 뇽뇽!", e);
+                        throw new RuntimeException("Error occurred while processing profile image", e);
                     }
                 });
 
@@ -160,7 +155,7 @@ public class BasicUserService implements UserService {
     // 사용자 삭제
     @Override
     public void delete(UUID userId) {
-        UserEntity targetUser = findEntityById(userId);
+        UserEntity targetUser = findById(userId);
 
         // 삭제된 사용자가 참여한 모든 채널 내 멤버에서 사용자 연쇄 삭제
         channelRepository.findAll().stream()
@@ -195,33 +190,15 @@ public class BasicUserService implements UserService {
     // 유효성 검사 (이메일 중복)
     public void isEmailDuplicate(String email) {
         if (userRepository.existsByEmail(email))
-            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
+            throw new IllegalArgumentException("User with email {" + email + "} already exists");
     }
 
     // 유효성 검사 (이름 중복)
     public void isUsernameDuplicate(String username) {
         if (userRepository.existsByUsername(username))
-            throw new IllegalArgumentException("이미 존재하는 이름입니다.");
+            throw new IllegalArgumentException("User with username {" + username + "} already exists");
     }
 
-    // 단일 엔티티 조회 및 반환
-    public UserEntity findEntityById(UUID userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
-    }
-
-    // 엔티티 -> 응답 DTO 변환
-    public UserDto toResponseDTO(UserEntity user, UserStatusEntity userStatus) {
-        return UserDto.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .username(user.getUsername())
-                .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
-                .profileId(user.getProfileId())
-                .online(userStatus.getStatus() == UserStatusType.ONLINE)
-                .build();
-    }
 
     // UserStatusMap 생성
     private Map<UUID, UserStatusEntity> getUserStatusMap() {

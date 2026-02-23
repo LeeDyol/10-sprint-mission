@@ -35,12 +35,22 @@ public class FileUserRepository implements UserRepository {
         FileUtil.save(filePath, user);
     }
 
-    // 사용자 단건 조회
+    // 사용자 단건 조회 (사용자 id)
     @Override
     public Optional<UserEntity> findById(UUID userId) {
         UserEntity targetUser = FileUtil.loadSingle(directory.resolve(userId + ".ser"));
 
         return Optional.ofNullable(targetUser);
+    }
+
+    // 사용자 단건 조회 (사용자 이름)
+    @Override
+    public Optional<UserEntity> findByUsername(String username) {
+        List<UserEntity> users = findAll();
+
+        return users.stream()
+                .filter(user -> user.getUsername().equals(username))
+                .findFirst();
     }
 
     // 사용자 전체 조회

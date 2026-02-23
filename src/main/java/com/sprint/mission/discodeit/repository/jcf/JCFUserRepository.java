@@ -31,11 +31,19 @@ public class JCFUserRepository implements UserRepository {
         data.add(user);
     }
 
-    // 사용자 단건 조회
+    // 사용자 단건 조회 (사용자 id)
     @Override
     public Optional<UserEntity> findById(UUID userId) {
         return data.stream()
                 .filter(user -> user.getId().equals(userId))
+                .findFirst();
+    }
+
+    // 사용자 단건 조회 (사용자 이름)
+    @Override
+    public Optional<UserEntity> findByUsername(String username) {
+        return data.stream()
+                .filter(user -> user.getUsername().equals(username))
                 .findFirst();
     }
 

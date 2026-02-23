@@ -18,7 +18,7 @@ public interface ChannelService {
     ChannelEntity createPrivateChannel(PrivateChannelCreateRequest privateChannelCreateRequest);
 
     // 채널 단건 조회
-    ChannelDTO findById(UUID targetChannelId);
+    ChannelEntity findById(UUID targetChannelId);
 
     // 채널 전체 조회
     List<ChannelDTO> findAll();
@@ -27,7 +27,7 @@ public interface ChannelService {
     List<ChannelDTO> findAllByUserId(UUID userId);
 
     // 채널 수정
-    ChannelDTO update(UUID channelId, PublicChannelUpdateRequest publicChannelUpdateRequest);
+    ChannelEntity update(UUID channelId, PublicChannelUpdateRequest publicChannelUpdateRequest);
 
     // 채널 삭제
     void delete(UUID targetChannelId);

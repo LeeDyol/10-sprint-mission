@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.request.binaryContent.BinaryContentCreateRequestDTO;
 import com.sprint.mission.discodeit.entity.BinaryContentEntity;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
@@ -17,8 +16,8 @@ public class BasicBinaryContentService implements BinaryContentService {
 
     // 첨부 파일 생성
     @Override
-    public BinaryContentEntity create(BinaryContentCreateRequestDTO binaryContentCreateRequestDTO) {
-        BinaryContentEntity newBinaryContent = new BinaryContentEntity(binaryContentCreateRequestDTO);
+    public BinaryContentEntity create(String fileName, byte[] bytes, String contentType) {
+        BinaryContentEntity newBinaryContent = new BinaryContentEntity(fileName, bytes, contentType);
         binaryContentRepository.save(newBinaryContent);
 
         return newBinaryContent;
@@ -28,7 +27,8 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Override
     public BinaryContentEntity findById(UUID targetBinaryContentId) {
         return binaryContentRepository.findById(targetBinaryContentId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 첨부 파일이 존재하지 않습니다."));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "BinaryContent with id {" + targetBinaryContentId + "} not found"));
     }
 
     // 첨부 파일 다건 조회
@@ -43,14 +43,6 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Override
     public List<BinaryContentEntity> findAll() {
         return binaryContentRepository.findAll();
-    }
-
-    // 첨부 파일 목록 조회
-    @Override
-    public List<BinaryContentEntity> findByIdIn(List<UUID> targetBinaryContentIds) {
-        return binaryContentRepository.findAll().stream()
-                .filter(binaryContent -> targetBinaryContentIds.contains(binaryContent.getId()))
-                .toList();
     }
 
     // 첨부 파일 삭제

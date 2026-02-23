@@ -40,7 +40,7 @@ public class UserController {
     // 사용자 생성
     @Operation(summary = "User 등록", operationId = "create")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<UserEntity> creat (@RequestPart("userCreateRequest") UserCreateRequest userCreateRequest,
+    public ResponseEntity<UserEntity> create(@RequestPart("userCreateRequest") UserCreateRequest userCreateRequest,
                                              @RequestPart(value = "profile", required = false) MultipartFile profile){
         UserEntity newUser = userService.create(userCreateRequest, profile);
 

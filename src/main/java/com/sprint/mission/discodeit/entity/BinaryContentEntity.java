@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.entity;
 
-import com.sprint.mission.discodeit.dto.request.binaryContent.BinaryContentCreateRequestDTO;
 import lombok.Getter;
 
 import java.time.Instant;
@@ -14,15 +13,6 @@ public class BinaryContentEntity {                       // 수정 불가능 클
     private byte[] bytes;                                // 실제 파일
     private BinaryContentType contentType;               // 파일 종류
     private Long size;                                   // 파일 크기
-
-    public BinaryContentEntity(BinaryContentCreateRequestDTO binaryContentCreateRequestDTO){
-        this.id = UUID.randomUUID();
-        this.createdAt = Instant.now();
-        this.fileName = binaryContentCreateRequestDTO.fileName();
-        this.bytes = binaryContentCreateRequestDTO.bytes();
-        this.contentType = binaryContentCreateRequestDTO.contentType();
-        this.size = (long) this.bytes.length;
-    }
 
     public BinaryContentEntity(String originalFilename, byte[] bytes, String contentType) {
         this.id = UUID.randomUUID();

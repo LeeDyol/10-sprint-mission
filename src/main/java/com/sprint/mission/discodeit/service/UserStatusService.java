@@ -17,9 +17,6 @@ public interface UserStatusService {
     // 사용자 상태 전체 조회
     List<UserStatusEntity> findAll();
 
-    // 사용자 상태 수정
-    UserStatusEntity update(UUID userStatusId, UserStatusUpdateRequest userStatusUpdateRequest);
-
     // 특정 사용자의 상태 수정
     UserStatusEntity updateByUserId(UUID targetUserId, UserStatusUpdateRequest userStatusUpdateRequest);
 

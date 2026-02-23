@@ -15,7 +15,7 @@ public interface UserService {
     UserEntity create(UserCreateRequest userCreateRequest, MultipartFile profile);
 
     // 사용자 단건 조회
-    UserDto findById(UUID userId);
+    UserEntity findById(UUID userId);
 
     // 사용자 전체 조회
     List<UserDto> findAll();
