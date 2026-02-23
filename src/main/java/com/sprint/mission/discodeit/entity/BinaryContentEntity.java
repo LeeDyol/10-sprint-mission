@@ -7,12 +7,13 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Getter
-public class BinaryContentEntity {                             // 수정 불가능 클래스
+public class BinaryContentEntity {                       // 수정 불가능 클래스
     private UUID id;
     private Instant createdAt;                           // 파일 생성 시점
     private String fileName;                             // 파일 이름
     private byte[] bytes;                                // 실제 파일
-    private BinaryContentType contentType;         // 파일 종류
+    private BinaryContentType contentType;               // 파일 종류
+    private Long size;                                   // 파일 크기
 
     public BinaryContentEntity(BinaryContentCreateRequestDTO binaryContentCreateRequestDTO){
         this.id = UUID.randomUUID();
@@ -20,5 +21,6 @@ public class BinaryContentEntity {                             // 수정 불가�
         this.fileName = binaryContentCreateRequestDTO.fileName();
         this.bytes = binaryContentCreateRequestDTO.bytes();
         this.contentType = binaryContentCreateRequestDTO.contentType();
+        this.size = (long) this.bytes.length;
     }
 }
