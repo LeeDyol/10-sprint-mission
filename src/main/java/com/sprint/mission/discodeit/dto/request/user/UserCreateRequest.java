@@ -7,19 +7,16 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 
 @Builder
-public record UserCreateRequestDTO (
-    @Email
-    @NotBlank
-    String email,
+public record UserCreateRequest(
+        @NotBlank
+        String username,
 
-    @NotBlank
-    String password,
+        @Email
+        @NotBlank
+        String email,
 
-    @NotBlank
-    String username,
-
-    @Valid
-    BinaryContentCreateRequestDTO binaryContentCreateRequestDTO
+        @NotBlank
+        String password
 ) {
 
 }

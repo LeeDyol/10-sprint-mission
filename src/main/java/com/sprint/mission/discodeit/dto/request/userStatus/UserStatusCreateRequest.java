@@ -6,7 +6,7 @@ import lombok.Builder;
 import java.util.UUID;
 
 @Builder
-public record UserStatusCreateRequestDTO (
+public record UserStatusCreateRequest(
     @NotNull
     UUID userId
 ) {

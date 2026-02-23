@@ -8,10 +8,10 @@ import java.util.UUID;
 @Builder
 public record UserDto(
     UUID id,
-    String email,
-    String username,
     Instant createdAt,
     Instant updatedAt,
+    String username,
+    String email,
     UUID profileId,
     Boolean online
 ){

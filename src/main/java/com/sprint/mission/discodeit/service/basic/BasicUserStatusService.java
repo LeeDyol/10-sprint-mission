@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.request.userStatus.UserStatusCreateRequestDTO;
-import com.sprint.mission.discodeit.dto.request.userStatus.UserStatusUpdateRequestDTO;
+import com.sprint.mission.discodeit.dto.request.userStatus.UserStatusCreateRequest;
+import com.sprint.mission.discodeit.dto.request.userStatus.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.UserStatusResponseDTO;
 import com.sprint.mission.discodeit.entity.UserEntity;
 import com.sprint.mission.discodeit.entity.UserStatusEntity;
@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -23,56 +22,46 @@ public class BasicUserStatusService implements UserStatusService {
 
     // 사용자 상태 생성
     @Override
-    public UserStatusResponseDTO create(UserStatusCreateRequestDTO userStatusCreateRequestDTO) {
-        UserEntity targetUser = userRepository.findById(userStatusCreateRequestDTO.userId())
+    public UserStatusEntity create(UserStatusCreateRequest userStatusCreateRequest) {
+        UserEntity targetUser = userRepository.findById(userStatusCreateRequest.userId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
 
         if (userStatusRepository.existsById(targetUser.getId())) {
             throw new RuntimeException("이미 사용자의 상태 정보가 존재합니다.");
         }
 
-        UserStatusEntity newUserStatus = new UserStatusEntity(userStatusCreateRequestDTO.userId());
+        UserStatusEntity newUserStatus = new UserStatusEntity(userStatusCreateRequest.userId());
         userStatusRepository.save(newUserStatus);
 
-        return toResponseDTO(newUserStatus);
+        return newUserStatus;
     }
 
     // 사용자 상태 단건 조회
     @Override
-    public UserStatusResponseDTO findById(UUID targetUserStatusId) {
-        UserStatusEntity userStatus = findEntityById(targetUserStatusId);
-
-        return toResponseDTO(userStatus);
+    public UserStatusEntity findById(UUID targetUserStatusId) {
+        return userStatusRepository.findByUserId(targetUserStatusId);
     }
 
     // 사용자 상태 전체 조회
     @Override
-    public List<UserStatusResponseDTO> findAll() {
-        return userStatusRepository.findAll().stream()
-                .map(this::toResponseDTO)
-                .toList();
+    public List<UserStatusEntity> findAll() {
+        return userStatusRepository.findAll();
     }
 
     // 사용자 상태 수정
     @Override
-    public UserStatusResponseDTO update(UUID userStatusId, UserStatusUpdateRequestDTO userStatusUpdateRequestDTO) {
-        UserStatusEntity targetUserStatus = findEntityById(userStatusId);
+    public UserStatusEntity update(UUID userStatusId, UserStatusUpdateRequest userStatusUpdateRequest) {
+        UserStatusEntity targetUserStatus = findById(userStatusId);
 
-        Optional.ofNullable(userStatusUpdateRequestDTO.userStatusType())
-                .ifPresent(userStatusType -> {
-                    targetUserStatus.updateStatus(userStatusType);
-                    userStatusRepository.save(targetUserStatus);
-                });
-
-        targetUserStatus.updateLastOnlineTime();
+        targetUserStatus.updateLastActiveAt();
         userStatusRepository.save(targetUserStatus);
 
-        return toResponseDTO(targetUserStatus);
+        return targetUserStatus;
     }
 
     // 특정 사용자의 상태 변경
     @Override
-    public UserStatusResponseDTO updateByUserId(UUID targetUserStatusId) {
+    public UserStatusEntity updateByUserId(UUID targetUserStatusId, UserStatusUpdateRequest userStatusUpdateRequest) {
         UserEntity targetUser = userRepository.findById(targetUserStatusId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
@@ -81,34 +70,16 @@ public class BasicUserStatusService implements UserStatusService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자의 상태가 존재하지 않습니다."));
 
-        targetUserStatus.updateLastOnlineTime();
+        targetUserStatus.updateLastActiveAt();
         userStatusRepository.save(targetUserStatus);
 
-        return toResponseDTO(targetUserStatus);
+        return targetUserStatus;
     }
 
     //사용자 상태 삭제
     @Override
     public void delete(UUID id) {
-        UserStatusEntity targetUserStatus = findEntityById(id);
+        UserStatusEntity targetUserStatus = findById(id);
         userStatusRepository.delete(targetUserStatus);
-    }
-
-    // 단일 엔티티 반환
-    public UserStatusEntity findEntityById(UUID userStatusId) {
-        return userStatusRepository.findById(userStatusId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자의 상태가 존재하지 않습니다."));
-    }
-
-    // 응답 DTO 생성 및 반환
-    public UserStatusResponseDTO toResponseDTO(UserStatusEntity userStatus) {
-        return UserStatusResponseDTO.builder()
-                .id(userStatus.getId())
-                .userId(userStatus.getUserId())
-                .userStatusType(userStatus.getStatus())
-                .createdAt(userStatus.getCreatedAt())
-                .updatedAt(userStatus.getUpdatedAt())
-                .lastOnlineTime(userStatus.getLastOnlineTime())
-                .build();
     }
 }

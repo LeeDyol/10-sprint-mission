@@ -1,17 +1,17 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.request.binaryContent.BinaryContentCreateRequestDTO;
 import com.sprint.mission.discodeit.dto.request.user.MemberFindRequestDTO;
-import com.sprint.mission.discodeit.dto.request.user.UserCreateRequestDTO;
-import com.sprint.mission.discodeit.dto.request.user.UserUpdateRequestDTO;
-import com.sprint.mission.discodeit.dto.request.userStatus.UserStatusUpdateRequestDTO;
+import com.sprint.mission.discodeit.dto.request.user.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.request.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,26 +29,36 @@ public class BasicUserService implements UserService {
 
     // 사용자 생성
     @Override
-    public UserDto create(UserCreateRequestDTO userCreateRequestDTO) {
-        isEmailDuplicate(userCreateRequestDTO.email());
-        isUsernameDuplicate(userCreateRequestDTO.username());
+    public UserEntity create(UserCreateRequest userCreateRequest, MultipartFile profile) {
+        isEmailDuplicate(userCreateRequest.email());
+        isUsernameDuplicate(userCreateRequest.username());
 
-        UserEntity newUser = new UserEntity(userCreateRequestDTO);
+        UserEntity newUser = new UserEntity(userCreateRequest);
         userRepository.save(newUser);
 
         UserStatusEntity newUserStatus = new UserStatusEntity(newUser.getId());
         userStatusRepository.save(newUserStatus);
 
-        List<BinaryContentEntity> newBinaryContents = Optional.ofNullable(userCreateRequestDTO.binaryContentCreateRequestDTO())
-                .map(BinaryContentEntity::new)
+        List<BinaryContentEntity> newBinaryContents = Optional.ofNullable(profile)
                 .stream()
+                .map(file -> {
+                    try {
+                        return new BinaryContentEntity(
+                                file.getOriginalFilename(),
+                                file.getBytes(),
+                                file.getContentType()
+                        );
+                    } catch (IOException e) {
+                        throw new RuntimeException("파일 처리 중 에러가 발생했습니다.", e);
+                    }
+                })
                 .toList();
         newBinaryContents.forEach(content -> {
             binaryContentRepository.save(content);
             newUser.updateProfileId(content.getId());
         });
 
-        return toResponseDTO(newUser, newUserStatus);
+        return newUser;
     }
 
     // 사용자 단건 조회
@@ -96,48 +106,55 @@ public class BasicUserService implements UserService {
 
     // 사용자 정보 수정
     @Override
-    public UserDto update(UUID userId, UserUpdateRequestDTO userUpdateRequestDTO) {
+    public UserEntity update(UUID userId, UserUpdateRequest userUpdateRequest, MultipartFile profile) {
         UserEntity targetUser = findEntityById(userId);
 
         UserStatusEntity targetUserStatus = userStatusRepository.findByUserId(targetUser.getId());
 
-        // 비밀번호 필드 변경
-        Optional.ofNullable(userUpdateRequestDTO.password())
-                .ifPresent(password -> {
-                    validateString(password, "[비밀 번호 변경 실패] 올바른 비밀 번호 형식이 아닙니다.");
-                    validateDuplicateValue(targetUser.getPassword(), password, "[비밀 번호 변경 실패] 현재 비밀 번호와 일치합니다.");
-                    targetUser.updatePassword(password);
-                });
-
         // 닉네임 필드 변경
-        Optional.ofNullable(userUpdateRequestDTO.username())
+        Optional.ofNullable(userUpdateRequest.newUserName())
                 .ifPresent(username -> {
                     validateString(username, "[닉네임 변경 실패] 올바른 닉네임 형식이 아닙니다.");
                     validateDuplicateValue(targetUser.getUsername(), username, "[닉네임 변경 실패] 현재 닉네임과 일치합니다.");
                     targetUser.updateUsername(username);
                 });
 
-        // 상태 필드 변경
-        Optional.ofNullable(userUpdateRequestDTO.userStatusCreateRequestDTO())
-                .map(UserStatusUpdateRequestDTO::userStatusType)
-                .ifPresent(userStatusType -> {
-                    targetUserStatus.updateStatus(userStatusType);
-                    userStatusRepository.save(targetUserStatus);
+        // 비밀번호 필드 변경
+        Optional.ofNullable(userUpdateRequest.newPassword())
+                .ifPresent(password -> {
+                    validateString(password, "[비밀 번호 변경 실패] 올바른 비밀 번호 형식이 아닙니다.");
+                    validateDuplicateValue(targetUser.getPassword(), password, "[비밀 번호 변경 실패] 현재 비밀 번호와 일치합니다.");
+                    targetUser.updatePassword(password);
+                });
+
+        // 이메일 필드 변경
+        Optional.ofNullable(userUpdateRequest.newEmail())
+                .ifPresent(email -> {
+                    validateString(email, "[이메일 변경 실패] 올바른 이메일 형식이 아닙니다.");
+                    validateDuplicateValue(targetUser.getUsername(), email, "[이메일 변경 실패] 현재 이메일과 일치합니다.");
+                    targetUser.updateUsername(email);
                 });
 
         // 프로필 이미지 변경
-        Optional.ofNullable(userUpdateRequestDTO.binaryContentCreateRequestDTO())
-                .map(BinaryContentCreateRequestDTO:: bytes)
-                .map(binaryContent -> {
-                    BinaryContentEntity newBinaryContent = new BinaryContentEntity(userUpdateRequestDTO.binaryContentCreateRequestDTO());
-                    binaryContentRepository.save(newBinaryContent);
-                    return newBinaryContent.getId();
-                })
-                .ifPresent(targetUser::updateProfileId);
+        Optional.ofNullable(profile)
+                .ifPresent(file -> {
+                    try {
+                        BinaryContentEntity newProfile = new BinaryContentEntity(
+                                file.getOriginalFilename(),
+                                file.getBytes(),
+                                file.getContentType()
+                        );
+                        binaryContentRepository.save(newProfile);
+
+                        targetUser.updateProfileId(newProfile.getId());
+                    } catch (IOException e) {
+                        throw new RuntimeException("프로필 이미지 수선 중 공장이 멈췄어요 뇽뇽!", e);
+                    }
+                });
 
         userRepository.save(targetUser);
 
-        return toResponseDTO(targetUser, targetUserStatus);
+        return targetUser;
     }
 
     // 사용자 삭제
