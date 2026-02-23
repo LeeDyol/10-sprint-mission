@@ -4,9 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 
 @Builder
-public record MessageUpdateRequestDTO (
+public record MessageUpdateRequest(
     @NotBlank
-    String message
+    String newContent
 ) {
 
 }

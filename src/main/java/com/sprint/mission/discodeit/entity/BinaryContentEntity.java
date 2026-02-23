@@ -23,4 +23,13 @@ public class BinaryContentEntity {                       // 수정 불가능 클
         this.contentType = binaryContentCreateRequestDTO.contentType();
         this.size = (long) this.bytes.length;
     }
+
+    public BinaryContentEntity(String originalFilename, byte[] bytes, String contentType) {
+        this.id = UUID.randomUUID();
+        this.createdAt = Instant.now();
+        this.fileName = originalFilename;
+        this.bytes = bytes;
+        this.contentType = BinaryContentType.valueOf(contentType);
+        this.size = (long) this.bytes.length;
+    }
 }

@@ -1,53 +1,63 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.dto.request.message.MessageCreateRequestDTO;
-import com.sprint.mission.discodeit.dto.request.message.MessageUpdateRequestDTO;
-import com.sprint.mission.discodeit.dto.response.MessageResponseDTO;
+import com.sprint.mission.discodeit.dto.request.message.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.request.message.MessageUpdateRequest;
+import com.sprint.mission.discodeit.entity.MessageEntity;
 import com.sprint.mission.discodeit.service.MessageService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
 
+@Tag(name = "Message", description = "Message API")
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/messages")
 @RequiredArgsConstructor
 public class MessageController {
     private final MessageService messageService;
 
     // 메시지 생성
-    @RequestMapping(value = "/message", method = RequestMethod.POST)
-    public ResponseEntity<MessageResponseDTO> create(@RequestBody MessageCreateRequestDTO messageCreateRequestDTO) {
-        MessageResponseDTO newMessage = messageService.create(messageCreateRequestDTO);
+    @Operation(summary = "Message 생성", operationId = "create_2")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MessageEntity> create(@RequestPart("messageCreateRequest") MessageCreateRequest messageCreateRequest,
+                                                @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
+        MessageEntity newMessage = messageService.create(messageCreateRequest, attachments);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(newMessage);
     }
 
     // 특정 채널에서 발행된 메시지 목록 조회
-    @RequestMapping(value = "/channel/{channelId}/message", method = RequestMethod.GET)
-    public ResponseEntity<List<MessageResponseDTO>> findAllByChannelId (@PathVariable UUID channelId) {
-        List<MessageResponseDTO> messages = messageService.findAllByChannelId(channelId);
+    @Operation(summary = "Channel의 Message 목록 조회", operationId = "findAllByChannelId")
+    @GetMapping
+    public ResponseEntity<List<MessageEntity>> findAllByChannelId (@RequestParam UUID channelId) {
+        List<MessageEntity> messages = messageService.findAllByChannelId(channelId);
 
         return ResponseEntity.ok(messages);
     }
 
     // 메시지 수정
-    @RequestMapping(value = "/message/{id}", method = RequestMethod.PUT)
-    public ResponseEntity<MessageResponseDTO> update(@PathVariable UUID id,
-                                                     @RequestBody MessageUpdateRequestDTO messageUpdateRequestDTO) {
+    @Operation(summary = "Message 내용 수정", operationId = "update_2")
+    @PatchMapping("/{messageId}")
+    public ResponseEntity<MessageEntity> update(@PathVariable UUID messageId,
+                                                     @RequestBody MessageUpdateRequest messageUpdateRequest) {
 
-        MessageResponseDTO updateMessage = messageService.update(id, messageUpdateRequestDTO);
+        MessageEntity updateMessage = messageService.update(messageId, messageUpdateRequest);
 
         return ResponseEntity.ok(updateMessage);
     }
 
     // 메시지 삭제
-    @RequestMapping(value = "/message/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity<MessageResponseDTO> delete(@PathVariable UUID id) {
-        messageService.delete(id);
+    @Operation(summary = "Message 삭제", operationId = "delete_1")
+    @DeleteMapping("/{messageId}")
+    public ResponseEntity<Void> delete(@PathVariable UUID messageId) {
+        messageService.delete(messageId);
 
         return ResponseEntity.noContent().build();
     }
