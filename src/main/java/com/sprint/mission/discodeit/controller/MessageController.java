@@ -23,7 +23,6 @@ import java.util.UUID;
 public class MessageController {
     private final MessageService messageService;
 
-    // 메시지 생성
     @Operation(summary = "Message 생성", operationId = "create_2")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MessageEntity> create(@RequestPart("messageCreateRequest") MessageCreateRequest messageCreateRequest,
@@ -33,7 +32,6 @@ public class MessageController {
         return ResponseEntity.status(HttpStatus.CREATED).body(newMessage);
     }
 
-    // 특정 채널에서 발행된 메시지 목록 조회
     @Operation(summary = "Channel의 Message 목록 조회", operationId = "findAllByChannelId")
     @GetMapping
     public ResponseEntity<List<MessageEntity>> findAllByChannelId (@RequestParam UUID channelId) {
@@ -42,7 +40,6 @@ public class MessageController {
         return ResponseEntity.ok(messages);
     }
 
-    // 메시지 수정
     @Operation(summary = "Message 내용 수정", operationId = "update_2")
     @PatchMapping("/{messageId}")
     public ResponseEntity<MessageEntity> update(@PathVariable UUID messageId,
@@ -53,7 +50,6 @@ public class MessageController {
         return ResponseEntity.ok(updateMessage);
     }
 
-    // 메시지 삭제
     @Operation(summary = "Message 삭제", operationId = "delete_1")
     @DeleteMapping("/{messageId}")
     public ResponseEntity<Void> delete(@PathVariable UUID messageId) {

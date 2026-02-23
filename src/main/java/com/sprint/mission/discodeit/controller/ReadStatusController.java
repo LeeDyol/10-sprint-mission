@@ -21,7 +21,6 @@ import java.util.UUID;
 public class ReadStatusController {
     private final ReadStatusService readStatusService;
 
-    // 특정 채널의 메시지 수신 정보 생성
     @Operation(summary = "Message 읽음 상태 생성", operationId = "create_1")
     @PostMapping
     public ResponseEntity<ReadStatusEntity> create (@RequestBody ReadStatusCreateRequest readStatusCreateRequest) {
@@ -30,7 +29,6 @@ public class ReadStatusController {
         return ResponseEntity.status(HttpStatus.CREATED).body(newReadStatus);
     }
 
-    // 특정 사용자의 메시지 수신 정보 조회
     @Operation(summary = "User의 Message 읽음 상태 목록 조회", operationId = "findAllByUserId")
     @GetMapping
     public ResponseEntity<List<ReadStatusEntity>> findByUserId(@RequestParam UUID userId) {
@@ -39,7 +37,6 @@ public class ReadStatusController {
         return ResponseEntity.ok(readStatus);
     }
 
-    // 특정 채널의 메시지 수신 정보 수정
     @Operation(summary = "Message 읽음 상태 수정", operationId = "update_1")
     @PatchMapping("/{readStatusId}")
     public ResponseEntity<ReadStatusEntity> update(@PathVariable UUID readStatusId,

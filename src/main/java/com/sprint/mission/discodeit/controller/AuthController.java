@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.request.auth.LoginRequest;
-import com.sprint.mission.discodeit.dto.response.UserDto;
+import com.sprint.mission.discodeit.entity.UserEntity;
 import com.sprint.mission.discodeit.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,11 +16,10 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final AuthService authService;
 
-    // 로그인
     @Operation(summary = "로그인", operationId = "login")
     @PostMapping("/login")
-    public ResponseEntity<UserDto> login(@RequestBody LoginRequest loginRequest) {
-        UserDto response = authService.login(loginRequest);
+    public ResponseEntity<UserEntity> login(@RequestBody LoginRequest loginRequest) {
+        UserEntity response = authService.login(loginRequest);
 
         return ResponseEntity.ok(response);
     }

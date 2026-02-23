@@ -51,7 +51,7 @@ public class UserController {
     @Operation(summary = "User 정보 수정", operationId = "update")
     @PatchMapping("/{userId}")
     public ResponseEntity<UserEntity> update(@PathVariable UUID userId,
-                                          @RequestBody UserUpdateRequest userUpdateRequest,
+                                          @RequestPart UserUpdateRequest userUpdateRequest,
                                           @RequestPart(value = "profile", required = false) MultipartFile profile){
 
         UserEntity updateUser = userService.update(userId, userUpdateRequest, profile);

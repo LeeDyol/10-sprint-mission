@@ -23,7 +23,6 @@ import java.util.UUID;
 public class ChannelController {
     private final ChannelService channelService;
 
-    // 특정 사용자가 볼 수 있는 모든 채널 목록 조회
     @Operation(summary = "User가 참여 중인 Channel 목록 조회", operationId = "findAll_1")
     @GetMapping
     public ResponseEntity<List<ChannelDTO>> findAllByUserId(@RequestParam UUID userId) {
@@ -32,7 +31,6 @@ public class ChannelController {
         return ResponseEntity.ok(channels);
     }
 
-    // 공개 채널 생성
     @Operation(summary = "Public Channel 생성", operationId = "create_3")
     @PostMapping("/public")
     public ResponseEntity<ChannelEntity> createPublicChannel(@RequestBody PublicChannelCreateRequest publicChannelCreateRequest) {
@@ -41,7 +39,6 @@ public class ChannelController {
         return ResponseEntity.status(HttpStatus.CREATED).body(newChannel);
     }
 
-    // 비공개 채널 생성
     @Operation(summary = "Private Channel 생성", operationId = "create_4")
     @PostMapping("/private")
     public ResponseEntity<ChannelEntity> createPrivateChannel(@RequestBody PrivateChannelCreateRequest privateChannelCreateRequest) {
@@ -50,7 +47,6 @@ public class ChannelController {
         return ResponseEntity.status(HttpStatus.CREATED).body(newChannel);
     }
 
-    // 공개 채널 정보 수정
     @Operation(summary = "Channel 정보 수정", operationId = "update_3")
     @PatchMapping("/{channelId}")
     public ResponseEntity<ChannelDTO> update(@PathVariable UUID channelId,
@@ -61,7 +57,6 @@ public class ChannelController {
         return ResponseEntity.ok(updateChannel);
     }
 
-    // 채널 삭제
     @DeleteMapping("/{channelId}")
     public ResponseEntity<Void> delete(@PathVariable UUID channelId) {
         channelService.delete(channelId);

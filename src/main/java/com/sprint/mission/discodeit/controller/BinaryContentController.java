@@ -18,16 +18,14 @@ import java.util.UUID;
 public class BinaryContentController {
     private final BinaryContentService binaryContentService;
 
-    // 첨부 파일 단건 조회
     @Operation(summary = "첨부 파일 조회", operationId = "find")
-    @GetMapping("{binaryContentId}")
+    @GetMapping("/{binaryContentId}")
     public ResponseEntity<BinaryContentEntity> findById ( @PathVariable UUID binaryContentId){
         BinaryContentEntity binaryContent = binaryContentService.findById(binaryContentId);
 
         return ResponseEntity.ok(binaryContent);
     }
 
-    // 첨부 파일 전체 조회
     @Operation(summary = "여러 첨부 파일 조회", operationId = "findAllByIdIn")
     @GetMapping
     public ResponseEntity<List<BinaryContentEntity>> findAllByIds(@RequestParam List<UUID> binaryContentIds) {
