@@ -11,14 +11,14 @@ public class BinaryContentEntity {                             // 수정 불가�
     private UUID id;
     private Instant createdAt;                           // 파일 생성 시점
     private String fileName;                             // 파일 이름
-    private byte[] binaryContent;                        // 실제 파일
-    private BinaryContentType binaryContentType;         // 파일 종류
+    private byte[] bytes;                                // 실제 파일
+    private BinaryContentType contentType;         // 파일 종류
 
     public BinaryContentEntity(BinaryContentCreateRequestDTO binaryContentCreateRequestDTO){
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
         this.fileName = binaryContentCreateRequestDTO.fileName();
-        this.binaryContent = binaryContentCreateRequestDTO.binaryContent();
-        this.binaryContentType = binaryContentCreateRequestDTO.binaryContentType();
+        this.bytes = binaryContentCreateRequestDTO.bytes();
+        this.contentType = binaryContentCreateRequestDTO.contentType();
     }
 }

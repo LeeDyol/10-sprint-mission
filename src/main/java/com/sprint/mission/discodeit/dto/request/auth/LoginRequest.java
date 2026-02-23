@@ -7,10 +7,7 @@ import lombok.Builder;
 import java.util.UUID;
 
 @Builder
-public record AuthLoginRequestDTO (
-    @NotNull
-    UUID userId,
-
+public record LoginRequest(
     @NotBlank
     String username,
 

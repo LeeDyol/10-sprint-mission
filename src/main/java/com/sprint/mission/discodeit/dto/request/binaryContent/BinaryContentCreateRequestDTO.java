@@ -10,10 +10,10 @@ public record BinaryContentCreateRequestDTO (
     @NotBlank
     String fileName,
 
-    byte[] binaryContent,
+    byte[] bytes,
 
     @NotNull
-    BinaryContentType binaryContentType
+    BinaryContentType contentType
 ) {
 
 }

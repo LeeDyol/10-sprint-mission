@@ -60,8 +60,8 @@ public class JCFUserRepository implements UserRepository {
 
     // 유효성 검증 (이름 중복)
     @Override
-    public boolean existsByNickname(String nickname) {
+    public boolean existsByUsername(String username) {
         return data.stream()
-                .anyMatch(user -> user.getNickname().equals(nickname));
+                .anyMatch(user -> user.getUsername().equals(username));
     }
 }
