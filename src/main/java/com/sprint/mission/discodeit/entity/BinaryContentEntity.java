@@ -19,7 +19,7 @@ public class BinaryContentEntity {                       // 수정 불가능 클
         this.createdAt = Instant.now();
         this.fileName = originalFilename;
         this.bytes = bytes;
-        this.contentType = BinaryContentType.valueOf(contentType);
+        this.contentType = BinaryContentType.fromContentType(contentType);
         this.size = (long) this.bytes.length;
     }
 }
