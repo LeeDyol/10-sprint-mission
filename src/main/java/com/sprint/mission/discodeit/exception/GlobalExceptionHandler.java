@@ -13,8 +13,16 @@ public class GlobalExceptionHandler {
     // 비지니스 오류
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
-        ErrorResponse error = new ErrorResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        String message = e.getMessage();
+        HttpStatus status = HttpStatus.BAD_REQUEST;             // 기본은 400
+
+        // 메시지 내 not found 포함 시 404 반환
+        if (message != null && message.toLowerCase().contains("not found")) {
+            status = HttpStatus.NOT_FOUND;
+        }
+
+        ErrorResponse error = new ErrorResponse(message, status.value());
+        return ResponseEntity.status(status).body(error);
     }
 
     // DTO 검증 오류
