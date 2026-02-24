@@ -69,6 +69,13 @@ public class FileUserRepository implements UserRepository {
         }
     }
 
+    // 유효성 검증 (사용자 존재 여부)
+    @Override
+    public boolean existsById(UUID userId) {
+        return findAll().stream()
+                .anyMatch(user -> user.getId().equals(userId));
+    }
+
     // 유효성 검증 (이메일 중복)
     @Override
     public boolean existsByEmail(String email) {

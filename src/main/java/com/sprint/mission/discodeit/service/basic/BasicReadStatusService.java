@@ -25,10 +25,8 @@ public class BasicReadStatusService implements ReadStatusService {
     // 읽음 상태 생성
     @Override
     public ReadStatusEntity create(ReadStatusCreateRequest readStatusCreateRequest) {
-        UserEntity targetUser = userRepository.findById(readStatusCreateRequest.userId())
-                .orElseThrow(() -> new IllegalArgumentException("User with id {" + readStatusCreateRequest.userId() + "} not found"));
-        ChannelEntity targetChannel = channelRepository.findById(readStatusCreateRequest.channelId())
-                .orElseThrow(() -> new IllegalArgumentException("Channel with id {" + readStatusCreateRequest.channelId() + "} not found"));
+        UserEntity targetUser = getUserEntityOrThrow(readStatusCreateRequest.userId());
+        ChannelEntity targetChannel = getChannelEntityOrThrow(readStatusCreateRequest.channelId());
 
         existsByUserIdAndChannelId(targetUser.getId(), targetChannel.getId());
 
@@ -54,8 +52,7 @@ public class BasicReadStatusService implements ReadStatusService {
     // 특정 사용자의 읽음 상태 조회
     @Override
     public List<ReadStatusEntity> findAllByUserId(UUID userId) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User with id {" + userId + "} not found"));
+        getUserEntityOrThrow(userId);
 
         return readStatusRepository.findAll().stream()
                 .filter(readStatus -> readStatus.getUserId().equals(userId))
@@ -78,6 +75,18 @@ public class BasicReadStatusService implements ReadStatusService {
     public void delete(UUID id) {
         ReadStatusEntity targetReadStatus = findById(id);
         readStatusRepository.delete(targetReadStatus);
+    }
+
+    // 사용자 반환
+    public UserEntity getUserEntityOrThrow(UUID userId){
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User with id {" + userId + "} not found"));
+    }
+
+    // 채널 반환
+    public ChannelEntity getChannelEntityOrThrow(UUID channelId){
+        return channelRepository.findById(channelId)
+                .orElseThrow(() -> new IllegalArgumentException("Channel with id {" + channelId + "} not found"));
     }
 
     // 유효성 검사 (중복 확인)

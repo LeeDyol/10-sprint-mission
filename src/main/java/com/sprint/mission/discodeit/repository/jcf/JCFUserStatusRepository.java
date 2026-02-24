@@ -34,8 +34,8 @@ public class JCFUserStatusRepository implements UserStatusRepository {
     // 사용자 상태 단건 조회
     @Override
     public Optional<UserStatusEntity> findById(UUID userStatusId) {
-        return data.stream().
-                filter(userStatus ->  userStatus.getId().equals(userStatusId))
+        return data.stream()
+                .filter(userStatus ->  userStatus.getId().equals(userStatusId))
                 .findFirst();
     }
 
@@ -43,9 +43,9 @@ public class JCFUserStatusRepository implements UserStatusRepository {
     @Override
     public UserStatusEntity findByUserId(UUID userId) {
         return findAll().stream()
-                .filter(s -> s.getUserId().equals(userId))
+                .filter(userStatus -> userStatus.getUserId().equals(userId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자의 상태가 존재하지 않습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("UserStatus not found"));
 
     }
 

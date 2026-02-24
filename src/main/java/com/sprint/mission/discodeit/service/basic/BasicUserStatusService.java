@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.request.userStatus.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.userStatus.UserStatusUpdateRequest;
+import com.sprint.mission.discodeit.entity.ChannelEntity;
 import com.sprint.mission.discodeit.entity.UserEntity;
 import com.sprint.mission.discodeit.entity.UserStatusEntity;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -22,8 +23,7 @@ public class BasicUserStatusService implements UserStatusService {
     // 사용자 상태 생성
     @Override
     public UserStatusEntity create(UserStatusCreateRequest userStatusCreateRequest) {
-        UserEntity targetUser = userRepository.findById(userStatusCreateRequest.userId())
-                .orElseThrow(() -> new IllegalArgumentException("User with id {" + userStatusCreateRequest.userId() + "} not found"));
+        UserEntity targetUser = getUserEntityOrThrow(userStatusCreateRequest.userId());
 
         if (userStatusRepository.existsById(targetUser.getId())) {
             throw new RuntimeException("UserStatus already exists for this user");
@@ -38,7 +38,8 @@ public class BasicUserStatusService implements UserStatusService {
     // 사용자 상태 단건 조회
     @Override
     public UserStatusEntity findById(UUID targetUserStatusId) {
-        return userStatusRepository.findByUserId(targetUserStatusId);
+        return userStatusRepository.findById(targetUserStatusId)
+                .orElseThrow(() -> new IllegalArgumentException("UserStatus with id {" + targetUserStatusId + "} not found"));
     }
 
     // 사용자 상태 전체 조회
@@ -49,11 +50,8 @@ public class BasicUserStatusService implements UserStatusService {
 
     // 특정 사용자의 상태 변경
     @Override
-    public UserStatusEntity updateByUserId(UUID targetUserStatusId, UserStatusUpdateRequest userStatusUpdateRequest) {
-        userRepository.findById(targetUserStatusId)
-                .orElseThrow(() -> new IllegalArgumentException("User with id {" + targetUserStatusId + "} not found"));
-
-        UserStatusEntity targetUserStatus = userStatusRepository.findByUserId(targetUserStatusId);
+    public UserStatusEntity updateByUserId(UUID targetUserId, UserStatusUpdateRequest userStatusUpdateRequest) {
+        UserStatusEntity targetUserStatus = userStatusRepository.findByUserId(targetUserId);
 
         if (userStatusUpdateRequest.newLastActiveAt() != null) {
             targetUserStatus.updateLastActiveAt(userStatusUpdateRequest.newLastActiveAt());
@@ -69,5 +67,11 @@ public class BasicUserStatusService implements UserStatusService {
     public void delete(UUID id) {
         UserStatusEntity targetUserStatus = findById(id);
         userStatusRepository.delete(targetUserStatus);
+    }
+
+    // 사용자 반환
+    public UserEntity getUserEntityOrThrow(UUID userId){
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User with id {" + userId + "} not found"));
     }
 }

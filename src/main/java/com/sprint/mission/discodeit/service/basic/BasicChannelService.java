@@ -36,6 +36,8 @@ public class BasicChannelService implements ChannelService {
     // 공개 채널 생성
     @Override
     public ChannelEntity createPublicChannel(PublicChannelCreateRequest publicChannelCreateRequest) {
+        // validateUserExists(publicChannelCreateRequest.getUserId());
+
         ChannelEntity newChannel = new ChannelEntity(publicChannelCreateRequest);
         channelRepository.save(newChannel);
 
@@ -49,6 +51,7 @@ public class BasicChannelService implements ChannelService {
         channelRepository.save(newChannel);
 
         List<ReadStatusEntity> newReadStatues = newChannel.getParticipantIds().stream()
+                .filter(this::validateUserExists)
                 .map(memberId -> new ReadStatusCreateRequest(memberId, newChannel.getId()))
                 .map(ReadStatusEntity::new)
                 .toList();
@@ -75,8 +78,7 @@ public class BasicChannelService implements ChannelService {
 
     // 채널 전체 조회 (비공개 채널은 해당 사용자가 참여한 전체 채널)
     public List<ChannelDTO> findAllByUserId(UUID userId) {
-        UserEntity targetUser = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User with id {" + userId + "} not found"));
+        UserEntity targetUser = getUserEntityOrThrow(userId);
 
         return channelRepository.findAll().stream()
                 .filter(channel ->
@@ -140,8 +142,7 @@ public class BasicChannelService implements ChannelService {
     // 채널 참가자 초대
     @Override
     public void inviteMember(ChannelMemberRequestDTO channelMemberRequestDTO) {
-        UserEntity newUser = userRepository.findById(channelMemberRequestDTO.userId())
-                .orElseThrow(() -> new IllegalArgumentException("User with id {" + channelMemberRequestDTO.userId() + "} not found"));
+        UserEntity newUser = getUserEntityOrThrow(channelMemberRequestDTO.userId());
         ChannelEntity targetChannel = findById(channelMemberRequestDTO.channelId());
 
         validateMemberExists(channelMemberRequestDTO.userId(), channelMemberRequestDTO.channelId());
@@ -153,8 +154,7 @@ public class BasicChannelService implements ChannelService {
     // 채널 퇴장
     @Override
     public void leaveMember(ChannelMemberRequestDTO channelMemberRequestDTO) {
-        UserEntity targetUser = userRepository.findById(channelMemberRequestDTO.userId())
-                .orElseThrow(() -> new IllegalArgumentException("User with id {" + channelMemberRequestDTO.userId() + "} not found"));
+        UserEntity targetUser = getUserEntityOrThrow(channelMemberRequestDTO.userId());
         ChannelEntity targetChannel = findById(channelMemberRequestDTO.channelId());
 
         validateUserNotInChannel(channelMemberRequestDTO.userId(), channelMemberRequestDTO.channelId());
@@ -163,10 +163,20 @@ public class BasicChannelService implements ChannelService {
         channelRepository.save(targetChannel);
     }
 
+    // 사용자 반환
+    public UserEntity getUserEntityOrThrow(UUID userId){
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User with id {" + userId + "} not found"));
+    }
+
+    // 유효성 검증 (사용자 존재 여부)
+    public boolean validateUserExists(UUID userId){
+        return userRepository.existsById(userId);
+    }
+
     // 유효성 검증 (초대)
     public void validateMemberExists(UUID userId, UUID channelId) {
-        ChannelEntity channel = channelRepository.findById(channelId)
-                .orElseThrow(() -> new IllegalArgumentException("Channel with id {" + channelId + "} not found"));
+        ChannelEntity channel = findById(channelId);
 
         if (channel.getParticipantIds().contains(userId)) {
             throw new IllegalArgumentException("User is already a participant of this channel");
@@ -175,8 +185,7 @@ public class BasicChannelService implements ChannelService {
 
     // 유효성 검증 (퇴장)
     public void validateUserNotInChannel(UUID userId, UUID channelId) {
-        ChannelEntity channel = channelRepository.findById(channelId)
-                .orElseThrow(() -> new IllegalArgumentException("Channel with id {" + channelId + "} not found"));
+        ChannelEntity channel = findById(channelId);
 
         if (!channel.getParticipantIds().contains(userId)) {
             throw new IllegalArgumentException("User is not a participant of this channel");

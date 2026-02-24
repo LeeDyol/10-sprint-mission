@@ -34,10 +34,8 @@ public class BasicMessageService implements MessageService {
     // 메시지 생성
     @Override
     public MessageEntity create(MessageCreateRequest messageCreateRequest, List<MultipartFile> attachments) {
-        userRepository.findById(messageCreateRequest.authorId())
-                .orElseThrow(() -> new IllegalArgumentException("Author with id {" + messageCreateRequest.authorId() + "} not found"));
-        channelRepository.findById(messageCreateRequest.channelId())
-                .orElseThrow(() -> new IllegalArgumentException("Channel with id {" + messageCreateRequest.channelId() + "} not found"));
+        getUserEntityOrThrow(messageCreateRequest.authorId());
+        getChannelEntityOrThrow(messageCreateRequest.channelId());
 
         List<BinaryContentEntity> newAttachments = Optional.ofNullable(attachments)
                 // 첨부 파일이 없으면 빈 리스트 전달
@@ -55,14 +53,10 @@ public class BasicMessageService implements MessageService {
                     }
                 })
                 .toList();
-
         newAttachments.forEach(binaryContentRepository::save);
 
         MessageEntity newMessage = new MessageEntity(messageCreateRequest);
-
-        newAttachments
-                .forEach(file -> newMessage.addAttachment(file.getId()));
-
+        newAttachments.forEach(file -> newMessage.addAttachment(file.getId()));
         messageRepository.save(newMessage);
 
         return newMessage;
@@ -85,8 +79,7 @@ public class BasicMessageService implements MessageService {
     // 특정 채널의 전체 메시지 목록 조회
     @Override
     public List<MessageEntity> findAllByChannelId(UUID channelId) {
-        ChannelEntity targetChannel = channelRepository.findById(channelId)
-                .orElseThrow(() -> new IllegalArgumentException("Channel with id {" + channelId + "} not found"));
+        ChannelEntity targetChannel = getChannelEntityOrThrow(channelId);
 
         return messageRepository.findAll().stream()
                 .filter(message -> message.getChannelId().equals(targetChannel.getId()))
@@ -96,8 +89,7 @@ public class BasicMessageService implements MessageService {
     // 특정 사용자가 발행한 전체 메시지 목록 조회
     @Override
     public List<MessageEntity> findAllByUserId(UUID targetUserId) {
-        UserEntity targetUser = userRepository.findById(targetUserId)
-                .orElseThrow(() -> new IllegalArgumentException("User with id {" + targetUserId + "} not found"));
+        UserEntity targetUser = getUserEntityOrThrow(targetUserId);
 
         return messageRepository.findAll().stream()
                 .filter(message -> message.getAuthorId().equals(targetUser.getId()))
@@ -133,5 +125,17 @@ public class BasicMessageService implements MessageService {
         deleteBinaryContents.forEach(binaryContentRepository::delete);
 
         messageRepository.delete(targetMessage);
+    }
+
+    // 사용자 반환
+    public UserEntity getUserEntityOrThrow(UUID userId){
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User with id {" + userId + "} not found"));
+    }
+
+    // 채널 반환
+    public ChannelEntity getChannelEntityOrThrow(UUID channelId){
+        return channelRepository.findById(channelId)
+                .orElseThrow(() -> new IllegalArgumentException("Channel with id {" + channelId + "} not found"));
     }
 }

@@ -22,6 +22,9 @@ public interface UserRepository {
     // 사용자 삭제
     void delete(UserEntity user);
 
+    // 유효성 검사 (사용자 존재 여부)
+    boolean existsById(UUID userId);
+
     // 유효성 검사 (이메일 중복)
     boolean existsByEmail(String email);
 

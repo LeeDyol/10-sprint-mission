@@ -80,11 +80,11 @@ public class BasicUserService implements UserService {
     // 특정 채널의 참가자 목록 조회
     @Override
     public List<UserDto> findMembersByChannelId(MemberFindRequestDTO memberFindRequestDTO) {
-        ChannelEntity targetChannel = channelRepository.findById(memberFindRequestDTO.channelId())
-                .orElseThrow(() -> new IllegalArgumentException("Channel with id {" + memberFindRequestDTO.channelId() + "} not found"));
+        ChannelEntity targetChannel = getChannelEntityOrThrow(memberFindRequestDTO.channelId());
 
         // Private 채널은 채널 참여자만 조회 가능
-        if (ChannelType.PRIVATE.equals(targetChannel.getType())) {
+        if (targetChannel.getType() == ChannelType.PRIVATE &&
+                !targetChannel.getParticipantIds().contains(memberFindRequestDTO.requesterId())) {
             throw new RuntimeException("Access denied for private channel members");
         }
 
@@ -184,6 +184,12 @@ public class BasicUserService implements UserService {
         deleteBinaryContents.forEach(binaryContentRepository::delete);
 
         userRepository.delete(targetUser);
+    }
+
+    // 채널 반환
+    public ChannelEntity getChannelEntityOrThrow(UUID channelId){
+        return channelRepository.findById(channelId)
+                .orElseThrow(() -> new IllegalArgumentException("Channel with id {" + channelId + "} not found"));
     }
 
     // 유효성 검사 (이메일 중복)
