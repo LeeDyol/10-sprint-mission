@@ -57,6 +57,7 @@ public class ChannelController {
         return ResponseEntity.ok(updateChannel);
     }
 
+    @Operation(summary = "Channel 삭제", operationId = "delete_2")
     @DeleteMapping("/{channelId}")
     public ResponseEntity<Void> delete(@PathVariable UUID channelId) {
         channelService.delete(channelId);

@@ -84,8 +84,7 @@ public class BasicUserService implements UserService {
                 .orElseThrow(() -> new IllegalArgumentException("Channel with id {" + memberFindRequestDTO.channelId() + "} not found"));
 
         // Private 채널은 채널 참여자만 조회 가능
-        if (targetChannel.getType() == ChannelType.PRIVATE &&
-                !targetChannel.getParticipantIds().contains(memberFindRequestDTO.requesterId())) {
+        if (ChannelType.PRIVATE.equals(targetChannel.getType())) {
             throw new RuntimeException("Access denied for private channel members");
         }
 
