@@ -38,7 +38,7 @@ public class UserController {
 
     @Operation(summary = "User 등록", operationId = "create")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<UserEntity> create(@RequestPart("userCreateRequest") UserCreateRequest userCreateRequest,
+    public ResponseEntity<UserEntity> create(@RequestPart(value = "userCreateRequest") UserCreateRequest userCreateRequest,
                                              @RequestPart(value = "profile", required = false) MultipartFile profile){
         UserEntity newUser = userService.create(userCreateRequest, profile);
 
@@ -46,7 +46,7 @@ public class UserController {
     }
 
     @Operation(summary = "User 정보 수정", operationId = "update")
-    @PatchMapping("/{userId}")
+    @PatchMapping(path = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserEntity> update(@PathVariable UUID userId,
                                           @RequestPart UserUpdateRequest userUpdateRequest,
                                           @RequestPart(value = "profile", required = false) MultipartFile profile){

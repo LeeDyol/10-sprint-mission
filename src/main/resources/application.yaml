@@ -6,3 +6,15 @@ discodeit:
   repository:
     type: jcf           # jcf | file
     file-directory: .discodeit
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api-docs             # OpenAPI Spec 추출 경로
+  swagger-ui:
+    enabled: true
+    path: /docs
+    groups-order: DESC          # 그룹 정렬 순서
+    operations-sorter: method   # GET, POST 순서 정렬
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
