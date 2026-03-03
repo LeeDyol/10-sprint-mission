@@ -1,14 +1,21 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.entity.MessageType;
-import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.dto.request.message.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.request.message.MessageUpdateRequest;
+import com.sprint.mission.discodeit.entity.BinaryContentEntity;
+import com.sprint.mission.discodeit.entity.ChannelEntity;
+import com.sprint.mission.discodeit.entity.MessageEntity;
+import com.sprint.mission.discodeit.entity.UserEntity;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -16,107 +23,119 @@ import java.util.UUID;
 import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateDuplicateValue;
 import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateString;
 
+@Service
+@RequiredArgsConstructor
 public class BasicMessageService implements MessageService {
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
     private final MessageRepository messageRepository;
-
-    public BasicMessageService(UserRepository userRepository, ChannelRepository channelRepository, MessageRepository messageRepository) {
-        this.userRepository = userRepository;
-        this.channelRepository = channelRepository;
-        this.messageRepository = messageRepository;
-    }
+    private final BinaryContentRepository binaryContentRepository;
 
     // 메시지 생성
     @Override
-    public Message createMessage(String message, UUID userId, UUID channelId, MessageType type) {
-        User sender = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
-        Channel targetChannel = channelRepository.findById(channelId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 채널이 존재하지 않습니다."));
+    public MessageEntity create(MessageCreateRequest messageCreateRequest, List<MultipartFile> attachments) {
+        getUserEntityOrThrow(messageCreateRequest.authorId());
+        getChannelEntityOrThrow(messageCreateRequest.channelId());
 
-        Message newMessage = new Message(message, sender, targetChannel, type);
+        List<BinaryContentEntity> newAttachments = Optional.ofNullable(attachments)
+                // 첨부 파일이 없으면 빈 리스트 전달
+                .orElse(List.of())
+                .stream()
+                .map(file -> {
+                    try {
+                        return new BinaryContentEntity(
+                                file.getOriginalFilename(),
+                                file.getBytes(),
+                                file.getContentType()
+                        );
+                    } catch (IOException e) {
+                        throw new RuntimeException("Error occurred while processing file", e);
+                    }
+                })
+                .toList();
+        newAttachments.forEach(binaryContentRepository::save);
+
+        MessageEntity newMessage = new MessageEntity(messageCreateRequest);
+        newAttachments.forEach(file -> newMessage.addAttachment(file.getId()));
         messageRepository.save(newMessage);
-
-        sender.addMessage(newMessage);              // 발행자 메시지 목록에 메시지 추가
-        userRepository.save(sender);
-
-        targetChannel.addMessage(newMessage);       // 발행된 채널의 메시지 목록에 메시지 추가
-        channelRepository.save(targetChannel);
 
         return newMessage;
     }
 
     // 메시지 단건 조회
     @Override
-    public Message searchMessage(UUID targetMessageId) {
-        return messageRepository.findById(targetMessageId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 메시지가 존재하지 않습니다."));
+    public MessageEntity findById(UUID targetMessageId) {
+       return messageRepository.findById(targetMessageId)
+               .orElseThrow(() -> new IllegalArgumentException("Message with id {" + targetMessageId + "} not found"));
+
     }
 
     // 메시지 전체 조회
     @Override
-    public List<Message> searchMessageAll() {
+    public List<MessageEntity> findAll() {
         return messageRepository.findAll();
     }
 
-    // 특정 유저가 발행한 메시지 다건 조회
-    public List<Message> searchMessagesByUserId(UUID targetUserId) {
-        userRepository.findById(targetUserId).orElseThrow(() -> new RuntimeException("해당 사용자가 존재하지 않습니다."));
+    // 특정 채널의 전체 메시지 목록 조회
+    @Override
+    public List<MessageEntity> findAllByChannelId(UUID channelId) {
+        ChannelEntity targetChannel = getChannelEntityOrThrow(channelId);
 
-        List<Message> messages = searchMessageAll();               // 함수가 실행된 시점에서 가장 최신 메시지 목록
-
-        return messages.stream()
-                .filter(message -> message.getUser().getId().equals(targetUserId))
+        return messageRepository.findAll().stream()
+                .filter(message -> message.getChannelId().equals(targetChannel.getId()))
                 .toList();
     }
 
-    // 특정 채널의 메시지 발행 리스트 조회
-    public List<Message> searchMessagesByChannelId(UUID targetChannelId) {
-        channelRepository.findById(targetChannelId).orElseThrow(() -> new IllegalArgumentException("해당 채널이 존재하지 않습니다."));
+    // 특정 사용자가 발행한 전체 메시지 목록 조회
+    @Override
+    public List<MessageEntity> findAllByUserId(UUID targetUserId) {
+        UserEntity targetUser = getUserEntityOrThrow(targetUserId);
 
-        List<Message> messages = searchMessageAll();
-
-        return messages.stream()
-                .filter(message -> message.getChannel().getId().equals(targetChannelId))
+        return messageRepository.findAll().stream()
+                .filter(message -> message.getAuthorId().equals(targetUser.getId()))
                 .toList();
     }
 
     // 메시지 수정
     @Override
-    public Message updateMessage(UUID targetMessageId, String newMessage) {
-        Message targetMessage = searchMessage(targetMessageId);
+    public MessageEntity update(UUID messageId, MessageUpdateRequest messageUpdateRequest) {
+        MessageEntity targetMessage = findById(messageId);
 
-        // 메시지 내용 수정
-        Optional.ofNullable(newMessage)
+        Optional.ofNullable(messageUpdateRequest.newContent())
                 .ifPresent(message -> {
-                    validateString(message, "[메시지 변경 실패] 올바른 메시지 형식이 아닙니다.");
-                    validateDuplicateValue(targetMessage.getMessage(), message, "[메시지 변경 실패] 이전 메시지와 동일합니다.");
-                    targetMessage.updateMessage(newMessage);
+                    validateString(message, "Invalid message content format");
+                    validateDuplicateValue(targetMessage.getContent(), message, "New content is same as current");
+                    targetMessage.updateMessage(messageUpdateRequest.newContent());
                 });
 
         messageRepository.save(targetMessage);
         return targetMessage;
     }
 
-    @Override
-    public void updateMessage(UUID channelId, Channel channel) {}
-
     // 메시지 삭제
     @Override
-    public void deleteMessage(UUID targetMessageId) {
-        Message targetMessage = searchMessage(targetMessageId);
+    public void delete(UUID targetMessageId) {
+        MessageEntity targetMessage = findById(targetMessageId);
 
-        User targetUser = userRepository.findById(targetMessage.getUser().getId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));                     // 사용자 내 메시지 목록 연쇄 삭제
-        targetUser.getMessages().removeIf(message -> message.getId().equals(targetMessage.getId()));
-        userRepository.save(targetUser);
-
-        Channel targetChannel = channelRepository.findById(targetMessage.getChannel().getId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 채널이 존재하지 않습니다."));                      // 채널 내 메시지 목록 연쇄 삭제
-        targetChannel.getMessages().removeIf(message -> message.getId().equals(targetMessage.getId()));
-        channelRepository.save(targetChannel);
+        List<BinaryContentEntity> deleteBinaryContents = targetMessage.getAttachmentIds().stream()
+                .map(binaryContentId -> binaryContentRepository.findById(binaryContentId)
+                        .orElseThrow(() -> new IllegalArgumentException("BinaryContent with id {" + binaryContentId + "} not found"))
+                )
+                .toList();
+        deleteBinaryContents.forEach(binaryContentRepository::delete);
 
         messageRepository.delete(targetMessage);
+    }
+
+    // 사용자 반환
+    public UserEntity getUserEntityOrThrow(UUID userId){
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User with id {" + userId + "} not found"));
+    }
+
+    // 채널 반환
+    public ChannelEntity getChannelEntityOrThrow(UUID channelId){
+        return channelRepository.findById(channelId)
+                .orElseThrow(() -> new IllegalArgumentException("Channel with id {" + channelId + "} not found"));
     }
 }
