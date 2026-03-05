@@ -1,8 +1,10 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.dto.request.Pageable;
 import com.sprint.mission.discodeit.dto.request.message.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.message.MessageUpdateRequest;
-import com.sprint.mission.discodeit.entity.MessageEntity;
+import com.sprint.mission.discodeit.dto.response.MessageDto;
+import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.service.MessageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,29 +27,30 @@ public class MessageController {
 
     @Operation(summary = "Message 생성", operationId = "create_2")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<MessageEntity> create(@RequestPart("messageCreateRequest") MessageCreateRequest messageCreateRequest,
-                                                @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
-        MessageEntity newMessage = messageService.create(messageCreateRequest, attachments);
+    public ResponseEntity<MessageDto> create(@RequestPart("messageCreateRequest") MessageCreateRequest messageCreateRequest,
+                                             @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
+        MessageDto response = messageService.create(messageCreateRequest, attachments);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(newMessage);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @Operation(summary = "Channel의 Message 목록 조회", operationId = "findAllByChannelId")
     @GetMapping
-    public ResponseEntity<List<MessageEntity>> findAllByChannelId (@RequestParam UUID channelId) {
-        List<MessageEntity> messages = messageService.findAllByChannelId(channelId);
+    public ResponseEntity<PageResponse<MessageDto>> findAllByChannelId (@RequestParam UUID channelId,
+                                                                        @ModelAttribute Pageable pageable) {
+        PageResponse<MessageDto> response = messageService.findAllByChannelId(channelId, pageable);
 
-        return ResponseEntity.ok(messages);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Message 내용 수정", operationId = "update_2")
     @PatchMapping("/{messageId}")
-    public ResponseEntity<MessageEntity> update(@PathVariable UUID messageId,
-                                                     @RequestBody MessageUpdateRequest messageUpdateRequest) {
+    public ResponseEntity<MessageDto> update(@PathVariable UUID messageId,
+                                             @RequestBody MessageUpdateRequest messageUpdateRequest) {
 
-        MessageEntity updateMessage = messageService.update(messageId, messageUpdateRequest);
+        MessageDto response = messageService.update(messageId, messageUpdateRequest);
 
-        return ResponseEntity.ok(updateMessage);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Message 삭제", operationId = "delete_1")

@@ -32,7 +32,7 @@ public class BasicUserService implements UserService {
 
     // 사용자 생성
     @Override
-    public UserEntity create(UserCreateRequest userCreateRequest, MultipartFile profile) {
+    public UserDto create(UserCreateRequest userCreateRequest, MultipartFile profile) {
         isEmailDuplicate(userCreateRequest.email());
         isUsernameDuplicate(userCreateRequest.username());
 
@@ -56,14 +56,16 @@ public class BasicUserService implements UserService {
             }
         }
 
-        return newUser;
+        return userMapper.toResponseDTO(newUser, newUserStatus);
     }
 
     // 사용자 단건 조회
     @Override
-    public UserEntity findById(UUID userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User with id {" + userId + "} not found"));
+    public UserDto findById(UUID userId) {
+        UserEntity targetUser = getUserEntityOrThrow(userId);
+        UserStatusEntity targetUserStatus = getUserStatusEntityByUserId(userId);
+
+        return userMapper.toResponseDTO(targetUser, targetUserStatus);
     }
 
     // 사용자 전체 조회
@@ -88,20 +90,16 @@ public class BasicUserService implements UserService {
             throw new RuntimeException("Access denied for private channel members");
         }
 
-        List<UserEntity> members = targetChannel.getParticipantIds().stream()
+        return targetChannel.getParticipantIds().stream()
                 .map(this::findById)
-                .toList();
-        Map<UUID, UserStatusEntity> statusMap = getUserStatusMap();
-
-        return members.stream()
-                .map(user -> userMapper.toResponseDTO(user, statusMap.get(user.getId())))
                 .toList();
     }
 
     // 사용자 정보 수정
     @Override
-    public UserEntity update(UUID userId, UserUpdateRequest userUpdateRequest, MultipartFile profile) {
-        UserEntity targetUser = findById(userId);
+    public UserDto update(UUID userId, UserUpdateRequest userUpdateRequest, MultipartFile profile) {
+        UserEntity targetUser = getUserEntityOrThrow(userId);
+        UserStatusEntity targetUserStatus = getUserStatusEntityByUserId(userId);
 
         // 닉네임 필드 변경
         Optional.ofNullable(userUpdateRequest.newUsername())
@@ -148,13 +146,13 @@ public class BasicUserService implements UserService {
 
         userRepository.save(targetUser);
 
-        return targetUser;
+        return userMapper.toResponseDTO(targetUser, targetUserStatus);
     }
 
     // 사용자 삭제
     @Override
     public void delete(UUID userId) {
-        UserEntity targetUser = findById(userId);
+        UserEntity targetUser = getUserEntityOrThrow(userId);
 
         // 삭제된 사용자가 참여한 모든 채널 내 멤버에서 사용자 연쇄 삭제
         channelRepository.findAll().stream()
@@ -186,24 +184,34 @@ public class BasicUserService implements UserService {
         userRepository.delete(targetUser);
     }
 
+    // 사용자 엔티티 반환
+    public UserEntity getUserEntityOrThrow(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User with id {userId} not found"));
+    }
+
     // 채널 반환
     public ChannelEntity getChannelEntityOrThrow(UUID channelId){
         return channelRepository.findById(channelId)
-                .orElseThrow(() -> new IllegalArgumentException("Channel with id {" + channelId + "} not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Channel with id {channelId} not found"));
+    }
+
+    // 사용자 상태 반환
+    public UserStatusEntity getUserStatusEntityByUserId(UUID userId) {
+        return userStatusRepository.findByUserId(userId);
     }
 
     // 유효성 검사 (이메일 중복)
     public void isEmailDuplicate(String email) {
         if (userRepository.existsByEmail(email))
-            throw new IllegalArgumentException("User with email {" + email + "} already exists");
+            throw new IllegalArgumentException("User with email {newEmail} already exists");
     }
 
     // 유효성 검사 (이름 중복)
     public void isUsernameDuplicate(String username) {
         if (userRepository.existsByUsername(username))
-            throw new IllegalArgumentException("User with username {" + username + "} already exists");
+            throw new IllegalArgumentException("User with username {username} already exists");
     }
-
 
     // UserStatusMap 생성
     private Map<UUID, UserStatusEntity> getUserStatusMap() {

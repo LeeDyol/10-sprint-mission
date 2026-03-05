@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.mapper;
 
+import com.sprint.mission.discodeit.dto.response.BinaryContentDto;
 import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.entity.UserEntity;
 import com.sprint.mission.discodeit.entity.UserStatusEntity;
@@ -16,9 +17,8 @@ public class UserMapper {
                 .id(user.getId())
                 .email(user.getEmail())
                 .username(user.getUsername())
-                .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
-                .profileId(user.getProfileId())
+                .profile(BinaryContentDto.builder()
+                        .build())
                 .online(userStatus.getOnline())
                 .build();
     }

@@ -8,12 +8,12 @@ import java.util.List;
 import java.util.UUID;
 
 @Builder
-public record ChannelDTO(
+public record ChannelDto(
     UUID id,
     ChannelType type,
     String name,
     String description,
-    List<UUID> participantIds,
+    List<UserDto> participants,
     Instant lastMessageAt
 ) {
 
