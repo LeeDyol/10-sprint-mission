@@ -8,10 +8,10 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class UserStatusMapper {
-    public UserStatusDto toResponseDTO (UserStatusEntity userStatus) {
+    public UserStatusDto toDto(UserStatusEntity userStatus) {
         return UserStatusDto.builder()
                 .id(userStatus.getId())
-                .userId(userStatus.getUserId())
+                .userId(userStatus.getUser().getId())
                 .lastActiveAt(userStatus.getLastActiveAt())
                 .build();
     }

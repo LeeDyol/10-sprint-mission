@@ -37,7 +37,7 @@ public class BasicReadStatusService implements ReadStatusService {
         ReadStatusEntity newReadStatus = new ReadStatusEntity(targetUser, targetChannel);
         readStatusRepository.save(newReadStatus);
 
-        return readStatusMapper.toResponseDTO(newReadStatus);
+        return readStatusMapper.toDto(newReadStatus);
     }
 
     // 읽음 상태 단건 조회
@@ -45,14 +45,14 @@ public class BasicReadStatusService implements ReadStatusService {
     public ReadStatusDto findById(UUID id) {
         ReadStatusEntity targetReadStatus = getReadStatusEntity(id);
 
-        return readStatusMapper.toResponseDTO(targetReadStatus);
+        return readStatusMapper.toDto(targetReadStatus);
     }
 
     // 읽음 상태 전체 조회
     @Override
     public List<ReadStatusDto> findAll() {
         return readStatusRepository.findAll().stream()
-                .map(readStatusMapper::toResponseDTO)
+                .map(readStatusMapper::toDto)
                 .toList();
     }
 
@@ -63,7 +63,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
         return readStatusRepository.findAll().stream()
                 .filter(readStatus -> readStatus.getUser().getId().equals(userId))
-                .map(readStatusMapper::toResponseDTO)
+                .map(readStatusMapper::toDto)
                 .toList();
     }
 
@@ -75,7 +75,7 @@ public class BasicReadStatusService implements ReadStatusService {
         targetReadStatus.updateLastReadTime(readStatusUpdateRequest.newLastReadAt());
         readStatusRepository.save(targetReadStatus);
 
-        return readStatusMapper.toResponseDTO(targetReadStatus);
+        return readStatusMapper.toDto(targetReadStatus);
     }
 
     // 읽음 상태 삭제

@@ -35,7 +35,7 @@ public class BasicUserStatusService implements UserStatusService {
         UserStatusEntity newUserStatus = new UserStatusEntity(targetUser);
         userStatusRepository.save(newUserStatus);
 
-        return userStatusMapper.toResponseDTO(newUserStatus);
+        return userStatusMapper.toDto(newUserStatus);
     }
 
     // 사용자 상태 단건 조회
@@ -43,14 +43,14 @@ public class BasicUserStatusService implements UserStatusService {
     public UserStatusDto findById(UUID targetUserStatusId) {
         UserStatusEntity targetUserStatus = getUserStatusEntityOrThrow(targetUserStatusId);
 
-        return userStatusMapper.toResponseDTO(targetUserStatus);
+        return userStatusMapper.toDto(targetUserStatus);
     }
 
     // 사용자 상태 전체 조회
     @Override
     public List<UserStatusDto> findAll() {
         return userStatusRepository.findAll().stream()
-                .map(userStatusMapper::toResponseDTO)
+                .map(userStatusMapper::toDto)
                 .toList();
     }
 
@@ -65,7 +65,7 @@ public class BasicUserStatusService implements UserStatusService {
 
         userStatusRepository.save(targetUserStatus);
 
-        return userStatusMapper.toResponseDTO(targetUserStatus);
+        return userStatusMapper.toDto(targetUserStatus);
     }
 
     // 사용자 상태 삭제

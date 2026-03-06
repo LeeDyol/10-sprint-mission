@@ -24,24 +24,17 @@ public class BasicAuthService implements AuthService {
     // 로그인
     public UserDto login(LoginRequest loginRequest) {
        UserEntity targetUser = getUserEntityOrThrow(loginRequest.username());
-       UserStatusEntity targetUserStatus = getUserStatusEntityOrThrow(targetUser.getId());
 
         if (!targetUser.getPassword().equals(loginRequest.password())) {
             throw new IllegalArgumentException(("Wrong password"));
         }
 
-        return userMapper.toResponseDTO(targetUser, targetUserStatus);
+        return userMapper.toDto(targetUser);
     }
 
     // 사용자 반환
     public UserEntity getUserEntityOrThrow(String username){
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User with username {username} not found"));
-    }
-
-    // 사용자 상태 반환
-    public UserStatusEntity getUserStatusEntityOrThrow(UUID userId){
-        return userStatusRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("UserStatus with userId {userId} not found"));
     }
 }

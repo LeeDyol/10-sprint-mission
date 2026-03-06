@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 @Getter
@@ -31,11 +32,13 @@ public class UserStatusEntity extends BaseUpdatableEntity {
         this.lastActiveAt = Instant.now();
     }
 
-//    // 5분 전 이내 접속 이력이 있다면, 온라인 상태 유지
-//    public void syncOnlineStatus() {
-//        //this.online = Instant.now().minus(5, ChronoUnit.MINUTES).isBefore(lastActiveAt);
-//        this.updatedAt = Instant.now();
-//    }
+    // 5분 전 이내 접속 이력이 있다면, 온라인 상태 유지
+    public boolean isOnline() {
+        Instant fiveMinutesAgo = Instant.now().minus(5, ChronoUnit.MINUTES);
+        this.updatedAt = Instant.now();
+
+        return this.lastActiveAt.isBefore(fiveMinutesAgo);
+    }
 
     public void updateLastActiveAt(Instant newLastActiveAt) {
         this.lastActiveAt = newLastActiveAt;

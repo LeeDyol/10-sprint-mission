@@ -8,12 +8,13 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class BinaryContentMapper {
-    public BinaryContentDto toResponseDTO(BinaryContentEntity binaryContentEntity) {
+    public BinaryContentDto toDto(BinaryContentEntity binaryContentEntity) {
         return BinaryContentDto.builder()
                 .id(binaryContentEntity.getId())
                 .fileName(binaryContentEntity.getFileName())
                 .size(binaryContentEntity.getSize())
                 .contentType(binaryContentEntity.getContentType())
+                .bytes(binaryContentEntity.getBytes())
                 .build();
     }
 }

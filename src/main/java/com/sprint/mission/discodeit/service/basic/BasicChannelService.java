@@ -38,7 +38,7 @@ public class BasicChannelService implements ChannelService {
         ChannelEntity newChannel = new ChannelEntity(publicChannelCreateRequest);
         channelRepository.save(newChannel);
 
-        return channelMapper.toResponseDTO(newChannel);
+        return channelMapper.toDto(newChannel);
     }
 
     // 비공개 채널 생성
@@ -54,7 +54,7 @@ public class BasicChannelService implements ChannelService {
 
         readStatusRepository.saveAll(newReadStatues);
 
-        return channelMapper.toResponseDTO(newChannel);
+        return channelMapper.toDto(newChannel);
     }
 
     // 채널 단건 조회
@@ -62,14 +62,14 @@ public class BasicChannelService implements ChannelService {
     public ChannelDto findById(UUID targetChannelId) {
         ChannelEntity targetCache = getChannelEntityOrThrow(targetChannelId);
 
-        return channelMapper.toResponseDTO(targetCache);
+        return channelMapper.toDto(targetCache);
     }
 
     // 채널 전체 조회
     @Override
     public List<ChannelDto> findAll() {
         return channelRepository.findAll().stream()
-                .map(channelMapper::toResponseDTO)
+                .map(channelMapper::toDto)
                 .toList();
     }
 
@@ -83,7 +83,7 @@ public class BasicChannelService implements ChannelService {
                         channel.getType() == ChannelType.PUBLIC ||
                         // 비공개 채널은 해당 유저가 참여한 채널 목록만 반환
                         channel.getType() == ChannelType.PRIVATE && existsByUserIdAndChannelId(targetUser.getId(), channel.getId()))
-                .map(channelMapper::toResponseDTO)
+                .map(channelMapper::toDto)
                 .toList();
     }
 
@@ -114,7 +114,7 @@ public class BasicChannelService implements ChannelService {
                 });
 
         channelRepository.save(targetChannel);
-        return channelMapper.toResponseDTO(targetChannel);
+        return channelMapper.toDto(targetChannel);
     }
 
     // 채널 삭제

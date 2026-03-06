@@ -8,11 +8,11 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class ReadStatusMapper {
-    public ReadStatusDto toResponseDTO(ReadStatusEntity readStatus) {
+    public ReadStatusDto toDto(ReadStatusEntity readStatus) {
         return ReadStatusDto.builder()
                 .id(readStatus.getId())
-                .userId(readStatus.getUserId())
-                .channelId(readStatus.getChannelId())
+                .userId(readStatus.getUser().getId())
+                .channelId(readStatus.getChannel().getId())
                 .lastReadAt(readStatus.getLastReadAt())
                 .build();
     }

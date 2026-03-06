@@ -14,7 +14,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateDuplicateValue;
 import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateString;
@@ -57,7 +56,7 @@ public class BasicUserService implements UserService {
             }
         }
 
-        return userMapper.toResponseDTO(newUser, newUserStatus);
+        return userMapper.toDto(newUser);
     }
 
     // 사용자 단건 조회
@@ -65,16 +64,14 @@ public class BasicUserService implements UserService {
     public UserDto findById(UUID userId) {
         UserEntity targetUser = getUserEntityOrThrow(userId);
 
-        return userMapper.toResponseDTO(targetUser, targetUser.getUserStatus());
+        return userMapper.toDto(targetUser);
     }
 
     // 사용자 전체 조회
     @Override
     public List<UserDto> findAll() {
-        List<UserEntity> users = userRepository.findAll();
-
-        return users.stream()
-                .map(user -> userMapper.toResponseDTO(user, user.getUserStatus()))
+        return userRepository.findAll().stream()
+                .map(userMapper::toDto)
                 .toList();
     }
 
@@ -91,7 +88,7 @@ public class BasicUserService implements UserService {
 
         return readStatusRepository.findAllByChannel(targetChannel).stream()
                 .map(ReadStatusEntity::getUser)
-                .map(userEntity -> userMapper.toResponseDTO(userEntity, userEntity.getUserStatus()))
+                .map(userMapper::toDto)
                 .toList();
     }
 
@@ -144,7 +141,7 @@ public class BasicUserService implements UserService {
 
         userRepository.save(targetUser);
 
-        return userMapper.toResponseDTO(targetUser, targetUser.getUserStatus());
+        return userMapper.toDto(targetUser);
     }
 
     // 사용자 삭제
@@ -189,12 +186,6 @@ public class BasicUserService implements UserService {
     public ChannelEntity getChannelEntityOrThrow(UUID channelId){
         return channelRepository.findById(channelId)
                 .orElseThrow(() -> new IllegalArgumentException("Channel with id {channelId} not found"));
-    }
-
-    // 사용자 상태 반환
-    public UserStatusEntity getUserStatusEntityByUserId(UUID userId) {
-        return userStatusRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("UserStatus with id {userId} not found"));
     }
 
     // 유효성 검사 (이메일 중복)

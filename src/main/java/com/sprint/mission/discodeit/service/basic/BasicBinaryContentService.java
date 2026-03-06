@@ -24,7 +24,7 @@ public class BasicBinaryContentService implements BinaryContentService {
         BinaryContentEntity newBinaryContent = new BinaryContentEntity(fileName, bytes, contentType);
         binaryContentRepository.save(newBinaryContent);
 
-        return binaryContentMapper.toResponseDTO(newBinaryContent);
+        return binaryContentMapper.toDto(newBinaryContent);
     }
 
     // 첨부 파일 단건 조회
@@ -32,7 +32,7 @@ public class BasicBinaryContentService implements BinaryContentService {
     public BinaryContentDto findById(UUID targetBinaryContentId) {
         BinaryContentEntity targetBinaryContent = this.getBinaryContentEntityOrThrow(targetBinaryContentId);
 
-        return binaryContentMapper.toResponseDTO(targetBinaryContent);
+        return binaryContentMapper.toDto(targetBinaryContent);
     }
 
     // 첨부 파일 다건 조회
@@ -40,7 +40,7 @@ public class BasicBinaryContentService implements BinaryContentService {
     public List<BinaryContentDto> findAllByIds(List<UUID> binaryContentIds) {
         return binaryContentRepository.findAll().stream()
                 .filter(binaryContentEntity -> binaryContentIds.contains(binaryContentEntity.getId()))
-                .map(binaryContentMapper::toResponseDTO)
+                .map(binaryContentMapper::toDto)
                 .toList();
     }
 
@@ -48,7 +48,7 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Override
     public List<BinaryContentDto> findAll() {
         return binaryContentRepository.findAll().stream()
-                .map(binaryContentMapper::toResponseDTO)
+                .map(binaryContentMapper::toDto)
                 .toList();
     }
 
