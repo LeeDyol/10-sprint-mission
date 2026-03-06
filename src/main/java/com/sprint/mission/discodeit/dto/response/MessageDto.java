@@ -9,11 +9,11 @@ import java.util.UUID;
 @Builder
 public record MessageDto (
         UUID id,
+        Instant createdAt,
+        Instant updatedAt,
         String content,
         UUID channelId,
         UserDto author,
-        List<BinaryContentDto> attachments,
-        Instant createdAt,
-        Instant updatedAt
+        List<BinaryContentDto> attachments
 ) {
 }

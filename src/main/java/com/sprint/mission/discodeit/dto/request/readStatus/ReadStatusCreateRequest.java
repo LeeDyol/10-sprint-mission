@@ -17,7 +17,5 @@ public record ReadStatusCreateRequest(
     @NotNull
     Instant lastReadAt
 ) {
-    public ReadStatusCreateRequest(UUID userId, UUID channelId) {
-        this(userId, channelId, Instant.now());
-    }
+
 }
