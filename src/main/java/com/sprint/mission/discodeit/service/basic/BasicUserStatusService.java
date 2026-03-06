@@ -32,7 +32,7 @@ public class BasicUserStatusService implements UserStatusService {
             throw new RuntimeException("UserStatus already exists for this user");
         }
 
-        UserStatusEntity newUserStatus = new UserStatusEntity(userStatusCreateRequest.userId());
+        UserStatusEntity newUserStatus = new UserStatusEntity(targetUser);
         userStatusRepository.save(newUserStatus);
 
         return userStatusMapper.toResponseDTO(newUserStatus);
@@ -89,6 +89,7 @@ public class BasicUserStatusService implements UserStatusService {
 
     // 사용자 상태 반환 (userId)
     public UserStatusEntity getUserStatusEntityByUserId(UUID userId){
-        return userStatusRepository.findByUserId(userId);
+        return userStatusRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("UserStatus with id {userId} not found"));
     }
 }

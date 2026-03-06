@@ -4,7 +4,6 @@ import com.sprint.mission.discodeit.dto.request.channel.ChannelMemberRequestDTO;
 import com.sprint.mission.discodeit.dto.request.channel.PublicChannelUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.channel.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.channel.PublicChannelCreateRequest;
-import com.sprint.mission.discodeit.dto.request.readStatus.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.response.ChannelDto;
 import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
@@ -36,8 +35,6 @@ public class BasicChannelService implements ChannelService {
     // 공개 채널 생성
     @Override
     public ChannelDto createPublicChannel(PublicChannelCreateRequest publicChannelCreateRequest) {
-        // validateUserExists(publicChannelCreateRequest.getUserId());
-
         ChannelEntity newChannel = new ChannelEntity(publicChannelCreateRequest);
         channelRepository.save(newChannel);
 
@@ -50,13 +47,12 @@ public class BasicChannelService implements ChannelService {
         ChannelEntity newChannel = new ChannelEntity(privateChannelCreateRequest);
         channelRepository.save(newChannel);
 
-        List<ReadStatusEntity> newReadStatues = newChannel.getParticipantIds().stream()
-                .filter(this::validateUserExists)
-                .map(memberId -> new ReadStatusCreateRequest(memberId, newChannel.getId()))
-                .map(ReadStatusEntity::new)
+        List<ReadStatusEntity> newReadStatues = privateChannelCreateRequest.participantIds().stream()
+                .filter(this::existsByUserId)
+                .map(participantId -> new ReadStatusEntity(getUserEntityOrThrow(participantId), newChannel))
                 .toList();
 
-        newReadStatues.forEach(readStatusRepository::save);
+        readStatusRepository.saveAll(newReadStatues);
 
         return channelMapper.toResponseDTO(newChannel);
     }
@@ -85,8 +81,8 @@ public class BasicChannelService implements ChannelService {
                 .filter(channel ->
                         // 공개 채널은 전체 채널 목록 반환
                         channel.getType() == ChannelType.PUBLIC ||
-                        // 비공개 채널은 해다 유저가 참여한 채널 목록만 반환
-                        channel.getType() == ChannelType.PRIVATE && channel.getParticipantIds().contains(targetUser.getId()))
+                        // 비공개 채널은 해당 유저가 참여한 채널 목록만 반환
+                        channel.getType() == ChannelType.PRIVATE && existsByUserIdAndChannelId(targetUser.getId(), channel.getId()))
                 .map(channelMapper::toResponseDTO)
                 .toList();
     }
@@ -128,15 +124,15 @@ public class BasicChannelService implements ChannelService {
 
         // 해당 채널에서 발행된 메시지 연쇄 삭제
         List<MessageEntity> deleteMessages = messageRepository.findAll().stream()
-                .filter(message -> message.getChannelId().equals(targetChannelId))
+                .filter(message -> message.getChannel().getId().equals(targetChannelId))
                 .toList();
-        deleteMessages.forEach(messageRepository::delete);
+        messageRepository.deleteAll(deleteMessages);
 
         // 채널 멤버의 ReadStatus 연쇄 삭제
         List<ReadStatusEntity> deleteReadStatuses = readStatusRepository.findAll().stream()
-                .filter(readStatus -> readStatus.getChannelId().equals(targetChannelId))
+                .filter(readStatus -> readStatus.getChannel().getId().equals(targetChannelId))
                 .toList();
-        deleteReadStatuses.forEach(readStatusRepository::delete);
+        readStatusRepository.deleteAll(deleteReadStatuses);
 
         channelRepository.delete(targetChannel);
     }
@@ -147,10 +143,10 @@ public class BasicChannelService implements ChannelService {
         UserEntity newUser = getUserEntityOrThrow(channelMemberRequestDTO.userId());
         ChannelEntity targetChannel = getChannelEntityOrThrow(channelMemberRequestDTO.channelId());
 
-        validateMemberExists(channelMemberRequestDTO.userId(), channelMemberRequestDTO.channelId());
+        validateMemberExists(newUser.getId(), targetChannel.getId());
 
-        targetChannel.getParticipantIds().add(newUser.getId());
-        channelRepository.save(targetChannel);
+        ReadStatusEntity newMemberReadStatus = new ReadStatusEntity(newUser, targetChannel);
+        readStatusRepository.save(newMemberReadStatus);
     }
 
     // 채널 퇴장
@@ -159,10 +155,10 @@ public class BasicChannelService implements ChannelService {
         UserEntity targetUser = getUserEntityOrThrow(channelMemberRequestDTO.userId());
         ChannelEntity targetChannel = getChannelEntityOrThrow(channelMemberRequestDTO.channelId());
 
-        validateUserNotInChannel(channelMemberRequestDTO.userId(), channelMemberRequestDTO.channelId());
+        validateUserNotInChannel(targetUser.getId(), targetChannel.getId());
 
-        targetChannel.getParticipantIds().removeIf(memberId -> memberId.equals(targetUser.getId()));
-        channelRepository.save(targetChannel);
+        ReadStatusEntity targetReadStatus = getUserStatusEntityOrThrow(targetUser.getId());
+        readStatusRepository.delete(targetReadStatus);
     }
 
     // 사용자 반환
@@ -174,28 +170,35 @@ public class BasicChannelService implements ChannelService {
     // 채널 엔티티 반환
     public ChannelEntity getChannelEntityOrThrow(UUID targetChannelId) {
         return channelRepository.findById(targetChannelId)
-                .orElseThrow(() -> new IllegalArgumentException("Channel with id {targetChannelId} not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Channel with id {channelId} not found"));
+    }
+
+    // 읽음 상태 엔티티 반환
+    public ReadStatusEntity getUserStatusEntityOrThrow(UUID userId) {
+        return readStatusRepository.findByUserId(userId)
+                .orElseThrow(() ->  new IllegalArgumentException("ReadStatus with id {userId} not found"));
     }
 
     // 유효성 검증 (사용자 존재 여부)
-    public boolean validateUserExists(UUID userId){
+    public boolean existsByUserId(UUID userId){
         return userRepository.existsById(userId);
+    }
+
+    // 유효성 검증 (읽음 상태 존재 여부)
+    public boolean existsByUserIdAndChannelId(UUID userId, UUID channelId) {
+        return readStatusRepository.existsByUserIdAndChannelId(userId, channelId);
     }
 
     // 유효성 검증 (초대)
     public void validateMemberExists(UUID userId, UUID channelId) {
-        ChannelEntity channel = getChannelEntityOrThrow(channelId);
-
-        if (channel.getParticipantIds().contains(userId)) {
+        if (existsByUserIdAndChannelId(userId, channelId)) {
             throw new IllegalArgumentException("User is already a participant of this channel");
         }
     }
 
     // 유효성 검증 (퇴장)
     public void validateUserNotInChannel(UUID userId, UUID channelId) {
-        ChannelEntity channel = getChannelEntityOrThrow(channelId);
-
-        if (!channel.getParticipantIds().contains(userId)) {
+        if (!existsByUserIdAndChannelId(userId, channelId)) {
             throw new IllegalArgumentException("User is not a participant of this channel");
         }
     }

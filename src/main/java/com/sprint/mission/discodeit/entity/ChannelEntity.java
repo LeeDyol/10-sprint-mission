@@ -35,7 +35,7 @@ public class ChannelEntity extends BaseUpdatableEntity {
         this.description = publicChannelCreateRequest.description();
     }
 
-    public ChannelEntity() {
+    public ChannelEntity(PrivateChannelCreateRequest privateChannelCreateRequest) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();

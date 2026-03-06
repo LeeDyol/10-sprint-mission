@@ -27,6 +27,7 @@ public class BasicUserService implements UserService {
     private final MessageRepository messageRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final UserStatusRepository userStatusRepository;
+    private final ReadStatusRepository readStatusRepository;
 
     private final UserMapper userMapper;
 
@@ -39,7 +40,7 @@ public class BasicUserService implements UserService {
         UserEntity newUser = new UserEntity(userCreateRequest);
         userRepository.save(newUser);
 
-        UserStatusEntity newUserStatus = new UserStatusEntity(newUser.getId());
+        UserStatusEntity newUserStatus = new UserStatusEntity(newUser);
         userStatusRepository.save(newUserStatus);
 
         if (profile != null && !profile.isEmpty()) {
@@ -50,7 +51,7 @@ public class BasicUserService implements UserService {
                         profile.getContentType()
                 );
                 binaryContentRepository.save(content);
-                newUser.updateProfileId(content.getId());
+                newUser.updateProfile(content);
             } catch (IOException e) {
                 throw new RuntimeException("Error occurred while processing file", e);
             }
@@ -63,19 +64,17 @@ public class BasicUserService implements UserService {
     @Override
     public UserDto findById(UUID userId) {
         UserEntity targetUser = getUserEntityOrThrow(userId);
-        UserStatusEntity targetUserStatus = getUserStatusEntityByUserId(userId);
 
-        return userMapper.toResponseDTO(targetUser, targetUserStatus);
+        return userMapper.toResponseDTO(targetUser, targetUser.getUserStatus());
     }
 
     // 사용자 전체 조회
     @Override
     public List<UserDto> findAll() {
         List<UserEntity> users = userRepository.findAll();
-        Map<UUID, UserStatusEntity> statusMap = getUserStatusMap();
 
         return users.stream()
-                .map(user -> userMapper.toResponseDTO(user, statusMap.get(user.getId())))
+                .map(user -> userMapper.toResponseDTO(user, user.getUserStatus()))
                 .toList();
     }
 
@@ -86,12 +85,13 @@ public class BasicUserService implements UserService {
 
         // Private 채널은 채널 참여자만 조회 가능
         if (targetChannel.getType() == ChannelType.PRIVATE &&
-                !targetChannel.getParticipantIds().contains(memberFindRequestDTO.requesterId())) {
+                !existsByUserIdAndChannelId(memberFindRequestDTO.requesterId(), targetChannel.getId())) {
             throw new RuntimeException("Access denied for private channel members");
         }
 
-        return targetChannel.getParticipantIds().stream()
-                .map(this::findById)
+        return readStatusRepository.findAllByChannel(targetChannel).stream()
+                .map(ReadStatusEntity::getUser)
+                .map(userEntity -> userMapper.toResponseDTO(userEntity, userEntity.getUserStatus()))
                 .toList();
     }
 
@@ -99,7 +99,6 @@ public class BasicUserService implements UserService {
     @Override
     public UserDto update(UUID userId, UserUpdateRequest userUpdateRequest, MultipartFile profile) {
         UserEntity targetUser = getUserEntityOrThrow(userId);
-        UserStatusEntity targetUserStatus = getUserStatusEntityByUserId(userId);
 
         // 닉네임 필드 변경
         Optional.ofNullable(userUpdateRequest.newUsername())
@@ -137,8 +136,7 @@ public class BasicUserService implements UserService {
                                 file.getContentType()
                         );
                         binaryContentRepository.save(newProfile);
-
-                        targetUser.updateProfileId(newProfile.getId());
+                        targetUser.updateProfile(newProfile);
                     } catch (IOException e) {
                         throw new RuntimeException("Error occurred while processing profile image", e);
                     }
@@ -146,7 +144,7 @@ public class BasicUserService implements UserService {
 
         userRepository.save(targetUser);
 
-        return userMapper.toResponseDTO(targetUser, targetUserStatus);
+        return userMapper.toResponseDTO(targetUser, targetUser.getUserStatus());
     }
 
     // 사용자 삭제
@@ -155,31 +153,28 @@ public class BasicUserService implements UserService {
         UserEntity targetUser = getUserEntityOrThrow(userId);
 
         // 삭제된 사용자가 참여한 모든 채널 내 멤버에서 사용자 연쇄 삭제
-        channelRepository.findAll().stream()
-                .filter(channel -> channel.getUserId().equals(userId))
-                .toList()
-                .forEach(channel -> {
-                    channel.getParticipantIds().removeIf(memberID -> memberID.equals(userId));
-                    channelRepository.save(channel);
-                });
+        List<ReadStatusEntity> readStatuses = readStatusRepository.findAll().stream()
+                .filter(readStatus -> readStatus.getUser().getId().equals(targetUser.getId()))
+                .toList();
+        readStatusRepository.deleteAll(readStatuses);
 
         // 삭제된 사용자가 발행한 메시지 연쇄 삭제
         List<MessageEntity> deleteMessages = messageRepository.findAll().stream()
-                .filter(message ->  message.getAuthorId().equals(userId))
+                .filter(message ->  message.getAuthor().getId().equals(userId))
                 .toList();
-        deleteMessages.forEach(messageRepository::delete);
+        messageRepository.deleteAll(deleteMessages);
 
         // 사용자 상태 연쇄 삭제
         List<UserStatusEntity> deleteUserStatuses = userStatusRepository.findAll().stream()
-                .filter(userStatus -> userStatus.getUserId().equals(targetUser.getId()))
+                .filter(userStatus -> userStatus.getUser().getId().equals(targetUser.getId()))
                 .toList();
-        deleteUserStatuses.forEach(userStatusRepository::delete);
+        userStatusRepository.deleteAll(deleteUserStatuses);
 
         // 사용자 프로필 이미지 연쇄 삭제
         List<BinaryContentEntity> deleteBinaryContents = binaryContentRepository.findAll().stream()
-                .filter(binaryContent -> binaryContent.getId().equals(targetUser.getProfileId()))
+                .filter(binaryContent -> binaryContent.getId().equals(targetUser.getProfile().getId()))
                 .toList();
-        deleteBinaryContents.forEach(binaryContentRepository::delete);
+        binaryContentRepository.deleteAll(deleteBinaryContents);
 
         userRepository.delete(targetUser);
     }
@@ -198,7 +193,8 @@ public class BasicUserService implements UserService {
 
     // 사용자 상태 반환
     public UserStatusEntity getUserStatusEntityByUserId(UUID userId) {
-        return userStatusRepository.findByUserId(userId);
+        return userStatusRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("UserStatus with id {userId} not found"));
     }
 
     // 유효성 검사 (이메일 중복)
@@ -213,9 +209,8 @@ public class BasicUserService implements UserService {
             throw new IllegalArgumentException("User with username {username} already exists");
     }
 
-    // UserStatusMap 생성
-    private Map<UUID, UserStatusEntity> getUserStatusMap() {
-        return userStatusRepository.findAll().stream()
-                .collect(Collectors.toMap(UserStatusEntity::getUserId, status -> status));
+    // 유효성 검사 (읽음 상태 존재 여부)
+    public boolean existsByUserIdAndChannelId(UUID userId, UUID channelId) {
+        return readStatusRepository.existsByUserIdAndChannelId(userId, channelId);
     }
 }

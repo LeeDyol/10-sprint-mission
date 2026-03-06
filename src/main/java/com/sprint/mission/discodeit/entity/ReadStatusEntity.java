@@ -27,7 +27,7 @@ public class ReadStatusEntity extends BaseUpdatableEntity {
     @Column(nullable = false)
     private Instant lastReadAt;                          // 해당 채널에서 마지막으로 메시지를 읽은 시간
 
-    public ReadStatusEntity(ReadStatusCreateRequest readStatusCreateRequest, UserEntity user, ChannelEntity channel) {
+    public ReadStatusEntity(UserEntity user, ChannelEntity channel) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();

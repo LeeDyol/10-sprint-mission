@@ -59,10 +59,10 @@ public class BasicMessageService implements MessageService {
                     }
                 })
                 .toList();
-        newAttachments.forEach(binaryContentRepository::save);
+        binaryContentRepository.saveAll(newAttachments);
 
-        MessageEntity newMessage = new MessageEntity(messageCreateRequest);
-        newAttachments.forEach(file -> newMessage.addAttachment(file.getId()));
+        MessageEntity newMessage = new MessageEntity(messageCreateRequest, targetUser, targetChannel);
+        newAttachments.forEach(newMessage::addAttachment);
         messageRepository.save(newMessage);
 
         return messageMapper.toResponseDTO(newMessage);
@@ -92,7 +92,7 @@ public class BasicMessageService implements MessageService {
         // 현재 구조에 맞춰 스트림으로 페이징 로직을 구현해 드릴게요! ㅡㅡ+)
 
         List<MessageEntity> allMessages = messageRepository.findAll().stream()
-                .filter(message -> message.getChannelId().equals(channelId))
+                .filter(message -> message.getChannel().getId().equals(channelId))
                 .sorted((m1, m2) -> m2.getCreatedAt().compareTo(m1.getCreatedAt())) // 최신순 정렬
                 .toList();
 
@@ -120,7 +120,7 @@ public class BasicMessageService implements MessageService {
         UserEntity targetUser = getUserEntityOrThrow(targetUserId);
 
         return messageRepository.findAll().stream()
-                .filter(message -> message.getAuthorId().equals(targetUser.getId()))
+                .filter(message -> message.getAuthor().getId().equals(targetUser.getId()))
                 .map(messageMapper::toResponseDTO)
                 .toList();
     }
@@ -146,12 +146,12 @@ public class BasicMessageService implements MessageService {
     public void delete(UUID targetMessageId) {
         MessageEntity targetMessage = getMessageEntityOrThrow(targetMessageId);
 
-        List<BinaryContentEntity> deleteBinaryContents = targetMessage.getAttachmentIds().stream()
-                .map(binaryContentId -> binaryContentRepository.findById(binaryContentId)
+        List<BinaryContentEntity> deleteBinaryContents = targetMessage.getAttachments().stream()
+                .map(binaryContent -> binaryContentRepository.findById(binaryContent.getId())
                         .orElseThrow(() -> new IllegalArgumentException("BinaryContent with id {binaryContentId} not found"))
                 )
                 .toList();
-        deleteBinaryContents.forEach(binaryContentRepository::delete);
+        binaryContentRepository.deleteAll(deleteBinaryContents);
 
         messageRepository.delete(targetMessage);
     }

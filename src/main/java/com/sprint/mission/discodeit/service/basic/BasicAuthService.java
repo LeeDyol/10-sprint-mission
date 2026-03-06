@@ -41,6 +41,7 @@ public class BasicAuthService implements AuthService {
 
     // 사용자 상태 반환
     public UserStatusEntity getUserStatusEntityOrThrow(UUID userId){
-        return userStatusRepository.findByUserId(userId);
+        return userStatusRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("UserStatus with userId {userId} not found"));
     }
 }

@@ -34,7 +34,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
         existsByUserIdAndChannelId(targetUser.getId(), targetChannel.getId());
 
-        ReadStatusEntity newReadStatus = new ReadStatusEntity(readStatusCreateRequest);
+        ReadStatusEntity newReadStatus = new ReadStatusEntity(targetUser, targetChannel);
         readStatusRepository.save(newReadStatus);
 
         return readStatusMapper.toResponseDTO(newReadStatus);
@@ -62,7 +62,7 @@ public class BasicReadStatusService implements ReadStatusService {
         getUserEntityOrThrow(userId);
 
         return readStatusRepository.findAll().stream()
-                .filter(readStatus -> readStatus.getUserId().equals(userId))
+                .filter(readStatus -> readStatus.getUser().getId().equals(userId))
                 .map(readStatusMapper::toResponseDTO)
                 .toList();
     }
