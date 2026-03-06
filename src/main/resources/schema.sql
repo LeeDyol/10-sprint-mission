@@ -1,8 +1,16 @@
+DROP TABLE IF EXISTS message_attachments;
+DROP TABLE IF EXISTS messages;
+DROP TABLE IF EXISTS read_statuses;
+DROP TABLE IF EXISTS user_statuses;
+DROP TABLE IF EXISTS channels;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS binary_contents;
+
 CREATE TABLE binary_contents (
     id UUID PRIMARY KEY,
     created_at TIMESTAMPTZ NOT NULL,
     file_name VARCHAR(255) NOT NULL,
-    size INTEGER NOT NULL,
+    size BIGINT NOT NULL,
     content_type VARCHAR(100),
     bytes BYTEA NOT NULL
 );
@@ -42,10 +50,11 @@ CREATE TABLE read_statuses (
     id UUID PRIMARY KEY,
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ,
-    user_id UUID NOT NULL UNIQUE,
-    channel_id UUID NOT NULL UNIQUE,
+    user_id UUID NOT NULL,
+    channel_id UUID NOT NULL,
     last_read_at TIMESTAMPTZ NOT NULL,
 
+    CONSTRAINT uk_user_channel UNIQUE (user_id, channel_id),
     CONSTRAINT fk_read_statuses_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_read_statuses_channel FOREIGN KEY (channel_id) REFERENCES channels(id) ON DELETE CASCADE
 );
