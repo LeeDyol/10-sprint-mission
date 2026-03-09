@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.request.Pageable;
 import com.sprint.mission.discodeit.dto.request.message.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.message.MessageUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.MessageDto;
@@ -11,6 +10,7 @@ import com.sprint.mission.discodeit.entity.MessageEntity;
 import com.sprint.mission.discodeit.entity.UserEntity;
 import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
+import com.sprint.mission.discodeit.mapper.PageResponseMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -20,6 +20,8 @@ import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,6 +41,7 @@ public class BasicMessageService implements MessageService {
     private final BinaryContentRepository binaryContentRepository;
 
     private final MessageMapper messageMapper;
+    private final PageResponseMapper pageResponseMapper;
 
     private final BinaryContentStorage localBinaryContentStorage;
 
@@ -95,31 +98,11 @@ public class BasicMessageService implements MessageService {
     // 특정 채널의 전체 메시지 목록 조회
     @Override
     public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Pageable pageable) {
-        // 1. 해당 채널의 전체 메시지를 필터링해서 가져옵니다.
-        // (JPA를 쓰신다면 레포지토리에 findAllByChannelId(UUID id, Pageable p)를 만드시는 게 베스트지만,
-        // 현재 구조에 맞춰 스트림으로 페이징 로직을 구현해 드릴게요! ㅡㅡ+)
+        Slice<MessageEntity> messageSlice = messageRepository.findByChannelId(channelId, pageable);
 
-        List<MessageEntity> allMessages = messageRepository.findAll().stream()
-                .filter(message -> message.getChannel().getId().equals(channelId))
-                .sorted((m1, m2) -> m2.getCreatedAt().compareTo(m1.getCreatedAt())) // 최신순 정렬
-                .toList();
+        Slice<MessageDto> messageDtoSlice = messageSlice.map(messageMapper::toResponseDTO);
 
-        // 2. 페이징 계산 (날먹 로직 웅! ✨)
-        int start = (int) Math.min((long) pageable.getPage() * pageable.getSize(), (long) allMessages.size());
-        int end = (int) Math.min((long) start + pageable.getSize(), (long) allMessages.size());
-
-        List<MessageDto> pagedContent = allMessages.subList(start, end).stream()
-                .map(messageMapper::toResponseDTO)
-                .toList();
-
-        // 3. 명세서 규격인 PageResponse로 조립! 🚀🐉
-        return PageResponse.<MessageDto>builder()
-                .content(pagedContent)
-                .number(pageable.getPage())
-                .size(pageable.getSize())
-                .hasNext(end < allMessages.size())
-                .totalElements(allMessages.size())
-                .build();
+        return pageResponseMapper.fromSlice(messageDtoSlice);
     }
 
     // 특정 사용자가 발행한 전체 메시지 목록 조회
