@@ -45,21 +45,17 @@ public class UserEntity extends BaseUpdatableEntity {
 
     public void updateUsername(String newUsername) {
         this.username = newUsername;
-        this.updatedAt = Instant.now();
     }
 
     public void updatePassword(String newPassword) {
         this.password = newPassword;
-        this.updatedAt = Instant.now();
     }
 
     public void updateEmail(String newEmail) {
         this.email = newEmail;
-        this.updatedAt = Instant.now();
     }
 
     public void updateProfile(BinaryContentEntity newProfile) {
         this.profile = newProfile;
-        this.updatedAt = Instant.now();
     }
 }

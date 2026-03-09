@@ -37,11 +37,9 @@ public class ChannelEntity extends BaseUpdatableEntity {
 
     public void updateChannelName(String newChannelName) {
         this.name = newChannelName;
-        this.updatedAt = Instant.now();
     }
 
     public void updateChannelDescription(String newDescription) {
         this.description = newDescription;
-        this.updatedAt = Instant.now();
     }
 }

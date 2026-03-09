@@ -112,7 +112,7 @@ public class BasicReadStatusService implements ReadStatusService {
     // 유효성 검사 (중복 확인)
     public void existsByUserIdAndChannelId(UUID userId, UUID channelId) {
         if (readStatusRepository.existsByUserIdAndChannelId(userId, channelId)) {
-            throw new IllegalArgumentException("ReadStatus with userId {userId} and channelId {" + channelId + "} already exists");
+            throw new IllegalArgumentException("ReadStatus with userId {" + userId + "} and channelId {" + channelId + "} already exists");
         }
     }
 }

@@ -35,13 +35,11 @@ public class UserStatusEntity extends BaseUpdatableEntity {
     // 5분 전 사용자의 온라인 상태 여부
     public boolean isOnline() {
         Instant fiveMinutesAgo = Instant.now().minus(5, ChronoUnit.MINUTES);
-        this.updatedAt = Instant.now();
 
         return this.lastActiveAt.isAfter(fiveMinutesAgo);
     }
 
     public void updateLastActiveAt(Instant newLastActiveAt) {
         this.lastActiveAt = newLastActiveAt;
-        this.updatedAt = Instant.now();
     }
 }

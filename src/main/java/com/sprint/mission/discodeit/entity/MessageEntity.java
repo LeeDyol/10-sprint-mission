@@ -51,7 +51,6 @@ public class MessageEntity extends BaseUpdatableEntity {
 
     public void updateMessage(String newContent) {
         this.content = newContent;
-        this.updatedAt = Instant.now();
     }
 
     public void addAttachment(BinaryContentEntity newAttachment) {

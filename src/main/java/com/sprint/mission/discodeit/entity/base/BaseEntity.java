@@ -14,7 +14,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @MappedSuperclass
-@EntityListeners(AuditingEntityListener.class)
+@EntityListeners(AuditingEntityListener.class)          // 엔티티 생명 주기 감시
 public abstract class BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

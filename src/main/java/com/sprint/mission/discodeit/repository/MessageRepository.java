@@ -16,9 +16,6 @@ public interface MessageRepository extends JpaRepository<MessageEntity, UUID> {
     // 다건 조회 (사용자)
     List<MessageEntity> findByAuthor(UserEntity author);
 
-    // 다건 조회 (채널 id)
-    List<MessageEntity> findByChannelId(UUID channelId);
-
     // 다건 조회 (채널)
     List<MessageEntity> findByChannel(ChannelEntity channel);
 

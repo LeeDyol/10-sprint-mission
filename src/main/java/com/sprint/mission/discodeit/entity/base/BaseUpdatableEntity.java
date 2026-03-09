@@ -13,6 +13,6 @@ import java.time.Instant;
 @NoArgsConstructor
 @MappedSuperclass
 public class BaseUpdatableEntity extends BaseEntity {
-    @LastModifiedDate
+    @LastModifiedDate                   // 해당 필드 변경 시간 자동 기록
     protected Instant updatedAt;
 }
