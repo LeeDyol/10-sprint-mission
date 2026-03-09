@@ -7,6 +7,7 @@ import com.sprint.mission.discodeit.dto.response.ChannelDto;
 import com.sprint.mission.discodeit.service.ChannelService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,7 @@ public class ChannelController {
 
     @Operation(summary = "Public Channel 생성", operationId = "create_3")
     @PostMapping("/public")
-    public ResponseEntity<ChannelDto> createPublicChannel(@RequestBody PublicChannelCreateRequest publicChannelCreateRequest) {
+    public ResponseEntity<ChannelDto> createPublicChannel(@Valid @RequestBody PublicChannelCreateRequest publicChannelCreateRequest) {
         ChannelDto newChannel = channelService.createPublicChannel(publicChannelCreateRequest);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(newChannel);
@@ -40,7 +41,7 @@ public class ChannelController {
 
     @Operation(summary = "Private Channel 생성", operationId = "create_4")
     @PostMapping("/private")
-    public ResponseEntity<ChannelDto> createPrivateChannel(@RequestBody PrivateChannelCreateRequest privateChannelCreateRequest) {
+    public ResponseEntity<ChannelDto> createPrivateChannel(@Valid @RequestBody PrivateChannelCreateRequest privateChannelCreateRequest) {
         ChannelDto newChannel = channelService.createPrivateChannel(privateChannelCreateRequest);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(newChannel);
@@ -49,7 +50,7 @@ public class ChannelController {
     @Operation(summary = "Channel 정보 수정", operationId = "update_3")
     @PatchMapping("/{channelId}")
     public ResponseEntity<ChannelDto> update(@PathVariable UUID channelId,
-                                             @RequestBody PublicChannelUpdateRequest publicChannelUpdateRequest) {
+                                             @Valid @RequestBody PublicChannelUpdateRequest publicChannelUpdateRequest) {
 
         ChannelDto updateChannel = channelService.update(channelId, publicChannelUpdateRequest);
 

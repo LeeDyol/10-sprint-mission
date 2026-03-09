@@ -11,6 +11,7 @@ import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -39,8 +40,8 @@ public class UserController {
 
     @Operation(summary = "User 등록", operationId = "create")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<UserDto> create(@RequestPart(value = "userCreateRequest") UserCreateRequest userCreateRequest,
-                                             @RequestPart(value = "profile", required = false) MultipartFile profile){
+    public ResponseEntity<UserDto> create(@Valid @RequestPart(value = "userCreateRequest") UserCreateRequest userCreateRequest,
+                                          @RequestPart(value = "profile", required = false) MultipartFile profile){
         UserDto newUser = userService.create(userCreateRequest, profile);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
@@ -49,7 +50,7 @@ public class UserController {
     @Operation(summary = "User 정보 수정", operationId = "update")
     @PatchMapping(path = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserDto> update(@PathVariable UUID userId,
-                                          @RequestPart UserUpdateRequest userUpdateRequest,
+                                          @Valid @RequestPart UserUpdateRequest userUpdateRequest,
                                           @RequestPart(value = "profile", required = false) MultipartFile profile){
 
         UserDto updateUser = userService.update(userId, userUpdateRequest, profile);
@@ -68,7 +69,7 @@ public class UserController {
     @Operation(summary = "User 온라인 상태 업데이트", operationId = "updateUserStatusByUserId")
     @PatchMapping("/{userId}/userStatus")
     public ResponseEntity<UserStatusDto> updateByUserId (@PathVariable UUID userId,
-                                                         @RequestBody UserStatusUpdateRequest userStatusUpdateRequest){
+                                                         @Valid @RequestBody UserStatusUpdateRequest userStatusUpdateRequest){
         UserStatusDto updatedUserStatus = userStatusService.updateByUserId(userId, userStatusUpdateRequest);
 
         return ResponseEntity.ok(updatedUserStatus);
