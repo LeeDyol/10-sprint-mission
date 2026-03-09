@@ -1,12 +1,11 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.response.BinaryContentDto;
-import com.sprint.mission.discodeit.entity.BinaryContentEntity;
 import com.sprint.mission.discodeit.service.BinaryContentService;
+import com.sprint.mission.discodeit.storage.LocalBinaryContentStorage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +18,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BinaryContentController {
     private final BinaryContentService binaryContentService;
+
+    private final LocalBinaryContentStorage localBinaryContentStorage;
 
     @Operation(summary = "첨부 파일 조회", operationId = "find")
     @GetMapping("/{binaryContentId}")
@@ -38,12 +39,9 @@ public class BinaryContentController {
 
     @Operation(summary = "파일 다운로드", operationId = "download")
     @GetMapping("/{binaryContentId}/download")
-    public ResponseEntity<byte[]> download(@PathVariable UUID binaryContentId) {
-        BinaryContentEntity response = binaryContentService.getBinaryContentEntityOrThrow(binaryContentId);
+    public ResponseEntity<?> download(@PathVariable UUID binaryContentId) {
+        BinaryContentDto response = binaryContentService.findById(binaryContentId);
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
-                .header(HttpHeaders.CONTENT_TYPE, response.getContentType())
-                .body(response.getBytes());
+        return localBinaryContentStorage.download(response);
     }
 }

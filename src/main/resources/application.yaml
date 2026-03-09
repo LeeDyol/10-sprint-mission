@@ -32,6 +32,10 @@ discodeit:
   repository:
     type: jpa           # jcf | file
     file-directory: .discodeit
+  storage:
+    type: local
+    local:
+      root-path: ./upload-files
 
 springdoc:
   api-docs:

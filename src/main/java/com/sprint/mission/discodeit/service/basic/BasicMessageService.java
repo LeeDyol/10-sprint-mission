@@ -15,11 +15,12 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.storage.BinaryContentStorage;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -37,32 +38,36 @@ public class BasicMessageService implements MessageService {
 
     private final MessageMapper messageMapper;
 
+    private final BinaryContentStorage localBinaryContentStorage;
+
     // 메시지 생성
     @Override
     public MessageDto create(MessageCreateRequest messageCreateRequest, List<MultipartFile> attachments) {
         UserEntity targetUser = getUserEntityOrThrow(messageCreateRequest.authorId());
         ChannelEntity targetChannel = getChannelEntityOrThrow(messageCreateRequest.channelId());
 
-        List<BinaryContentEntity> newAttachments = Optional.ofNullable(attachments)
-                // 첨부 파일이 없으면 빈 리스트 전달
-                .orElse(List.of())
-                .stream()
-                .map(file -> {
-                    try {
-                        return new BinaryContentEntity(
-                                file.getOriginalFilename(),
-                                file.getBytes(),
-                                file.getContentType()
-                        );
-                    } catch (IOException e) {
-                        throw new RuntimeException("Error occurred while processing file", e);
-                    }
-                })
-                .toList();
-        binaryContentRepository.saveAll(newAttachments);
-
         MessageEntity newMessage = new MessageEntity(messageCreateRequest, targetUser, targetChannel);
-        newAttachments.forEach(newMessage::addAttachment);
+
+        // Null 일 경우, 빈 리스트 반환
+        List<MultipartFile> userAttachments = (attachments == null) ? List.of() : attachments;
+
+        for (MultipartFile file : userAttachments) {
+            try {
+                BinaryContentEntity newBinaryContent = new BinaryContentEntity(
+                        file.getOriginalFilename(),
+                        file.getSize(),
+                        file.getContentType());
+
+                binaryContentRepository.save(newBinaryContent);
+
+                localBinaryContentStorage.put(newBinaryContent.getId(), file.getBytes());
+
+                newMessage.addAttachment(newBinaryContent);
+            } catch (Exception e) {
+                throw new RuntimeException("Error occurred while processing file", e);
+            }
+        }
+
         messageRepository.save(newMessage);
 
         return messageMapper.toResponseDTO(newMessage);

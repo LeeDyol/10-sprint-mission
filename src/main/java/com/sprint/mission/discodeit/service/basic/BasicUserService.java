@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,6 +31,8 @@ public class BasicUserService implements UserService {
 
     private final UserMapper userMapper;
 
+    private final BinaryContentStorage localBinaryContentStorage;
+
     // 사용자 생성
     @Override
     public UserDto create(UserCreateRequest userCreateRequest, MultipartFile profile) {
@@ -44,13 +47,14 @@ public class BasicUserService implements UserService {
 
         if (profile != null && !profile.isEmpty()) {
             try {
-                BinaryContentEntity content = new BinaryContentEntity(
+                BinaryContentEntity userProfile = new BinaryContentEntity(
                         profile.getOriginalFilename(),
-                        profile.getBytes(),
+                        profile.getSize(),
                         profile.getContentType()
                 );
-                binaryContentRepository.save(content);
-                newUser.updateProfile(content);
+                binaryContentRepository.save(userProfile);
+                localBinaryContentStorage.put(userProfile.getId(), profile.getBytes());
+                newUser.updateProfile(userProfile);
             } catch (IOException e) {
                 throw new RuntimeException("Error occurred while processing file", e);
             }
@@ -125,14 +129,15 @@ public class BasicUserService implements UserService {
 
         // 프로필 이미지 변경
         Optional.ofNullable(profile)
-                .ifPresent(file -> {
+                .ifPresent(userProfile -> {
                     try {
                         BinaryContentEntity newProfile = new BinaryContentEntity(
-                                file.getOriginalFilename(),
-                                file.getBytes(),
-                                file.getContentType()
+                                userProfile.getOriginalFilename(),
+                                userProfile.getSize(),
+                                userProfile.getContentType()
                         );
                         binaryContentRepository.save(newProfile);
+                        localBinaryContentStorage.put(targetUser.getId(), userProfile.getBytes());
                         targetUser.updateProfile(newProfile);
                     } catch (IOException e) {
                         throw new RuntimeException("Error occurred while processing profile image", e);

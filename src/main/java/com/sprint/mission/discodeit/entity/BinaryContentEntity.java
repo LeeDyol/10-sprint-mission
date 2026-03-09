@@ -25,16 +25,12 @@ public class BinaryContentEntity extends BaseEntity {    // 수정 불가능 클
 
     private String contentType;                          // 파일 종류
 
-    @Column(nullable = false)
-    private byte[] bytes;                                // 실제 파일
-
-    public BinaryContentEntity(String originalFilename, byte[] bytes, String contentType) {
+    public BinaryContentEntity(String originalFilename, long size, String contentType) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
 
         this.fileName = originalFilename;
-        this.bytes = bytes;
         this.contentType = contentType;
-        this.size = (long) this.bytes.length;
+        this.size = size;
     }
 }

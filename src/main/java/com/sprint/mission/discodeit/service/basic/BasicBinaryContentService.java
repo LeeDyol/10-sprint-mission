@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.entity.BinaryContentEntity;
 import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
+import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,11 +19,15 @@ public class BasicBinaryContentService implements BinaryContentService {
 
     private final BinaryContentMapper binaryContentMapper;
 
+    private final BinaryContentStorage localBinaryContentStorage;
+
     // 첨부 파일 생성
     @Override
     public BinaryContentDto create(String fileName, byte[] bytes, String contentType) {
-        BinaryContentEntity newBinaryContent = new BinaryContentEntity(fileName, bytes, contentType);
+        BinaryContentEntity newBinaryContent = new BinaryContentEntity(fileName, bytes.length, contentType);
         binaryContentRepository.save(newBinaryContent);
+
+        localBinaryContentStorage.put(newBinaryContent.getId(), bytes);
 
         return binaryContentMapper.toDto(newBinaryContent);
     }
@@ -30,7 +35,7 @@ public class BasicBinaryContentService implements BinaryContentService {
     // 첨부 파일 단건 조회
     @Override
     public BinaryContentDto findById(UUID targetBinaryContentId) {
-        BinaryContentEntity targetBinaryContent = this.getBinaryContentEntityOrThrow(targetBinaryContentId);
+        BinaryContentEntity targetBinaryContent = getBinaryContentEntityOrThrow(targetBinaryContentId);
 
         return binaryContentMapper.toDto(targetBinaryContent);
     }
@@ -55,7 +60,7 @@ public class BasicBinaryContentService implements BinaryContentService {
     // 첨부 파일 삭제
     @Override
     public void delete(UUID targetBinaryContentId) {
-        BinaryContentEntity targetBinaryContent = this.getBinaryContentEntityOrThrow(targetBinaryContentId);
+        BinaryContentEntity targetBinaryContent = getBinaryContentEntityOrThrow(targetBinaryContentId);
         binaryContentRepository.delete(targetBinaryContent);
     }
 
