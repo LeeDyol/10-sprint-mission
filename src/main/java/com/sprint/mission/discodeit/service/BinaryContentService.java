@@ -11,7 +11,7 @@ public interface BinaryContentService {
     BinaryContentDto create(String fileName, byte[] bytes, String contentType);
 
     // 첨푸파일 단일 조회
-    BinaryContentDto findById(UUID targetBinaryContentId);
+    BinaryContentDto findById(UUID binaryContentId);
 
     // 첨부파일 다건 조회
     List<BinaryContentDto> findAllByIds(List<UUID> binaryContentIds);
@@ -20,8 +20,8 @@ public interface BinaryContentService {
     List<BinaryContentDto> findAll();
 
     // 첨부파일 삭제
-    void delete(UUID targetBinaryContentId);
+    void delete(UUID binaryContentId);
 
     // 첨부파일 엔티티 반환
-    BinaryContentEntity getBinaryContentEntityOrThrow(UUID targetBinaryContentId);
+    BinaryContentEntity getBinaryContentEntityOrThrow(UUID binaryContentId);
 }

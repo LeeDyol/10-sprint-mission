@@ -12,7 +12,7 @@ public interface ReadStatusService {
     ReadStatusDto create(ReadStatusCreateRequest readStatusCreateRequest);
 
     // 읽음 상태 단일 조회
-    ReadStatusDto findById(UUID id);
+    ReadStatusDto findById(UUID readStatusId);
 
     // 읽음 상태 전체 조회
     List<ReadStatusDto> findAll();
@@ -24,5 +24,5 @@ public interface ReadStatusService {
     ReadStatusDto update(UUID readStatusId, ReadStatusUpdateRequest readStatusUpdateRequest);
 
     // 읽음 상태 삭제
-    void delete(UUID id);
+    void delete(UUID readStatusId);
 }

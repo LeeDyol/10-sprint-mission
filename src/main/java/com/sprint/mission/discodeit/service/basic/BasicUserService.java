@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.dto.request.user.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.UserService;
@@ -47,14 +48,17 @@ public class BasicUserService implements UserService {
 
         if (profile != null && !profile.isEmpty()) {
             try {
-                BinaryContentEntity userProfile = new BinaryContentEntity(
+                BinaryContentEntity newUserProfile = new BinaryContentEntity(
                         profile.getOriginalFilename(),
                         profile.getSize(),
                         profile.getContentType()
                 );
-                binaryContentRepository.save(userProfile);
-                localBinaryContentStorage.put(userProfile.getId(), profile.getBytes());
-                newUser.updateProfile(userProfile);
+
+                binaryContentRepository.save(newUserProfile);
+
+                localBinaryContentStorage.put(newUserProfile.getId(), profile.getBytes());
+
+                newUser.updateProfile(newUserProfile);
             } catch (IOException e) {
                 throw new RuntimeException("Error occurred while processing file", e);
             }
@@ -136,8 +140,11 @@ public class BasicUserService implements UserService {
                                 userProfile.getSize(),
                                 userProfile.getContentType()
                         );
+
                         binaryContentRepository.save(newProfile);
+
                         localBinaryContentStorage.put(targetUser.getId(), userProfile.getBytes());
+
                         targetUser.updateProfile(newProfile);
                     } catch (IOException e) {
                         throw new RuntimeException("Error occurred while processing profile image", e);
@@ -184,25 +191,25 @@ public class BasicUserService implements UserService {
     // 사용자 엔티티 반환
     public UserEntity getUserEntityOrThrow(UUID userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User with id {userId} not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User with id {" + userId + "} not found"));
     }
 
     // 채널 반환
     public ChannelEntity getChannelEntityOrThrow(UUID channelId){
         return channelRepository.findById(channelId)
-                .orElseThrow(() -> new IllegalArgumentException("Channel with id {channelId} not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Channel with id {" + channelId + "} not found"));
     }
 
     // 유효성 검사 (이메일 중복)
-    public void isEmailDuplicate(String email) {
-        if (userRepository.existsByEmail(email))
-            throw new IllegalArgumentException("User with email {newEmail} already exists");
+    public void isEmailDuplicate(String newEmail) {
+        if (userRepository.existsByEmail(newEmail))
+            throw new IllegalArgumentException("User with email {" + newEmail + "} already exists");
     }
 
     // 유효성 검사 (이름 중복)
-    public void isUsernameDuplicate(String username) {
-        if (userRepository.existsByUsername(username))
-            throw new IllegalArgumentException("User with username {username} already exists");
+    public void isUsernameDuplicate(String newUsername) {
+        if (userRepository.existsByUsername(newUsername))
+            throw new IllegalArgumentException("User with username {" + newUsername + "} already exists");
     }
 
     // 유효성 검사 (읽음 상태 존재 여부)

@@ -9,6 +9,7 @@ import com.sprint.mission.discodeit.entity.BinaryContentEntity;
 import com.sprint.mission.discodeit.entity.ChannelEntity;
 import com.sprint.mission.discodeit.entity.MessageEntity;
 import com.sprint.mission.discodeit.entity.UserEntity;
+import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
@@ -49,9 +50,9 @@ public class BasicMessageService implements MessageService {
         MessageEntity newMessage = new MessageEntity(messageCreateRequest, targetUser, targetChannel);
 
         // Null 일 경우, 빈 리스트 반환
-        List<MultipartFile> userAttachments = (attachments == null) ? List.of() : attachments;
+        List<MultipartFile> attachmentsOfUser = (attachments == null) ? List.of() : attachments;
 
-        for (MultipartFile file : userAttachments) {
+        for (MultipartFile file : attachmentsOfUser) {
             try {
                 BinaryContentEntity newBinaryContent = new BinaryContentEntity(
                         file.getOriginalFilename(),
@@ -64,7 +65,7 @@ public class BasicMessageService implements MessageService {
 
                 newMessage.addAttachment(newBinaryContent);
             } catch (Exception e) {
-                throw new RuntimeException("Error occurred while processing file", e);
+                throw new RuntimeException("Failed to process attachment: " + file.getOriginalFilename(), e);
             }
         }
 
@@ -75,8 +76,8 @@ public class BasicMessageService implements MessageService {
 
     // 메시지 단건 조회
     @Override
-    public MessageDto findById(UUID targetMessageId) {
-       MessageEntity targetMessage = getMessageEntityOrThrow(targetMessageId);
+    public MessageDto findById(UUID messageId) {
+       MessageEntity targetMessage = getMessageEntityOrThrow(messageId);
 
        return messageMapper.toResponseDTO(targetMessage);
     }
@@ -121,8 +122,8 @@ public class BasicMessageService implements MessageService {
 
     // 특정 사용자가 발행한 전체 메시지 목록 조회
     @Override
-    public List<MessageDto> findAllByUserId(UUID targetUserId) {
-        UserEntity targetUser = getUserEntityOrThrow(targetUserId);
+    public List<MessageDto> findAllByUserId(UUID userId) {
+        UserEntity targetUser = getUserEntityOrThrow(userId);
 
         return messageRepository.findAll().stream()
                 .filter(message -> message.getAuthor().getId().equals(targetUser.getId()))
@@ -148,13 +149,11 @@ public class BasicMessageService implements MessageService {
 
     // 메시지 삭제
     @Override
-    public void delete(UUID targetMessageId) {
-        MessageEntity targetMessage = getMessageEntityOrThrow(targetMessageId);
+    public void delete(UUID messageId) {
+        MessageEntity targetMessage = getMessageEntityOrThrow(messageId);
 
         List<BinaryContentEntity> deleteBinaryContents = targetMessage.getAttachments().stream()
-                .map(binaryContent -> binaryContentRepository.findById(binaryContent.getId())
-                        .orElseThrow(() -> new IllegalArgumentException("BinaryContent with id {binaryContentId} not found"))
-                )
+                .map(binaryContent -> getBinaryContentEntityOrThrow(binaryContent.getId()))
                 .toList();
         binaryContentRepository.deleteAll(deleteBinaryContents);
 
@@ -164,18 +163,24 @@ public class BasicMessageService implements MessageService {
     // 사용자 반환
     public UserEntity getUserEntityOrThrow(UUID userId){
         return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User with id {userId} not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User with id {" + userId + "} not found"));
     }
 
     // 채널 반환
     public ChannelEntity getChannelEntityOrThrow(UUID channelId){
         return channelRepository.findById(channelId)
-                .orElseThrow(() -> new IllegalArgumentException("Channel with id {channelId} not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Channel with id {" + channelId + "} not found"));
     }
 
     // 메시지 반환
-    public MessageEntity getMessageEntityOrThrow(UUID targetMessageId){
-        return messageRepository.findById(targetMessageId)
-                .orElseThrow(() -> new IllegalArgumentException("Message with id {targetMessageId} not found"));
+    public MessageEntity getMessageEntityOrThrow(UUID messageId){
+        return messageRepository.findById(messageId)
+                .orElseThrow(() -> new ResourceNotFoundException("Message with id {" + messageId + "} not found"));
+    }
+
+    // 첨부 파일 반환
+    public BinaryContentEntity getBinaryContentEntityOrThrow(UUID binaryContentId){
+        return binaryContentRepository.findById(binaryContentId)
+                .orElseThrow(() -> new ResourceNotFoundException("BinaryContent with id {" + binaryContentId + "} not found"));
     }
 }

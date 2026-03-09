@@ -6,6 +6,7 @@ import com.sprint.mission.discodeit.dto.request.channel.PrivateChannelCreateRequ
 import com.sprint.mission.discodeit.dto.request.channel.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.response.ChannelDto;
 import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -47,22 +48,22 @@ public class BasicChannelService implements ChannelService {
         ChannelEntity newChannel = new ChannelEntity(privateChannelCreateRequest);
         channelRepository.save(newChannel);
 
-        List<ReadStatusEntity> newReadStatues = privateChannelCreateRequest.participantIds().stream()
+        // 각 멤버의 읽음 상태 생성
+        List<ReadStatusEntity> newReadStatuesOfMembers = privateChannelCreateRequest.participantIds().stream()
                 .filter(this::existsByUserId)
                 .map(participantId -> new ReadStatusEntity(getUserEntityOrThrow(participantId), newChannel))
                 .toList();
-
-        readStatusRepository.saveAll(newReadStatues);
+        readStatusRepository.saveAll(newReadStatuesOfMembers);
 
         return channelMapper.toDto(newChannel);
     }
 
     // 채널 단건 조회
     @Override
-    public ChannelDto findById(UUID targetChannelId) {
-        ChannelEntity targetCache = getChannelEntityOrThrow(targetChannelId);
+    public ChannelDto findById(UUID channelId) {
+        ChannelEntity targetChannel = getChannelEntityOrThrow(channelId);
 
-        return channelMapper.toDto(targetCache);
+        return channelMapper.toDto(targetChannel);
     }
 
     // 채널 전체 조회
@@ -119,18 +120,18 @@ public class BasicChannelService implements ChannelService {
 
     // 채널 삭제
     @Override
-    public void delete(UUID targetChannelId) {
-        ChannelEntity targetChannel = getChannelEntityOrThrow(targetChannelId);
+    public void delete(UUID channelId) {
+        ChannelEntity targetChannel = getChannelEntityOrThrow(channelId);
 
         // 해당 채널에서 발행된 메시지 연쇄 삭제
         List<MessageEntity> deleteMessages = messageRepository.findAll().stream()
-                .filter(message -> message.getChannel().getId().equals(targetChannelId))
+                .filter(message -> message.getChannel().getId().equals(channelId))
                 .toList();
         messageRepository.deleteAll(deleteMessages);
 
         // 채널 멤버의 ReadStatus 연쇄 삭제
         List<ReadStatusEntity> deleteReadStatuses = readStatusRepository.findAll().stream()
-                .filter(readStatus -> readStatus.getChannel().getId().equals(targetChannelId))
+                .filter(readStatus -> readStatus.getChannel().getId().equals(channelId))
                 .toList();
         readStatusRepository.deleteAll(deleteReadStatuses);
 
@@ -164,19 +165,19 @@ public class BasicChannelService implements ChannelService {
     // 사용자 반환
     public UserEntity getUserEntityOrThrow(UUID userId){
         return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User with id {userId} not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User with id {" + userId + "} not found"));
     }
 
     // 채널 엔티티 반환
-    public ChannelEntity getChannelEntityOrThrow(UUID targetChannelId) {
-        return channelRepository.findById(targetChannelId)
-                .orElseThrow(() -> new IllegalArgumentException("Channel with id {channelId} not found"));
+    public ChannelEntity getChannelEntityOrThrow(UUID channelId) {
+        return channelRepository.findById(channelId)
+                .orElseThrow(() -> new ResourceNotFoundException("Channel with id {" + channelId + "} not found"));
     }
 
     // 읽음 상태 엔티티 반환
     public ReadStatusEntity getUserStatusEntityOrThrow(UUID userId) {
         return readStatusRepository.findByUserId(userId)
-                .orElseThrow(() ->  new IllegalArgumentException("ReadStatus with id {userId} not found"));
+                .orElseThrow(() ->  new ResourceNotFoundException("ReadStatus with id {" + userId + "} not found"));
     }
 
     // 유효성 검증 (사용자 존재 여부)

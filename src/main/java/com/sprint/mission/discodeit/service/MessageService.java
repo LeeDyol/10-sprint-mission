@@ -15,7 +15,7 @@ public interface MessageService {
     MessageDto create(MessageCreateRequest messageCreateRequest, List<MultipartFile> attachments);
 
     // 메시지 단건 조회
-    MessageDto findById(UUID targetMessageId);
+    MessageDto findById(UUID messageId);
 
     // 메시지 전체 조회
     List<MessageDto> findAll();
@@ -24,11 +24,11 @@ public interface MessageService {
     PageResponse<MessageDto> findAllByChannelId(UUID channelId, Pageable pageable);
 
     // 특정 사용자가 발행한 전체 메시지 목록 조회
-    List<MessageDto> findAllByUserId(UUID targetUserId);
+    List<MessageDto> findAllByUserId(UUID userId);
 
     // 메시지 수정
     MessageDto update(UUID messageId, MessageUpdateRequest messageUpdateRequest);
 
     // 메시지 삭제
-    void delete(UUID targetMessageId);
+    void delete(UUID messageId);
 }

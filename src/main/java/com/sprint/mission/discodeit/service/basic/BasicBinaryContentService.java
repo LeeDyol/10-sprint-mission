@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.response.BinaryContentDto;
 import com.sprint.mission.discodeit.entity.BinaryContentEntity;
+import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
 import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
@@ -25,8 +26,8 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Override
     public BinaryContentDto create(String fileName, byte[] bytes, String contentType) {
         BinaryContentEntity newBinaryContent = new BinaryContentEntity(fileName, bytes.length, contentType);
-        binaryContentRepository.save(newBinaryContent);
 
+        binaryContentRepository.save(newBinaryContent);
         localBinaryContentStorage.put(newBinaryContent.getId(), bytes);
 
         return binaryContentMapper.toDto(newBinaryContent);
@@ -34,8 +35,8 @@ public class BasicBinaryContentService implements BinaryContentService {
 
     // 첨부 파일 단건 조회
     @Override
-    public BinaryContentDto findById(UUID targetBinaryContentId) {
-        BinaryContentEntity targetBinaryContent = getBinaryContentEntityOrThrow(targetBinaryContentId);
+    public BinaryContentDto findById(UUID binaryContentId) {
+        BinaryContentEntity targetBinaryContent = getBinaryContentEntityOrThrow(binaryContentId);
 
         return binaryContentMapper.toDto(targetBinaryContent);
     }
@@ -59,15 +60,16 @@ public class BasicBinaryContentService implements BinaryContentService {
 
     // 첨부 파일 삭제
     @Override
-    public void delete(UUID targetBinaryContentId) {
-        BinaryContentEntity targetBinaryContent = getBinaryContentEntityOrThrow(targetBinaryContentId);
+    public void delete(UUID binaryContentId) {
+        BinaryContentEntity targetBinaryContent = getBinaryContentEntityOrThrow(binaryContentId);
+
         binaryContentRepository.delete(targetBinaryContent);
     }
 
     // 첨부 파일 엔티티 반환
     @Override
-    public BinaryContentEntity getBinaryContentEntityOrThrow(UUID targetBinaryContentId) {
-        return binaryContentRepository.findById(targetBinaryContentId)
-                .orElseThrow(() -> new IllegalArgumentException("BinaryContent with id {binaryContentId} not found"));
+    public BinaryContentEntity getBinaryContentEntityOrThrow(UUID binaryContentId) {
+        return binaryContentRepository.findById(binaryContentId)
+                .orElseThrow(() -> new ResourceNotFoundException("BinaryContent with id {" + binaryContentId + "} not found"));
     }
 }
