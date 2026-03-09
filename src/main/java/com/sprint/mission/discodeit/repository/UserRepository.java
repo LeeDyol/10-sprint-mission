@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<UserEntity, UUID> {
-    // 사용자 단건 조회
+    // 단건 조회 (사용자 이름)
     Optional<UserEntity> findByUsername(String username);
 
     // 유효성 검사 (사용자 존재 여부)

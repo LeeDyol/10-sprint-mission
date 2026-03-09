@@ -10,6 +10,7 @@ import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,6 +37,7 @@ public class BasicUserService implements UserService {
 
     // 사용자 생성
     @Override
+    @Transactional
     public UserDto create(UserCreateRequest userCreateRequest, MultipartFile profile) {
         isEmailDuplicate(userCreateRequest.email());
         isUsernameDuplicate(userCreateRequest.username());
@@ -102,50 +104,56 @@ public class BasicUserService implements UserService {
 
     // 사용자 정보 수정
     @Override
+    @Transactional
     public UserDto update(UUID userId, UserUpdateRequest userUpdateRequest, MultipartFile profile) {
         UserEntity targetUser = getUserEntityOrThrow(userId);
 
         // 닉네임 필드 변경
         Optional.ofNullable(userUpdateRequest.newUsername())
-                .ifPresent(username -> {
-                    isUsernameDuplicate(username);
-                    validateString(username, "Invalid username format");
-                    validateDuplicateValue(targetUser.getUsername(), username, "New username is same as current");
-                    targetUser.updateUsername(username);
+                .ifPresent(newUsername -> {
+                    isUsernameDuplicate(newUsername);
+                    validateString(newUsername, "Invalid username format");
+                    validateDuplicateValue(targetUser.getUsername(), newUsername, "New username is same as current");
+                    targetUser.updateUsername(newUsername);
                 });
 
         // 비밀번호 필드 변경
         Optional.ofNullable(userUpdateRequest.newPassword())
-                .ifPresent(password -> {
-                    validateString(password, "Invalid password format");
-                    validateDuplicateValue(targetUser.getPassword(), password, "New password is same as current");
-                    targetUser.updatePassword(password);
+                .ifPresent(newPassword -> {
+                    validateString(newPassword, "Invalid password format");
+                    validateDuplicateValue(targetUser.getPassword(), newPassword, "New password is same as current");
+                    targetUser.updatePassword(newPassword);
                 });
 
         // 이메일 필드 변경
         Optional.ofNullable(userUpdateRequest.newEmail())
-                .ifPresent(email -> {
-                    isEmailDuplicate(email);
-                    validateString(email, "Invalid email format");
-                    validateDuplicateValue(targetUser.getUsername(), email, "New email is same as current");
-                    targetUser.updateEmail(email);
+                .ifPresent(newEmail -> {
+                    isEmailDuplicate(newEmail);
+                    validateString(newEmail, "Invalid email format");
+                    validateDuplicateValue(targetUser.getUsername(), newEmail, "New email is same as current");
+                    targetUser.updateEmail(newEmail);
                 });
 
         // 프로필 이미지 변경
         Optional.ofNullable(profile)
-                .ifPresent(userProfile -> {
+                .ifPresent(newUserProfile -> {
+                    // 기존 프로필이 존재할 경우, 삭제
+                    if (targetUser.getProfile() != null) {
+                        binaryContentRepository.delete(targetUser.getProfile());
+                    }
+
                     try {
-                        BinaryContentEntity newProfile = new BinaryContentEntity(
-                                userProfile.getOriginalFilename(),
-                                userProfile.getSize(),
-                                userProfile.getContentType()
+                        BinaryContentEntity newBinaryContent = new BinaryContentEntity(
+                                newUserProfile.getOriginalFilename(),
+                                newUserProfile.getSize(),
+                                newUserProfile.getContentType()
                         );
 
-                        binaryContentRepository.save(newProfile);
+                        binaryContentRepository.save(newBinaryContent);
 
-                        localBinaryContentStorage.put(targetUser.getId(), userProfile.getBytes());
+                        localBinaryContentStorage.put(newBinaryContent.getId(), newUserProfile.getBytes());
 
-                        targetUser.updateProfile(newProfile);
+                        targetUser.updateProfile(newBinaryContent);
                     } catch (IOException e) {
                         throw new RuntimeException("Error occurred while processing profile image", e);
                     }
@@ -158,32 +166,26 @@ public class BasicUserService implements UserService {
 
     // 사용자 삭제
     @Override
+    @Transactional
     public void delete(UUID userId) {
         UserEntity targetUser = getUserEntityOrThrow(userId);
 
         // 삭제된 사용자가 참여한 모든 채널 내 멤버에서 사용자 연쇄 삭제
-        List<ReadStatusEntity> readStatuses = readStatusRepository.findAll().stream()
-                .filter(readStatus -> readStatus.getUser().getId().equals(targetUser.getId()))
-                .toList();
+        List<ReadStatusEntity> readStatuses = readStatusRepository.findAllByUser(targetUser);
         readStatusRepository.deleteAll(readStatuses);
 
         // 삭제된 사용자가 발행한 메시지 연쇄 삭제
-        List<MessageEntity> deleteMessages = messageRepository.findAll().stream()
-                .filter(message ->  message.getAuthor().getId().equals(userId))
-                .toList();
+        List<MessageEntity> deleteMessages = messageRepository.findByAuthor(targetUser);
         messageRepository.deleteAll(deleteMessages);
 
         // 사용자 상태 연쇄 삭제
-        List<UserStatusEntity> deleteUserStatuses = userStatusRepository.findAll().stream()
-                .filter(userStatus -> userStatus.getUser().getId().equals(targetUser.getId()))
-                .toList();
+        List<UserStatusEntity> deleteUserStatuses = userStatusRepository.findAllByUser(targetUser);
         userStatusRepository.deleteAll(deleteUserStatuses);
 
-        // 사용자 프로필 이미지 연쇄 삭제
-        List<BinaryContentEntity> deleteBinaryContents = binaryContentRepository.findAll().stream()
-                .filter(binaryContent -> binaryContent.getId().equals(targetUser.getProfile().getId()))
-                .toList();
-        binaryContentRepository.deleteAll(deleteBinaryContents);
+        // 현재 사용자 프로필 이미지 연쇄 삭제
+        if (targetUser.getProfile() != null) {
+            binaryContentRepository.delete(targetUser.getProfile());
+        }
 
         userRepository.delete(targetUser);
     }

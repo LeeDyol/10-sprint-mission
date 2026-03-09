@@ -7,6 +7,7 @@ import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,7 @@ public class BasicBinaryContentService implements BinaryContentService {
 
     // 첨부 파일 생성
     @Override
+    @Transactional
     public BinaryContentDto create(String fileName, byte[] bytes, String contentType) {
         BinaryContentEntity newBinaryContent = new BinaryContentEntity(fileName, bytes.length, contentType);
 
@@ -44,8 +46,7 @@ public class BasicBinaryContentService implements BinaryContentService {
     // 첨부 파일 다건 조회
     @Override
     public List<BinaryContentDto> findAllByIds(List<UUID> binaryContentIds) {
-        return binaryContentRepository.findAll().stream()
-                .filter(binaryContentEntity -> binaryContentIds.contains(binaryContentEntity.getId()))
+        return binaryContentRepository.findAllByIdIn(binaryContentIds).stream()
                 .map(binaryContentMapper::toDto)
                 .toList();
     }
@@ -60,6 +61,7 @@ public class BasicBinaryContentService implements BinaryContentService {
 
     // 첨부 파일 삭제
     @Override
+    @Transactional
     public void delete(UUID binaryContentId) {
         BinaryContentEntity targetBinaryContent = getBinaryContentEntityOrThrow(binaryContentId);
 

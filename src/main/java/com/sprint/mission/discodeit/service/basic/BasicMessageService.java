@@ -18,6 +18,7 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -43,6 +44,7 @@ public class BasicMessageService implements MessageService {
 
     // 메시지 생성
     @Override
+    @Transactional
     public MessageDto create(MessageCreateRequest messageCreateRequest, List<MultipartFile> attachments) {
         UserEntity targetUser = getUserEntityOrThrow(messageCreateRequest.authorId());
         ChannelEntity targetChannel = getChannelEntityOrThrow(messageCreateRequest.channelId());
@@ -125,21 +127,21 @@ public class BasicMessageService implements MessageService {
     public List<MessageDto> findAllByUserId(UUID userId) {
         UserEntity targetUser = getUserEntityOrThrow(userId);
 
-        return messageRepository.findAll().stream()
-                .filter(message -> message.getAuthor().getId().equals(targetUser.getId()))
+        return messageRepository.findByAuthor(targetUser).stream()
                 .map(messageMapper::toResponseDTO)
                 .toList();
     }
 
     // 메시지 수정
     @Override
+    @Transactional
     public MessageDto update(UUID messageId, MessageUpdateRequest messageUpdateRequest) {
         MessageEntity targetMessage = getMessageEntityOrThrow(messageId);
 
         Optional.ofNullable(messageUpdateRequest.newContent())
-                .ifPresent(message -> {
-                    validateString(message, "Invalid message content format");
-                    validateDuplicateValue(targetMessage.getContent(), message, "New content is same as current");
+                .ifPresent(newMessage -> {
+                    validateString(newMessage, "Invalid message content format");
+                    validateDuplicateValue(targetMessage.getContent(), newMessage, "New content is same as current");
                     targetMessage.updateMessage(messageUpdateRequest.newContent());
                 });
 
@@ -149,13 +151,12 @@ public class BasicMessageService implements MessageService {
 
     // 메시지 삭제
     @Override
+    @Transactional
     public void delete(UUID messageId) {
         MessageEntity targetMessage = getMessageEntityOrThrow(messageId);
 
-        List<BinaryContentEntity> deleteBinaryContents = targetMessage.getAttachments().stream()
-                .map(binaryContent -> getBinaryContentEntityOrThrow(binaryContent.getId()))
-                .toList();
-        binaryContentRepository.deleteAll(deleteBinaryContents);
+        // 메시지와 함께 전송된 첨부 파일 연쇄 삭제
+        binaryContentRepository.deleteAll(targetMessage.getAttachments());
 
         messageRepository.delete(targetMessage);
     }

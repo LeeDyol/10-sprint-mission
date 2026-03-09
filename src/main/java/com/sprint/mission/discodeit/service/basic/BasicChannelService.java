@@ -13,6 +13,7 @@ import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +36,7 @@ public class BasicChannelService implements ChannelService {
 
     // 공개 채널 생성
     @Override
+    @Transactional
     public ChannelDto createPublicChannel(PublicChannelCreateRequest publicChannelCreateRequest) {
         ChannelEntity newChannel = channelMapper.toPublicEntity(publicChannelCreateRequest);
         channelRepository.save(newChannel);
@@ -44,13 +46,16 @@ public class BasicChannelService implements ChannelService {
 
     // 비공개 채널 생성
     @Override
+    @Transactional
     public ChannelDto createPrivateChannel(PrivateChannelCreateRequest privateChannelCreateRequest) {
         ChannelEntity newChannel = channelMapper.toPrivateEntity();
         channelRepository.save(newChannel);
 
         // 각 멤버의 읽음 상태 생성
         List<ReadStatusEntity> newReadStatuesOfMembers = privateChannelCreateRequest.participantIds().stream()
+                // 멤버 존재 여부 확인
                 .filter(this::existsByUserId)
+                // 각 멤버의 읽음 상태 생성
                 .map(participantId -> new ReadStatusEntity(getUserEntityOrThrow(participantId), newChannel))
                 .toList();
         readStatusRepository.saveAll(newReadStatuesOfMembers);
@@ -74,7 +79,7 @@ public class BasicChannelService implements ChannelService {
                 .toList();
     }
 
-    // 채널 전체 조회 (비공개 채널은 해당 사용자가 참여한 전체 채널)
+    // 채널 종류에 따른 채널 전체 조회
     public List<ChannelDto> findAllByUserId(UUID userId) {
         UserEntity targetUser = getUserEntityOrThrow(userId);
 
@@ -90,6 +95,7 @@ public class BasicChannelService implements ChannelService {
 
     // 채널 정보 수정
     @Override
+    @Transactional
     public ChannelDto update(UUID channelId, PublicChannelUpdateRequest publicChannelUpdateRequest) {
         ChannelEntity targetChannel = getChannelEntityOrThrow(channelId);
 
@@ -100,17 +106,17 @@ public class BasicChannelService implements ChannelService {
 
         // 채널 이름 변경
         Optional.ofNullable(publicChannelUpdateRequest.newName())
-                .ifPresent(channelName -> {
-                    validateString(channelName, "Invalid channel name format");
-                    validateDuplicateValue(targetChannel.getName(), channelName, "New channel name is same as current");
+                .ifPresent(newChannelName -> {
+                    validateString(newChannelName, "Invalid channel name format");
+                    validateDuplicateValue(targetChannel.getName(), newChannelName, "New channel name is same as current");
                     targetChannel.updateChannelName(publicChannelUpdateRequest.newName());
                 });
 
         // 채널 설명 변경
         Optional.ofNullable(publicChannelUpdateRequest.newDescription())
-                .ifPresent(channelDescription -> {
-                    validateString(channelDescription, "Invalid channel description format");
-                    validateDuplicateValue(targetChannel.getDescription(), channelDescription, "New description is same as current");
+                .ifPresent(newChannelDescription -> {
+                    validateString(newChannelDescription, "Invalid channel description format");
+                    validateDuplicateValue(targetChannel.getDescription(), newChannelDescription, "New description is same as current");
                     targetChannel.updateChannelDescription(publicChannelUpdateRequest.newDescription());
                 });
 
@@ -120,19 +126,16 @@ public class BasicChannelService implements ChannelService {
 
     // 채널 삭제
     @Override
+    @Transactional
     public void delete(UUID channelId) {
         ChannelEntity targetChannel = getChannelEntityOrThrow(channelId);
 
         // 해당 채널에서 발행된 메시지 연쇄 삭제
-        List<MessageEntity> deleteMessages = messageRepository.findAll().stream()
-                .filter(message -> message.getChannel().getId().equals(channelId))
-                .toList();
+        List<MessageEntity> deleteMessages = messageRepository.findByChannel(targetChannel);
         messageRepository.deleteAll(deleteMessages);
 
         // 채널 멤버의 ReadStatus 연쇄 삭제
-        List<ReadStatusEntity> deleteReadStatuses = readStatusRepository.findAll().stream()
-                .filter(readStatus -> readStatus.getChannel().getId().equals(channelId))
-                .toList();
+        List<ReadStatusEntity> deleteReadStatuses = readStatusRepository.findAllByChannel(targetChannel);
         readStatusRepository.deleteAll(deleteReadStatuses);
 
         channelRepository.delete(targetChannel);
@@ -140,6 +143,7 @@ public class BasicChannelService implements ChannelService {
 
     // 채널 참가자 초대
     @Override
+    @Transactional
     public void inviteMember(ChannelMemberRequestDTO channelMemberRequestDTO) {
         UserEntity newUser = getUserEntityOrThrow(channelMemberRequestDTO.userId());
         ChannelEntity targetChannel = getChannelEntityOrThrow(channelMemberRequestDTO.channelId());
@@ -152,6 +156,7 @@ public class BasicChannelService implements ChannelService {
 
     // 채널 퇴장
     @Override
+    @Transactional
     public void leaveMember(ChannelMemberRequestDTO channelMemberRequestDTO) {
         UserEntity targetUser = getUserEntityOrThrow(channelMemberRequestDTO.userId());
         ChannelEntity targetChannel = getChannelEntityOrThrow(channelMemberRequestDTO.channelId());

@@ -10,6 +10,7 @@ import com.sprint.mission.discodeit.mapper.UserStatusMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserStatusService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,7 @@ public class BasicUserStatusService implements UserStatusService {
 
     // 사용자 상태 생성
     @Override
+    @Transactional
     public UserStatusDto create(UserStatusCreateRequest userStatusCreateRequest) {
         UserEntity targetUser = getUserEntityOrThrow(userStatusCreateRequest.userId());
 
@@ -55,6 +57,7 @@ public class BasicUserStatusService implements UserStatusService {
 
     // 특정 사용자의 상태 변경
     @Override
+    @Transactional
     public UserStatusDto updateByUserId(UUID targetUserId, UserStatusUpdateRequest userStatusUpdateRequest) {
         UserStatusEntity targetUserStatus = getUserStatusEntityByUserId(targetUserId);
 
@@ -67,6 +70,7 @@ public class BasicUserStatusService implements UserStatusService {
 
     // 사용자 상태 삭제
     @Override
+    @Transactional
     public void delete(UUID id) {
         UserStatusEntity targetUserStatus = getUserStatusEntityOrThrow(id);
 

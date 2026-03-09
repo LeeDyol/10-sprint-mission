@@ -12,6 +12,7 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ReadStatusService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
     // 읽음 상태 생성
     @Override
+    @Transactional
     public ReadStatusDto create(ReadStatusCreateRequest readStatusCreateRequest) {
         UserEntity targetUser = getUserEntityOrThrow(readStatusCreateRequest.userId());
         ChannelEntity targetChannel = getChannelEntityOrThrow(readStatusCreateRequest.channelId());
@@ -62,14 +64,14 @@ public class BasicReadStatusService implements ReadStatusService {
     public List<ReadStatusDto> findAllByUserId(UUID userId) {
         getUserEntityOrThrow(userId);
 
-        return readStatusRepository.findAll().stream()
-                .filter(readStatus -> readStatus.getUser().getId().equals(userId))
+        return readStatusRepository.findByUserId(userId).stream()
                 .map(readStatusMapper::toDto)
                 .toList();
     }
 
     // 읽음 상태 수정
     @Override
+    @Transactional
     public ReadStatusDto update(UUID readStatusId, ReadStatusUpdateRequest readStatusUpdateRequest) {
         ReadStatusEntity targetReadStatus = getReadStatusEntity(readStatusId);
 
@@ -81,6 +83,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
     // 읽음 상태 삭제
     @Override
+    @Transactional
     public void delete(UUID readStatusId) {
         ReadStatusEntity targetReadStatus = getReadStatusEntity(readStatusId);
 
@@ -90,25 +93,25 @@ public class BasicReadStatusService implements ReadStatusService {
     // 사용자 반환
     public UserEntity getUserEntityOrThrow(UUID userId){
         return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User with id {userId} not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User with id {" + userId + "} not found"));
     }
 
     // 채널 반환
     public ChannelEntity getChannelEntityOrThrow(UUID channelId){
         return channelRepository.findById(channelId)
-                .orElseThrow(() -> new ResourceNotFoundException("Channel with id {channelId} not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Channel with id {" + channelId + "} not found"));
     }
 
     // 읽음 상태 엔티티 반환
     public ReadStatusEntity getReadStatusEntity(UUID readStatusId){
         return readStatusRepository.findById(readStatusId)
-                .orElseThrow(() -> new ResourceNotFoundException("ReadStatus with id {readStatusId} not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("ReadStatus with id {" + readStatusId + "} not found"));
     }
 
     // 유효성 검사 (중복 확인)
     public void existsByUserIdAndChannelId(UUID userId, UUID channelId) {
         if (readStatusRepository.existsByUserIdAndChannelId(userId, channelId)) {
-            throw new IllegalArgumentException("ReadStatus with userId {userId} and channelId {channelId} already exists");
+            throw new IllegalArgumentException("ReadStatus with userId {userId} and channelId {" + channelId + "} already exists");
         }
     }
 }
