@@ -40,7 +40,7 @@ public class BasicUserService implements UserService {
         isEmailDuplicate(userCreateRequest.email());
         isUsernameDuplicate(userCreateRequest.username());
 
-        UserEntity newUser = new UserEntity(userCreateRequest);
+        UserEntity newUser = userMapper.toEntity(userCreateRequest);
         userRepository.save(newUser);
 
         UserStatusEntity newUserStatus = new UserStatusEntity(newUser);

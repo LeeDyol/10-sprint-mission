@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class UserStatusMapper {
+    // 엔티티 -> 응답 DTO 변환
     public UserStatusDto toDto(UserStatusEntity userStatus) {
         return UserStatusDto.builder()
                 .id(userStatus.getId())
@@ -15,5 +16,4 @@ public class UserStatusMapper {
                 .lastActiveAt(userStatus.getLastActiveAt())
                 .build();
     }
-
 }

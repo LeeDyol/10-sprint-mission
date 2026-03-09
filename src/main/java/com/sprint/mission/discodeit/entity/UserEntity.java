@@ -1,8 +1,8 @@
 package com.sprint.mission.discodeit.entity;
 
-import com.sprint.mission.discodeit.dto.request.user.UserCreateRequest;
 import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -32,14 +32,15 @@ public class UserEntity extends BaseUpdatableEntity {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private UserStatusEntity userStatus;                           // 상태
 
-    public UserEntity(UserCreateRequest userCreateRequest) {
+    @Builder
+    public UserEntity(String username, String email, String password) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
 
-        this.email = userCreateRequest.email();
-        this.password = userCreateRequest.password();
-        this.username = userCreateRequest.username();
+        this.username = username;
+        this.email = email;
+        this.password = password;
     }
 
     public void updateUsername(String newUsername) {

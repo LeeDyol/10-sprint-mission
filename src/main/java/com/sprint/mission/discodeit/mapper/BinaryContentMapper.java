@@ -13,6 +13,7 @@ import java.io.IOException;
 public class BinaryContentMapper {
     private final BinaryContentStorage localBinaryContentStorage;
 
+    // 엔티티 -> 응답 DTO 변환
     public BinaryContentDto toDto(BinaryContentEntity binaryContentEntity) {
         try {
             return BinaryContentDto.builder()

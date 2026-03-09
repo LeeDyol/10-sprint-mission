@@ -36,7 +36,7 @@ public class BasicChannelService implements ChannelService {
     // 공개 채널 생성
     @Override
     public ChannelDto createPublicChannel(PublicChannelCreateRequest publicChannelCreateRequest) {
-        ChannelEntity newChannel = new ChannelEntity(publicChannelCreateRequest);
+        ChannelEntity newChannel = channelMapper.toPublicEntity(publicChannelCreateRequest);
         channelRepository.save(newChannel);
 
         return channelMapper.toDto(newChannel);
@@ -45,7 +45,7 @@ public class BasicChannelService implements ChannelService {
     // 비공개 채널 생성
     @Override
     public ChannelDto createPrivateChannel(PrivateChannelCreateRequest privateChannelCreateRequest) {
-        ChannelEntity newChannel = new ChannelEntity(privateChannelCreateRequest);
+        ChannelEntity newChannel = channelMapper.toPrivateEntity();
         channelRepository.save(newChannel);
 
         // 각 멤버의 읽음 상태 생성

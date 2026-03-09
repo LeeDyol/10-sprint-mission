@@ -1,8 +1,8 @@
 package com.sprint.mission.discodeit.entity;
 
-import com.sprint.mission.discodeit.dto.request.message.MessageCreateRequest;
 import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -36,14 +36,15 @@ public class MessageEntity extends BaseUpdatableEntity {
     )
     private List<BinaryContentEntity> attachments;       // 메시지에 묶여있는 파일 목록
 
-    public MessageEntity(MessageCreateRequest messageCreateRequest, UserEntity author, ChannelEntity channel) {
+    @Builder
+    public MessageEntity(String content, UserEntity author, ChannelEntity channel) {
         this.attachments = new ArrayList<>();
 
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
 
-        this.content = messageCreateRequest.content();
+        this.content = content;
         this.author = author;
         this.channel = channel;
     }

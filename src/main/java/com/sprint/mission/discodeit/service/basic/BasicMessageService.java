@@ -47,7 +47,7 @@ public class BasicMessageService implements MessageService {
         UserEntity targetUser = getUserEntityOrThrow(messageCreateRequest.authorId());
         ChannelEntity targetChannel = getChannelEntityOrThrow(messageCreateRequest.channelId());
 
-        MessageEntity newMessage = new MessageEntity(messageCreateRequest, targetUser, targetChannel);
+        MessageEntity newMessage = messageMapper.toEntity(messageCreateRequest, targetUser, targetChannel);
 
         // Null 일 경우, 빈 리스트 반환
         List<MultipartFile> attachmentsOfUser = (attachments == null) ? List.of() : attachments;

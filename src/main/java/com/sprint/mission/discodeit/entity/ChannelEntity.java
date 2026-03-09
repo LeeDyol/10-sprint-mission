@@ -1,9 +1,8 @@
 package com.sprint.mission.discodeit.entity;
 
-import com.sprint.mission.discodeit.dto.request.channel.PrivateChannelCreateRequest;
-import com.sprint.mission.discodeit.dto.request.channel.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -25,22 +24,15 @@ public class ChannelEntity extends BaseUpdatableEntity {
 
     private String description;                 // 채널 설명
 
-    public ChannelEntity(PublicChannelCreateRequest publicChannelCreateRequest) {
+    @Builder
+    public ChannelEntity(String name, String description, ChannelType type) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
 
-        this.name = publicChannelCreateRequest.name();
-        this.type = ChannelType.PUBLIC;
-        this.description = publicChannelCreateRequest.description();
-    }
-
-    public ChannelEntity(PrivateChannelCreateRequest privateChannelCreateRequest) {
-        this.id = UUID.randomUUID();
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
-
-        this.type = ChannelType.PRIVATE;
+        this.name = name;
+        this.type = type;
+        this.description = description;
     }
 
     public void updateChannelName(String newChannelName) {
