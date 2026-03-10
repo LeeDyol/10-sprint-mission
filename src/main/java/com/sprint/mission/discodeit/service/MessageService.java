@@ -7,6 +7,7 @@ import com.sprint.mission.discodeit.dto.response.PageResponse;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,7 +22,7 @@ public interface MessageService {
     List<MessageDto> findAll();
 
     // 특정 채널에서 발행한 전체 메시지 목록 조회
-    PageResponse<MessageDto> findAllByChannelId(UUID channelId, Pageable pageable);
+    PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant cursor, int size);
 
     // 특정 사용자가 발행한 전체 메시지 목록 조회
     List<MessageDto> findAllByUserId(UUID userId);

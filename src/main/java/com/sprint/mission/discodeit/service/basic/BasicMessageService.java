@@ -19,12 +19,13 @@ import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -76,7 +77,7 @@ public class BasicMessageService implements MessageService {
 
         messageRepository.save(newMessage);
 
-        return messageMapper.toResponseDTO(newMessage);
+        return messageMapper.toDto(newMessage);
     }
 
     // 메시지 단건 조회
@@ -84,25 +85,40 @@ public class BasicMessageService implements MessageService {
     public MessageDto findById(UUID messageId) {
        MessageEntity targetMessage = getMessageEntityOrThrow(messageId);
 
-       return messageMapper.toResponseDTO(targetMessage);
+       return messageMapper.toDto(targetMessage);
     }
 
     // 메시지 전체 조회
     @Override
     public List<MessageDto> findAll() {
         return messageRepository.findAllWithDetails().stream()
-                .map(messageMapper::toResponseDTO)
+                .map(messageMapper::toDto)
                 .toList();
     }
 
     // 특정 채널의 전체 메시지 목록 조회
     @Override
-    public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Pageable pageable) {
-        Slice<MessageEntity> messageSlice = messageRepository.findByChannelIdWithAuthor(channelId, pageable);
+    public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant cursor, int size) {
+        // 다음 페이지 존재 여부 확인(nextCursor)을 위한 추가 조회
+        Pageable limit = PageRequest.of(0, size + 1);
+        List<MessageEntity> messages = messageRepository.findByChannelIdAndCursor(channelId, cursor, limit);
 
-        Slice<MessageDto> messageDtoSlice = messageSlice.map(messageMapper::toResponseDTO);
+        // 다음 페이지 존재 여부 확인
+        boolean hasNext = messages.size() > size;
+        List<MessageEntity> pagedMessages = hasNext ? messages.subList(0, size) : messages;
 
-        return pageResponseMapper.fromSlice(messageDtoSlice);
+        // 다음 페이지 시작점 지정
+        String nextCursor = (hasNext && !pagedMessages.isEmpty())
+                ? pagedMessages.get(pagedMessages.size() - 1).getCreatedAt().toString()
+                : null;
+
+        long totalElements = messageRepository.countByChannelId(channelId);
+
+        List<MessageDto> messageDto = pagedMessages.stream()
+                .map(messageMapper::toDto)
+                .toList();
+
+        return pageResponseMapper.fromCursor(messageDto, nextCursor, messageDto.size(), hasNext, totalElements);
     }
 
     // 특정 사용자가 발행한 전체 메시지 목록 조회
@@ -111,7 +127,7 @@ public class BasicMessageService implements MessageService {
         UserEntity targetUser = getUserEntityOrThrow(userId);
 
         return messageRepository.findByAuthor(targetUser).stream()
-                .map(messageMapper::toResponseDTO)
+                .map(messageMapper::toDto)
                 .toList();
     }
 
@@ -128,7 +144,7 @@ public class BasicMessageService implements MessageService {
         targetMessage.updateMessage(messageUpdateRequest.newContent());
 
         messageRepository.save(targetMessage);
-        return messageMapper.toResponseDTO(targetMessage);
+        return messageMapper.toDto(targetMessage);
     }
 
     // 메시지 삭제

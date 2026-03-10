@@ -18,7 +18,7 @@ public class MessageMapper {
     private final BinaryContentMapper binaryContentMapper;
 
     // 엔티티 -> 응답 DTO 변환
-    public MessageDto toResponseDTO(MessageEntity message) {
+    public MessageDto toDto(MessageEntity message) {
         return MessageDto.builder()
                 .id(message.getId())
                 .createdAt(message.getCreatedAt())

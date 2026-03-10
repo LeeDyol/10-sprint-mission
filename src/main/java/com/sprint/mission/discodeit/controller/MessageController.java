@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -40,8 +41,9 @@ public class MessageController {
     @Operation(summary = "Channel의 Message 목록 조회", operationId = "findAllByChannelId")
     @GetMapping
     public ResponseEntity<PageResponse<MessageDto>> findAllByChannelId (@RequestParam UUID channelId,
+                                                                        @RequestParam(required = false) Instant cursor,
                                                                         @PageableDefault(size = 50, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        PageResponse<MessageDto> response = messageService.findAllByChannelId(channelId, pageable);
+        PageResponse<MessageDto> response = messageService.findAllByChannelId(channelId, cursor, pageable.getPageSize());
 
         return ResponseEntity.ok(response);
     }

@@ -7,7 +7,7 @@ import java.util.List;
 @Builder
 public record PageResponse<T> (
     List<T> content,                // 실제 데이터
-    int number,                     // 현재 페이지 번호
+    Object nextCursor,              // 커서
     int size,                       // 페이지 크기 (50 개)
     boolean hasNext,                // 다음 페이지 존재 여부
     Long totalElements              // 총 개수 (null 허용)
