@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +40,7 @@ public class MessageController {
     @Operation(summary = "Channel의 Message 목록 조회", operationId = "findAllByChannelId")
     @GetMapping
     public ResponseEntity<PageResponse<MessageDto>> findAllByChannelId (@RequestParam UUID channelId,
-                                                                        @ModelAttribute Pageable pageable) {
+                                                                        @PageableDefault(size = 50, sort = "createAt", direction = Sort.Direction.DESC) Pageable pageable) {
         PageResponse<MessageDto> response = messageService.findAllByChannelId(channelId, pageable);
 
         return ResponseEntity.ok(response);
