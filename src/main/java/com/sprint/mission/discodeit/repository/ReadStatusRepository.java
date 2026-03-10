@@ -10,8 +10,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ReadStatusRepository extends JpaRepository<ReadStatusEntity, UUID> {
-    // 단일 조회 (사용자 id)
-    Optional<ReadStatusEntity> findByUserId(UUID userId);
+    // 단건 조회 (사용자 id, 채널 id)
+    Optional<ReadStatusEntity> findByUserIdAndChannelId(UUID userId, UUID channelId);
 
     // 다건 조회 (사용자)
     List<ReadStatusEntity> findAllByUser(UserEntity user);

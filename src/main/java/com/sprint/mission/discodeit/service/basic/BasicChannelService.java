@@ -84,12 +84,7 @@ public class BasicChannelService implements ChannelService {
     public List<ChannelDto> findAllByUserId(UUID userId) {
         UserEntity targetUser = getUserEntityOrThrow(userId);
 
-        return channelRepository.findAll().stream()
-                .filter(channel ->
-                        // 공개 채널은 전체 채널 목록 반환
-                        channel.getType() == ChannelType.PUBLIC ||
-                        // 비공개 채널은 해당 유저가 참여한 채널 목록만 반환
-                        channel.getType() == ChannelType.PRIVATE && existsByUserIdAndChannelId(targetUser.getId(), channel.getId()))
+        return channelRepository.findAllVisibleChannelByUserId(targetUser.getId()).stream()
                 .map(channelMapper::toDto)
                 .toList();
     }
@@ -164,7 +159,7 @@ public class BasicChannelService implements ChannelService {
 
         validateUserNotInChannel(targetUser.getId(), targetChannel.getId());
 
-        ReadStatusEntity targetReadStatus = getUserStatusEntityOrThrow(targetUser.getId());
+        ReadStatusEntity targetReadStatus = getUserStatusEntityOrThrow(targetUser.getId(), targetChannel.getId());
         readStatusRepository.delete(targetReadStatus);
     }
 
@@ -180,10 +175,10 @@ public class BasicChannelService implements ChannelService {
                 .orElseThrow(() -> new ResourceNotFoundException("Channel with id {" + channelId + "} not found"));
     }
 
-    // 읽음 상태 엔티티 반환
-    public ReadStatusEntity getUserStatusEntityOrThrow(UUID userId) {
-        return readStatusRepository.findByUserId(userId)
-                .orElseThrow(() ->  new ResourceNotFoundException("ReadStatus with id {" + userId + "} not found"));
+    // 읽음 상태 엔티티 목록 반환
+    public ReadStatusEntity getUserStatusEntityOrThrow(UUID userId, UUID channelId) {
+        return readStatusRepository.findByUserIdAndChannelId(userId, channelId)
+                .orElseThrow(() -> new ResourceNotFoundException("User with id {" + userId + "} and channel with id {" + channelId + "} not found"));
     }
 
     // 유효성 검증 (사용자 존재 여부)
