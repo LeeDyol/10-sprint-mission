@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.storage;
 
 import com.sprint.mission.discodeit.dto.response.BinaryContentDto;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.InputStreamResource;
@@ -26,6 +27,7 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
     }
 
     // 초기화
+    @PostConstruct
     public void init() {
         try {
             Files.createDirectories(root);
