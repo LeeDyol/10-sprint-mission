@@ -50,7 +50,7 @@ public class UserController {
     @Operation(summary = "User 정보 수정", operationId = "update")
     @PatchMapping(path = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserDto> update(@PathVariable UUID userId,
-                                          @Valid @RequestPart UserUpdateRequest userUpdateRequest,
+                                          @RequestPart UserUpdateRequest userUpdateRequest,
                                           @RequestPart(value = "profile", required = false) MultipartFile profile){
 
         UserDto updateUser = userService.update(userId, userUpdateRequest, profile);
