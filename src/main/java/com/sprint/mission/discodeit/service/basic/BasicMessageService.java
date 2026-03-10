@@ -91,7 +91,7 @@ public class BasicMessageService implements MessageService {
     // 메시지 전체 조회
     @Override
     public List<MessageDto> findAll() {
-        return messageRepository.findAll().stream()
+        return messageRepository.findAllWithDetails().stream()
                 .map(messageMapper::toResponseDTO)
                 .toList();
     }
@@ -99,7 +99,7 @@ public class BasicMessageService implements MessageService {
     // 특정 채널의 전체 메시지 목록 조회
     @Override
     public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Pageable pageable) {
-        Slice<MessageEntity> messageSlice = messageRepository.findByChannelId(channelId, pageable);
+        Slice<MessageEntity> messageSlice = messageRepository.findByChannelIdWithAuthor(channelId, pageable);
 
         Slice<MessageDto> messageDtoSlice = messageSlice.map(messageMapper::toResponseDTO);
 
@@ -159,13 +159,7 @@ public class BasicMessageService implements MessageService {
 
     // 메시지 반환
     public MessageEntity getMessageEntityOrThrow(UUID messageId){
-        return messageRepository.findById(messageId)
+        return messageRepository.findWithDetails(messageId)
                 .orElseThrow(() -> new ResourceNotFoundException("Message with id {" + messageId + "} not found"));
-    }
-
-    // 첨부 파일 반환
-    public BinaryContentEntity getBinaryContentEntityOrThrow(UUID binaryContentId){
-        return binaryContentRepository.findById(binaryContentId)
-                .orElseThrow(() -> new ResourceNotFoundException("BinaryContent with id {" + binaryContentId + "} not found"));
     }
 }
