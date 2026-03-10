@@ -26,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateDuplicateValue;
@@ -122,12 +121,11 @@ public class BasicMessageService implements MessageService {
     public MessageDto update(UUID messageId, MessageUpdateRequest messageUpdateRequest) {
         MessageEntity targetMessage = getMessageEntityOrThrow(messageId);
 
-        Optional.ofNullable(messageUpdateRequest.newContent())
-                .ifPresent(newMessage -> {
-                    validateString(newMessage, "Invalid message content format");
-                    validateDuplicateValue(targetMessage.getContent(), newMessage, "New content is same as current");
-                    targetMessage.updateMessage(messageUpdateRequest.newContent());
-                });
+        String newContent = messageUpdateRequest.newContent();
+
+        validateString(newContent, "Invalid message content format");
+        validateDuplicateValue(targetMessage.getContent(), newContent, "New content is same as current");
+        targetMessage.updateMessage(messageUpdateRequest.newContent());
 
         messageRepository.save(targetMessage);
         return messageMapper.toResponseDTO(targetMessage);
