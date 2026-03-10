@@ -40,7 +40,7 @@ public class MessageController {
     @Operation(summary = "Channel의 Message 목록 조회", operationId = "findAllByChannelId")
     @GetMapping
     public ResponseEntity<PageResponse<MessageDto>> findAllByChannelId (@RequestParam UUID channelId,
-                                                                        @PageableDefault(size = 50, sort = "createAt", direction = Sort.Direction.DESC) Pageable pageable) {
+                                                                        @PageableDefault(size = 50, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         PageResponse<MessageDto> response = messageService.findAllByChannelId(channelId, pageable);
 
         return ResponseEntity.ok(response);
