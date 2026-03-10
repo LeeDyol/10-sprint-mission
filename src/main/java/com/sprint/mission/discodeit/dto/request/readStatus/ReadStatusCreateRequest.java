@@ -12,10 +12,7 @@ public record ReadStatusCreateRequest(
     UUID userId,
 
     @NotNull
-    UUID channelId,
-
-    @NotNull
-    Instant lastReadAt
+    UUID channelId
 ) {
 
 }
