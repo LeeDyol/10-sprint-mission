@@ -55,7 +55,7 @@ public class BasicReadStatusService implements ReadStatusService {
     // 읽음 상태 전체 조회
     @Override
     public List<ReadStatusDto> findAll() {
-        return readStatusRepository.findAll().stream()
+        return readStatusRepository.findAllWithDetails().stream()
                 .map(readStatusMapper::toDto)
                 .toList();
     }
@@ -105,7 +105,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
     // 읽음 상태 엔티티 반환
     public ReadStatusEntity getReadStatusEntity(UUID readStatusId){
-        return readStatusRepository.findById(readStatusId)
+        return readStatusRepository.findBysIdWithDetails(readStatusId)
                 .orElseThrow(() -> new ResourceNotFoundException("ReadStatus with id {" + readStatusId + "} not found"));
     }
 
