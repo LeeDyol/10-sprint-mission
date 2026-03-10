@@ -26,6 +26,8 @@ public class UserStatusEntity extends BaseUpdatableEntity {
     public UserStatusEntity(UserEntity user) {
         this.user = user;
         this.lastActiveAt = Instant.now();
+
+        user.setUserStatus(this);
     }
 
     // 5분 전 사용자의 온라인 상태 여부
