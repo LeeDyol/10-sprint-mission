@@ -17,5 +17,5 @@ public interface UserStatusRepository extends JpaRepository<UserStatusEntity, UU
     List<UserStatusEntity> findAllByUser(UserEntity user);
 
     // 유효성 검사 (중복 확인)
-    boolean existsById(@NonNull UUID userId);
+    boolean existsByUserId(@NonNull UUID userId);
 }

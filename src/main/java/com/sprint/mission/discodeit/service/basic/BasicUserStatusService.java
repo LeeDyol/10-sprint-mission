@@ -98,7 +98,7 @@ public class BasicUserStatusService implements UserStatusService {
 
     // 유효성 검증
     public void existsUserStatusByUserId(UUID userId){
-        if (userStatusRepository.existsById(userId)) {
+        if (userStatusRepository.existsByUserId(userId)) {
             throw new IllegalArgumentException("UserStatus already exists for this user");
         }
     }
