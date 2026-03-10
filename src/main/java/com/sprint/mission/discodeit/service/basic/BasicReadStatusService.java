@@ -38,7 +38,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
         existsByUserIdAndChannelId(targetUser.getId(), targetChannel.getId());
 
-        ReadStatusEntity newReadStatus = new ReadStatusEntity(targetUser, targetChannel);
+        ReadStatusEntity newReadStatus = new ReadStatusEntity(targetUser, targetChannel, readStatusCreateRequest.lastReadAt());
         readStatusRepository.save(newReadStatus);
 
         return readStatusMapper.toDto(newReadStatus);

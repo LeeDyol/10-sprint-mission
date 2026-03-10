@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -25,6 +24,12 @@ public class ReadStatusEntity extends BaseUpdatableEntity {
 
     @Column(nullable = false)
     private Instant lastReadAt;                          // 해당 채널에서 마지막으로 메시지를 읽은 시간
+
+    public ReadStatusEntity(UserEntity user, ChannelEntity channel, Instant lastReadAt) {
+        this.user = user;
+        this.channel = channel;
+        this.lastReadAt = lastReadAt;
+    }
 
     public ReadStatusEntity(UserEntity user, ChannelEntity channel) {
         this.user = user;
