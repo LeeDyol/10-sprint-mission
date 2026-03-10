@@ -8,6 +8,9 @@ import com.sprint.mission.discodeit.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Optional;
+
 @Component
 @RequiredArgsConstructor
 public class MessageMapper {
@@ -23,7 +26,9 @@ public class MessageMapper {
                 .content(message.getContent())
                 .channelId(message.getChannel().getId())
                 .author(userMapper.toDto(message.getAuthor()))
-                .attachments(message.getAttachments().stream()
+                .attachments(Optional.ofNullable(message.getAttachments())
+                        .orElse(List.of())
+                        .stream()
                         .map(binaryContentMapper::toDto)
                         .toList())
                 .build();

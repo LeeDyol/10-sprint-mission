@@ -6,6 +6,8 @@ import com.sprint.mission.discodeit.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 @RequiredArgsConstructor
 public class UserMapper {
@@ -17,7 +19,9 @@ public class UserMapper {
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
-                .profile(binaryContentMapper.toDto(user.getProfile()))
+                .profile(Optional.ofNullable(user.getProfile())
+                        .map(binaryContentMapper::toDto)
+                        .orElse(null))
                 .online(user.getUserStatus().isOnline())
                 .build();
     }
