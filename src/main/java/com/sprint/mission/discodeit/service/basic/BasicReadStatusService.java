@@ -63,9 +63,9 @@ public class BasicReadStatusService implements ReadStatusService {
     // 특정 사용자의 읽음 상태 조회
     @Override
     public List<ReadStatusDto> findAllByUserId(UUID userId) {
-        getUserEntityOrThrow(userId);
+        UserEntity targetUser = getUserEntityOrThrow(userId);
 
-        return readStatusRepository.findByUserId(userId).stream()
+        return readStatusRepository.findAllByUser(targetUser).stream()
                 .map(readStatusMapper::toDto)
                 .toList();
     }
