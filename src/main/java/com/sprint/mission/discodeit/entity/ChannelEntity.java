@@ -26,10 +26,6 @@ public class ChannelEntity extends BaseUpdatableEntity {
 
     @Builder
     public ChannelEntity(String name, String description, ChannelType type) {
-        this.id = UUID.randomUUID();
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
-
         this.name = name;
         this.type = type;
         this.description = description;

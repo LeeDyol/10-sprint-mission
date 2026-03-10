@@ -34,10 +34,6 @@ public class UserEntity extends BaseUpdatableEntity {
 
     @Builder
     public UserEntity(String username, String email, String password) {
-        this.id = UUID.randomUUID();
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
-
         this.username = username;
         this.email = email;
         this.password = password;

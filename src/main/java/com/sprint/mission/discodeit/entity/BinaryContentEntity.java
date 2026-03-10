@@ -26,9 +26,6 @@ public class BinaryContentEntity extends BaseEntity {    // 수정 불가능 클
     private String contentType;                          // 파일 종류
 
     public BinaryContentEntity(String originalFilename, long size, String contentType) {
-        this.id = UUID.randomUUID();
-        this.createdAt = Instant.now();
-
         this.fileName = originalFilename;
         this.contentType = contentType;
         this.size = size;

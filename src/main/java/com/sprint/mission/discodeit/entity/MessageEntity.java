@@ -40,10 +40,6 @@ public class MessageEntity extends BaseUpdatableEntity {
     public MessageEntity(String content, UserEntity author, ChannelEntity channel) {
         this.attachments = new ArrayList<>();
 
-        this.id = UUID.randomUUID();
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
-
         this.content = content;
         this.author = author;
         this.channel = channel;

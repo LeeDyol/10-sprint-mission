@@ -24,10 +24,6 @@ public class UserStatusEntity extends BaseUpdatableEntity {
     private Instant lastActiveAt;                        // 마지막 접속 시간
 
     public UserStatusEntity(UserEntity user) {
-        this.id = UUID.randomUUID();
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
-
         this.user = user;
         this.lastActiveAt = Instant.now();
     }
