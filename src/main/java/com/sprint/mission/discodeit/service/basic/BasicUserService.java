@@ -131,7 +131,7 @@ public class BasicUserService implements UserService {
                 .ifPresent(newEmail -> {
                     isEmailDuplicate(newEmail);
                     validateString(newEmail, "Invalid email format");
-                    validateDuplicateValue(targetUser.getUsername(), newEmail, "New email is same as current");
+                    validateDuplicateValue(targetUser.getEmail(), newEmail, "New email is same as current");
                     targetUser.updateEmail(newEmail);
                 });
 
