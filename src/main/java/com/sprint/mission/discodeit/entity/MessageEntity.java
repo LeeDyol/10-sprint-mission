@@ -7,10 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -51,9 +49,5 @@ public class MessageEntity extends BaseUpdatableEntity {
 
     public void addAttachment(BinaryContentEntity newAttachment) {
         this.attachments.add(newAttachment);
-    }
-
-    public void removeAttachment(BinaryContentEntity deletedAttachment) {
-        this.attachments.remove(deletedAttachment);
     }
 }

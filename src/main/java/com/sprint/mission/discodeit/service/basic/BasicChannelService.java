@@ -5,11 +5,9 @@ import com.sprint.mission.discodeit.dto.request.channel.PublicChannelUpdateReque
 import com.sprint.mission.discodeit.dto.request.channel.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.channel.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.response.ChannelDto;
-import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
-import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
