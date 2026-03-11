@@ -5,41 +5,20 @@ import com.sprint.mission.discodeit.dto.response.MessageDto;
 import com.sprint.mission.discodeit.entity.ChannelEntity;
 import com.sprint.mission.discodeit.entity.MessageEntity;
 import com.sprint.mission.discodeit.entity.UserEntity;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 
-import java.util.List;
-import java.util.Optional;
-
-@Component
-@RequiredArgsConstructor
-public class MessageMapper {
-    private final UserMapper userMapper;
-    private final BinaryContentMapper binaryContentMapper;
-
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
+        uses = {UserMapper.class, BinaryContentMapper.class})
+public interface MessageMapper {
     // 엔티티 -> 응답 DTO 변환
-    public MessageDto toDto(MessageEntity message) {
-        return MessageDto.builder()
-                .id(message.getId())
-                .createdAt(message.getCreatedAt())
-                .updatedAt(message.getUpdatedAt())
-                .content(message.getContent())
-                .channelId(message.getChannel().getId())
-                .author(userMapper.toDto(message.getAuthor()))
-                .attachments(Optional.ofNullable(message.getAttachments())
-                        .orElse(List.of())
-                        .stream()
-                        .map(binaryContentMapper::toDto)
-                        .toList())
-                .build();
-    }
+    @Mapping(target = "channelId", source = "channel.id")
+    MessageDto toDto(MessageEntity message);
 
     // 생성 요청 DTO -> 엔티티 변환
-    public MessageEntity toEntity(MessageCreateRequest messageCreateRequest, UserEntity author, ChannelEntity channel) {
-        return MessageEntity.builder()
-                .content(messageCreateRequest.content())
-                .author(author)
-                .channel(channel)
-                .build();
-    }
+    @Mapping(target = "content", source = "messageCreateRequest.content")
+    @Mapping(target = "author", source = "author")
+    @Mapping(target = "channel", source = "channel")
+    MessageEntity toEntity(MessageCreateRequest messageCreateRequest, UserEntity author, ChannelEntity channel);
 }

@@ -2,19 +2,14 @@ package com.sprint.mission.discodeit.mapper;
 
 import com.sprint.mission.discodeit.dto.response.ReadStatusDto;
 import com.sprint.mission.discodeit.entity.ReadStatusEntity;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 
-@Component
-@RequiredArgsConstructor
-public class ReadStatusMapper {
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+public interface ReadStatusMapper {
     // 엔티티 -> 응답 DTO 변환
-    public ReadStatusDto toDto(ReadStatusEntity readStatus) {
-        return ReadStatusDto.builder()
-                .id(readStatus.getId())
-                .userId(readStatus.getUser().getId())
-                .channelId(readStatus.getChannel().getId())
-                .lastReadAt(readStatus.getLastReadAt())
-                .build();
-    }
+    @Mapping(target = "userId", source = "user.id")
+    @Mapping(target = "channelId", source = "channel.id")
+    ReadStatusDto toDto(ReadStatusEntity readStatus);
 }

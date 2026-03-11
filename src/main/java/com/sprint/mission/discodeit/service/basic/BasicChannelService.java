@@ -5,9 +5,11 @@ import com.sprint.mission.discodeit.dto.request.channel.PublicChannelUpdateReque
 import com.sprint.mission.discodeit.dto.request.channel.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.channel.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.response.ChannelDto;
+import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
+import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
@@ -17,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -42,7 +45,7 @@ public class BasicChannelService implements ChannelService {
         ChannelEntity newChannel = channelMapper.toPublicEntity(publicChannelCreateRequest);
         channelRepository.save(newChannel);
 
-        return channelMapper.toDto(newChannel);
+        return EntityToDto(newChannel);
     }
 
     // 비공개 채널 생성
@@ -61,7 +64,7 @@ public class BasicChannelService implements ChannelService {
                 .toList();
         readStatusRepository.saveAll(newReadStatuesOfMembers);
 
-        return channelMapper.toDto(newChannel);
+        return EntityToDto(newChannel);
     }
 
     // 채널 단건 조회
@@ -69,14 +72,14 @@ public class BasicChannelService implements ChannelService {
     public ChannelDto findById(UUID channelId) {
         ChannelEntity targetChannel = getChannelEntityOrThrow(channelId);
 
-        return channelMapper.toDto(targetChannel);
+        return EntityToDto(targetChannel);
     }
 
     // 채널 전체 조회
     @Override
     public List<ChannelDto> findAll() {
         return channelRepository.findAll().stream()
-                .map(channelMapper::toDto)
+                .map(this::EntityToDto)
                 .toList();
     }
 
@@ -85,7 +88,7 @@ public class BasicChannelService implements ChannelService {
         UserEntity targetUser = getUserEntityOrThrow(userId);
 
         return channelRepository.findAllVisibleChannelByUserId(targetUser.getId()).stream()
-                .map(channelMapper::toDto)
+                .map(this::EntityToDto)
                 .toList();
     }
 
@@ -117,7 +120,7 @@ public class BasicChannelService implements ChannelService {
                 });
 
         channelRepository.save(targetChannel);
-        return channelMapper.toDto(targetChannel);
+        return EntityToDto(targetChannel);
     }
 
     // 채널 삭제
@@ -203,5 +206,21 @@ public class BasicChannelService implements ChannelService {
         if (!existsByUserIdAndChannelId(userId, channelId)) {
             throw new IllegalArgumentException("User is not a participant of this channel");
         }
+    }
+
+    // DTO 변환
+    private ChannelDto EntityToDto(ChannelEntity channel) {
+        // 비공개 채널일 경우에만 참여자 목록 반환
+        List<UserEntity> participants = List.of();
+        if (channel.getType() == ChannelType.PRIVATE) {
+            participants = readStatusRepository.findAllByChannel(channel).stream()
+                    .map(ReadStatusEntity::getUser)
+                    .toList();
+        }
+
+        // 해당 채널에서 마지막으로 발행된 메시지 시간
+        Instant lastMessageAt = messageRepository.getLastMessageAt(channel.getId());
+
+        return channelMapper.toDto(channel, participants, lastMessageAt);
     }
 }
