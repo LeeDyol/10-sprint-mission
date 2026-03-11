@@ -96,29 +96,34 @@ public class BasicMessageService implements MessageService {
                 .toList();
     }
 
-    // 특정 채널의 전체 메시지 목록 조회
     @Override
     public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant cursor, int size) {
-        // 다음 페이지 존재 여부 확인(nextCursor)을 위한 추가 조회
+        // 다음 페이지 여부 확인을 위해 size + 1개 조회
         Pageable limit = PageRequest.of(0, size + 1);
-        List<MessageEntity> messages = messageRepository.findByChannelIdAndCursor(channelId, cursor, limit);
+        List<MessageEntity> messages;
 
-        // 다음 페이지 존재 여부 확인
+        // 커서 유무에 따른 메시지 목록 조회
+        if (cursor == null) {
+            messages = messageRepository.findFirstPageByChannelId(channelId, limit);
+        } else {
+            messages = messageRepository.findNextPageByChannelId(channelId, cursor, limit);
+        }
+
         boolean hasNext = messages.size() > size;
         List<MessageEntity> pagedMessages = hasNext ? messages.subList(0, size) : messages;
 
-        // 다음 페이지 시작점 지정
+        // 다음 페이지 시작점 (커서)
         String nextCursor = (hasNext && !pagedMessages.isEmpty())
                 ? pagedMessages.get(pagedMessages.size() - 1).getCreatedAt().toString()
                 : null;
 
         long totalElements = messageRepository.countByChannelId(channelId);
 
-        List<MessageDto> messageDto = pagedMessages.stream()
+        List<MessageDto> messageDtoList = pagedMessages.stream()
                 .map(messageMapper::toDto)
                 .toList();
 
-        return pageResponseMapper.fromCursor(messageDto, nextCursor, messageDto.size(), hasNext, totalElements);
+        return pageResponseMapper.fromCursor(messageDtoList, nextCursor, messageDtoList.size(), hasNext, totalElements);
     }
 
     // 특정 사용자가 발행한 전체 메시지 목록 조회
