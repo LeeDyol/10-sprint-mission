@@ -19,7 +19,7 @@ import java.util.UUID;
 public class BinaryContentController {
     private final BinaryContentService binaryContentService;
 
-    private final BinaryContentStorage localBinaryContentStorage;
+    private final BinaryContentStorage binaryContentStorage;
 
     @Operation(summary = "첨부 파일 조회", operationId = "find")
     @GetMapping("/{binaryContentId}")
@@ -42,6 +42,6 @@ public class BinaryContentController {
     public ResponseEntity<?> download(@PathVariable UUID binaryContentId) {
         BinaryContentDto response = binaryContentService.findById(binaryContentId);
 
-        return localBinaryContentStorage.download(response);
+        return binaryContentStorage.download(response);
     }
 }

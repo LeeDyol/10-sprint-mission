@@ -44,7 +44,7 @@ public class BasicMessageService implements MessageService {
     private final MessageMapper messageMapper;
     private final PageResponseMapper pageResponseMapper;
 
-    private final BinaryContentStorage localBinaryContentStorage;
+    private final BinaryContentStorage binaryContentStorage;
 
     // 메시지 생성
     @Override
@@ -67,7 +67,7 @@ public class BasicMessageService implements MessageService {
 
                 binaryContentRepository.save(newBinaryContent);
 
-                localBinaryContentStorage.put(newBinaryContent.getId(), file.getBytes());
+                binaryContentStorage.put(newBinaryContent.getId(), file.getBytes());
 
                 newMessage.addAttachment(newBinaryContent);
             } catch (Exception e) {

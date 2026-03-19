@@ -34,7 +34,7 @@ public class BasicUserService implements UserService {
 
     private final UserMapper userMapper;
 
-    private final BinaryContentStorage localBinaryContentStorage;
+    private final BinaryContentStorage binaryContentStorage;
 
     // 사용자 생성
     @Override
@@ -59,7 +59,7 @@ public class BasicUserService implements UserService {
 
                 binaryContentRepository.save(newUserProfile);
 
-                localBinaryContentStorage.put(newUserProfile.getId(), profile.getBytes());
+                binaryContentStorage.put(newUserProfile.getId(), profile.getBytes());
 
                 newUser.updateProfile(newUserProfile);
             } catch (IOException e) {
@@ -152,7 +152,7 @@ public class BasicUserService implements UserService {
 
                         binaryContentRepository.save(newBinaryContent);
 
-                        localBinaryContentStorage.put(newBinaryContent.getId(), newUserProfile.getBytes());
+                        binaryContentStorage.put(newBinaryContent.getId(), newUserProfile.getBytes());
 
                         targetUser.updateProfile(newBinaryContent);
                     } catch (IOException e) {
