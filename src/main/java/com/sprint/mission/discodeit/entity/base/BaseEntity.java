@@ -17,7 +17,7 @@ import java.util.UUID;
 @EntityListeners(AuditingEntityListener.class)          // 엔티티 생명 주기 감시
 public abstract class BaseEntity{
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     protected UUID id;
 
     @CreatedDate
