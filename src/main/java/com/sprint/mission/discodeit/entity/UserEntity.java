@@ -26,7 +26,7 @@ public class UserEntity extends BaseUpdatableEntity {
     @JoinColumn(unique = true)
     private BinaryContentEntity profile;                           // 프로필 이미지
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, optional = false)
     private UserStatusEntity userStatus;                           // 상태
 
     @Builder
