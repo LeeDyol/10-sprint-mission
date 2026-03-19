@@ -138,11 +138,6 @@ public class BasicUserService implements UserService {
         // 프로필 이미지 변경
         Optional.ofNullable(profile)
                 .ifPresent(newUserProfile -> {
-                    // 기존 프로필이 존재할 경우, 삭제
-                    if (targetUser.getProfile() != null) {
-                        binaryContentRepository.delete(targetUser.getProfile());
-                    }
-
                     try {
                         BinaryContentEntity newBinaryContent = new BinaryContentEntity(
                                 newUserProfile.getOriginalFilename(),
@@ -154,13 +149,12 @@ public class BasicUserService implements UserService {
 
                         binaryContentStorage.put(newBinaryContent.getId(), newUserProfile.getBytes());
 
+                        // 기존 프로필은 고아가 되어 자동 삭제
                         targetUser.updateProfile(newBinaryContent);
                     } catch (IOException e) {
                         throw new RuntimeException("Error occurred while processing profile image", e);
                     }
                 });
-
-        userRepository.save(targetUser);
 
         return userMapper.toDto(targetUser);
     }
@@ -178,15 +172,6 @@ public class BasicUserService implements UserService {
         // 삭제된 사용자가 발행한 메시지 연쇄 삭제
         List<MessageEntity> deleteMessages = messageRepository.findByAuthor(targetUser);
         messageRepository.deleteAll(deleteMessages);
-
-        // 사용자 상태 연쇄 삭제
-        List<UserStatusEntity> deleteUserStatuses = userStatusRepository.findAllByUser(targetUser);
-        userStatusRepository.deleteAll(deleteUserStatuses);
-
-        // 현재 사용자 프로필 이미지 연쇄 삭제
-        if (targetUser.getProfile() != null) {
-            binaryContentRepository.delete(targetUser.getProfile());
-        }
 
         userRepository.delete(targetUser);
     }
