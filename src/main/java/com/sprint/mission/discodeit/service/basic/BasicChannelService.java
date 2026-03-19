@@ -55,10 +55,12 @@ public class BasicChannelService implements ChannelService {
 
         // 각 멤버의 읽음 상태 생성
         List<ReadStatusEntity> newReadStatuesOfMembers = privateChannelCreateRequest.participantIds().stream()
-                // 멤버 존재 여부 확인
-                .filter(this::existsByUserId)
-                // 각 멤버의 읽음 상태 생성
-                .map(participantId -> new ReadStatusEntity(getUserEntityOrThrow(participantId), newChannel))
+                .map(participantId -> {
+                    // 멤버 존재 여부 확인 -> 없으면 예외 발생
+                    UserEntity member = getUserEntityOrThrow(participantId);
+                    // 존재하는 멤버에 한해 읽음 상태 생성
+                    return new ReadStatusEntity(member, newChannel);
+                })
                 .toList();
         readStatusRepository.saveAll(newReadStatuesOfMembers);
 
