@@ -5,7 +5,7 @@ spring:
   datasource:                                             # 데이터베이스 연결 설정 값
     url: jdbc:postgresql://localhost:5432/discodeit
     username: discodeit_user
-    password: discodeit1234
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver              # PostgreSQL 전용 드라이버
 
   jpa:
