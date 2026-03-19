@@ -26,12 +26,8 @@ public class MessageEntity extends BaseUpdatableEntity {
     @JoinColumn(name = "author_id")
     private UserEntity author;                           // 보낸 사람
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(
-            name = "message_attachments",
-            joinColumns = @JoinColumn(name = "message_id"),
-            inverseJoinColumns = @JoinColumn(name = "attachment_id")
-    )
+    @OneToMany(cascade =  CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "message_id")
     private List<BinaryContentEntity> attachments;       // 메시지에 묶여있는 파일 목록
 
     @Builder

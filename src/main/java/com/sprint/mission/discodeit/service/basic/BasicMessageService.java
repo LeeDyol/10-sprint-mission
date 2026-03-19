@@ -158,9 +158,6 @@ public class BasicMessageService implements MessageService {
     public void delete(UUID messageId) {
         MessageEntity targetMessage = getMessageEntityOrThrow(messageId);
 
-        // 메시지와 함께 전송된 첨부 파일 연쇄 삭제
-        binaryContentRepository.deleteAll(targetMessage.getAttachments());
-
         messageRepository.delete(targetMessage);
     }
 
