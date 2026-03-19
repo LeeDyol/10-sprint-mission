@@ -22,7 +22,7 @@ public class UserEntity extends BaseUpdatableEntity {
     @Column(nullable = false)
     private String password;                                       // 비밀번호
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(unique = true)
     private BinaryContentEntity profile;                           // 프로필 이미지
 
