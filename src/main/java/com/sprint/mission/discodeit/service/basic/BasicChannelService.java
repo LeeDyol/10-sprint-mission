@@ -117,7 +117,6 @@ public class BasicChannelService implements ChannelService {
                     targetChannel.updateChannelDescription(publicChannelUpdateRequest.newDescription());
                 });
 
-        channelRepository.save(targetChannel);
         return toChannelDto(targetChannel);
     }
 

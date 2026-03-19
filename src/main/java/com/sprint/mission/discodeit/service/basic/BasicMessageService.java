@@ -96,6 +96,7 @@ public class BasicMessageService implements MessageService {
                 .toList();
     }
 
+    // 특정 채널에서 발행된 메시지 목록 조회
     @Override
     public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant cursor, int size) {
         // 다음 페이지 여부 확인을 위해 size + 1개 조회
@@ -148,7 +149,6 @@ public class BasicMessageService implements MessageService {
         validateDuplicateValue(targetMessage.getContent(), newContent, "New content is same as current");
         targetMessage.updateMessage(messageUpdateRequest.newContent());
 
-        messageRepository.save(targetMessage);
         return messageMapper.toDto(targetMessage);
     }
 
