@@ -1,29 +1,33 @@
 package com.sprint.mission.discodeit.mapper;
 
-import com.sprint.mission.discodeit.dto.response.ChannelDTO;
+import com.sprint.mission.discodeit.dto.request.channel.PublicChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.response.ChannelDto;
 import com.sprint.mission.discodeit.entity.ChannelEntity;
 import com.sprint.mission.discodeit.entity.ChannelType;
-import com.sprint.mission.discodeit.repository.MessageRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import com.sprint.mission.discodeit.entity.UserEntity;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 
+import java.time.Instant;
 import java.util.List;
 
-@Component
-@RequiredArgsConstructor
-public class ChannelMapper {
-    private final MessageRepository messageRepository;
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
+        uses = {UserMapper.class})
+public interface ChannelMapper {
+    // 엔티티 -> 응답 DTO 변환
+    @Mapping(target = "participants", source = "participants")
+    @Mapping(target = "lastMessageAt", source = "lastMessageAt")
+    ChannelDto toDto(ChannelEntity channel, List<UserEntity> participants, Instant lastMessageAt);
 
-    // 응답 DTO 생성 및 반환
-    public ChannelDTO toResponseDTO(ChannelEntity channel) {
-        return ChannelDTO.builder()
-                .id(channel.getId())
-                .name(channel.getName())
-                // 비공개 채널일 때만 participant 리스트 반환
-                .participantIds((channel.getType() == ChannelType.PRIVATE)? channel.getParticipantIds() : List.of())
-                .type(channel.getType())
-                .description(channel.getDescription())
-                .lastMessageAt(messageRepository.getLastMessageAt(channel.getId()))
+    // 공개 채널 생성 요청 DTO -> 엔티티 변환
+    @Mapping(target = "type", constant = "PUBLIC")
+    ChannelEntity toPublicEntity(PublicChannelCreateRequest publicChannelCreateRequest);
+
+    // 비공개 채널 생성 요청 DTO -> 엔티티 변환
+    default ChannelEntity toPrivateEntity(){
+        return ChannelEntity.builder()
+                .type(ChannelType.PRIVATE)
                 .build();
-    }
+    };
 }

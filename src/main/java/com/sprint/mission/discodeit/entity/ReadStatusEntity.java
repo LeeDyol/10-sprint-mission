@@ -1,28 +1,43 @@
 package com.sprint.mission.discodeit.entity;
 
-import com.sprint.mission.discodeit.dto.request.readStatus.ReadStatusCreateRequest;
+import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
+import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
-import java.util.UUID;
 
 @Getter
-public class ReadStatusEntity extends BaseEntity {
-    private UUID userId;                        // 사용자 고유 id (변경 불가능)
-    private UUID channelId;                     // 채널 고유 id (변경 불가능)
-    private Instant lastReadAt;                 // 해당 채널에서 마지막으로 메시지를 읽은 시간 (변경 가능)
+@Setter
+@NoArgsConstructor
+@Entity
+@Table(name = "read_statuses")
+public class ReadStatusEntity extends BaseUpdatableEntity {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;                             // 메시지를 읽은 사용자
 
-    public ReadStatusEntity(ReadStatusCreateRequest readStatusCreateRequest) {
-        this.id = UUID.randomUUID();
-        this.userId = readStatusCreateRequest.userId();
-        this.channelId = readStatusCreateRequest.channelId();
-        this.createdAt = Instant.now();
-        this.updatedAt = Instant.now();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "channel_id", nullable = false)
+    private ChannelEntity channel;                       // 메시지를 읽은 채널
+
+    @Column(nullable = false)
+    private Instant lastReadAt;                          // 해당 채널에서 마지막으로 메시지를 읽은 시간
+
+    public ReadStatusEntity(UserEntity user, ChannelEntity channel, Instant lastReadAt) {
+        this.user = user;
+        this.channel = channel;
+        this.lastReadAt = lastReadAt;
+    }
+
+    public ReadStatusEntity(UserEntity user, ChannelEntity channel) {
+        this.user = user;
+        this.channel  = channel;
         this.lastReadAt = Instant.now();
     }
 
     public void updateLastReadTime(Instant newLastReadAt) {
         this.lastReadAt = newLastReadAt;
-        this.updatedAt = Instant.now();
     }
 }

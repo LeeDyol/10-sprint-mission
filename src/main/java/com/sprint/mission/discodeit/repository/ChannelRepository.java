@@ -1,21 +1,26 @@
 package com.sprint.mission.discodeit.repository;
 
 import com.sprint.mission.discodeit.entity.ChannelEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-public interface ChannelRepository {
-    // 채널 저장
-    void save(ChannelEntity channel);
-
-    // 채널 단건 조회
-    Optional<ChannelEntity> findById(UUID channelId);
-
-    // 채널 전체 조회
-    List<ChannelEntity> findAll();
-
-    // 채널 삭제
-    void delete(ChannelEntity channel);
+public interface ChannelRepository extends JpaRepository<ChannelEntity, UUID> {
+    // 다건 조회 (사용자 id) : 해당 사용자가 참여하고 있는 공개 채널 + 비공개 채널
+    @Query("""
+            SELECT channel
+            FROM ChannelEntity channel
+            LEFT JOIN FETCH channel.readStatuses readStatus
+            LEFT JOIN FETCH readStatus.user user
+            WHERE channel.type = 'PUBLIC'
+            OR channel.id IN (
+                              SELECT subReadStatus.channel.id
+                              FROM ReadStatusEntity subReadStatus
+                              WHERE subReadStatus.user.id = :userId
+                              )
+            """)
+    List<ChannelEntity> findAllVisibleChannelByUserId(@Param("userId") UUID userId);
 }

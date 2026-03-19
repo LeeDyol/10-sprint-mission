@@ -1,11 +1,14 @@
 package com.sprint.mission.discodeit.exception;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
 
-@Getter
-@AllArgsConstructor
-public class ErrorResponse {
-    private String code;
-    private int status;
+import java.time.Instant;
+
+@Builder
+public record ErrorResponse (
+    Instant timestamp,
+    String code,
+    int status,
+    String message
+) {
 }

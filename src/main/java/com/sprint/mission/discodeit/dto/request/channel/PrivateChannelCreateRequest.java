@@ -5,9 +5,12 @@ import lombok.Builder;
 import java.util.List;
 import java.util.UUID;
 
+import jakarta.validation.constraints.NotNull;
+
 @Builder
 public record PrivateChannelCreateRequest(
-    List<UUID> participantIds
+        @NotNull
+        List<UUID> participantIds
 ) {
 
 }
