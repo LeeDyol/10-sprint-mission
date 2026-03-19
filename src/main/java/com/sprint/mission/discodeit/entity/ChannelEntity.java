@@ -6,6 +6,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -20,6 +24,13 @@ public class ChannelEntity extends BaseUpdatableEntity {
     private String name;                        // 채널 이름
 
     private String description;                 // 채널 설명
+
+    @BatchSize(size = 100)
+    @OneToMany(mappedBy = "channel", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ReadStatusEntity> readStatuses = new ArrayList<>();
+
+    @OneToMany(mappedBy = "channel", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MessageEntity> messages = new ArrayList<>();
 
     @Builder
     public ChannelEntity(String name, String description, ChannelType type) {

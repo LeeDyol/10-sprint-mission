@@ -51,19 +51,17 @@ public class BasicChannelService implements ChannelService {
     @Transactional
     public ChannelDto createPrivateChannel(PrivateChannelCreateRequest privateChannelCreateRequest) {
         ChannelEntity newChannel = channelMapper.toPrivateEntity();
-        channelRepository.save(newChannel);
 
         // 각 멤버의 읽음 상태 생성
-        List<ReadStatusEntity> newReadStatuesOfMembers = privateChannelCreateRequest.participantIds().stream()
-                .map(participantId -> {
-                    // 멤버 존재 여부 확인 -> 없으면 예외 발생
-                    UserEntity member = getUserEntityOrThrow(participantId);
-                    // 존재하는 멤버에 한해 읽음 상태 생성
-                    return new ReadStatusEntity(member, newChannel);
-                })
-                .toList();
-        readStatusRepository.saveAll(newReadStatuesOfMembers);
+        privateChannelCreateRequest.participantIds().forEach(participantId -> {
+            // 멤버 존재 여부 확인 -> 없으면 예외 발생
+            UserEntity member = getUserEntityOrThrow(participantId);
+            // 존재하는 멤버에 한해 읽음 상태 생성
+            ReadStatusEntity memberReadStatus = new ReadStatusEntity(member, newChannel);
+            newChannel.getReadStatuses().add(memberReadStatus);
+        });
 
+        channelRepository.save(newChannel);
         return toChannelDto(newChannel);
     }
 
@@ -128,14 +126,6 @@ public class BasicChannelService implements ChannelService {
     public void delete(UUID channelId) {
         ChannelEntity targetChannel = getChannelEntityOrThrow(channelId);
 
-        // 해당 채널에서 발행된 메시지 연쇄 삭제
-        List<MessageEntity> deleteMessages = messageRepository.findByChannel(targetChannel);
-        messageRepository.deleteAll(deleteMessages);
-
-        // 채널 멤버의 ReadStatus 연쇄 삭제
-        List<ReadStatusEntity> deleteReadStatuses = readStatusRepository.findAllByChannel(targetChannel);
-        readStatusRepository.deleteAll(deleteReadStatuses);
-
         channelRepository.delete(targetChannel);
     }
 
@@ -149,7 +139,7 @@ public class BasicChannelService implements ChannelService {
         validateMemberExists(newUser.getId(), targetChannel.getId());
 
         ReadStatusEntity newMemberReadStatus = new ReadStatusEntity(newUser, targetChannel);
-        readStatusRepository.save(newMemberReadStatus);
+        targetChannel.getReadStatuses().add(newMemberReadStatus);
     }
 
     // 채널 퇴장
@@ -162,7 +152,7 @@ public class BasicChannelService implements ChannelService {
         validateUserNotInChannel(targetUser.getId(), targetChannel.getId());
 
         ReadStatusEntity targetReadStatus = getUserStatusEntityOrThrow(targetUser.getId(), targetChannel.getId());
-        readStatusRepository.delete(targetReadStatus);
+        targetChannel.getReadStatuses().remove(targetReadStatus);
     }
 
     // 사용자 반환
@@ -211,8 +201,9 @@ public class BasicChannelService implements ChannelService {
     private ChannelDto toChannelDto(ChannelEntity channel) {
         // 비공개 채널일 경우에만 참여자 목록 반환
         List<UserEntity> participants = List.of();
+
         if (channel.getType() == ChannelType.PRIVATE) {
-            participants = readStatusRepository.findAllByChannel(channel).stream()
+            participants = channel.getReadStatuses().stream()
                     .map(ReadStatusEntity::getUser)
                     .toList();
         }
