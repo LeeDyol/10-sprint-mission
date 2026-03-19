@@ -43,7 +43,7 @@ public class BasicChannelService implements ChannelService {
         ChannelEntity newChannel = channelMapper.toPublicEntity(publicChannelCreateRequest);
         channelRepository.save(newChannel);
 
-        return EntityToDto(newChannel);
+        return toChannelDto(newChannel);
     }
 
     // 비공개 채널 생성
@@ -62,7 +62,7 @@ public class BasicChannelService implements ChannelService {
                 .toList();
         readStatusRepository.saveAll(newReadStatuesOfMembers);
 
-        return EntityToDto(newChannel);
+        return toChannelDto(newChannel);
     }
 
     // 채널 단건 조회
@@ -70,14 +70,14 @@ public class BasicChannelService implements ChannelService {
     public ChannelDto findById(UUID channelId) {
         ChannelEntity targetChannel = getChannelEntityOrThrow(channelId);
 
-        return EntityToDto(targetChannel);
+        return toChannelDto(targetChannel);
     }
 
     // 채널 전체 조회
     @Override
     public List<ChannelDto> findAll() {
         return channelRepository.findAll().stream()
-                .map(this::EntityToDto)
+                .map(this::toChannelDto)
                 .toList();
     }
 
@@ -86,7 +86,7 @@ public class BasicChannelService implements ChannelService {
         UserEntity targetUser = getUserEntityOrThrow(userId);
 
         return channelRepository.findAllVisibleChannelByUserId(targetUser.getId()).stream()
-                .map(this::EntityToDto)
+                .map(this::toChannelDto)
                 .toList();
     }
 
@@ -118,7 +118,7 @@ public class BasicChannelService implements ChannelService {
                 });
 
         channelRepository.save(targetChannel);
-        return EntityToDto(targetChannel);
+        return toChannelDto(targetChannel);
     }
 
     // 채널 삭제
@@ -207,7 +207,7 @@ public class BasicChannelService implements ChannelService {
     }
 
     // DTO 변환
-    private ChannelDto EntityToDto(ChannelEntity channel) {
+    private ChannelDto toChannelDto(ChannelEntity channel) {
         // 비공개 채널일 경우에만 참여자 목록 반환
         List<UserEntity> participants = List.of();
         if (channel.getType() == ChannelType.PRIVATE) {
