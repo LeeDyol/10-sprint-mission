@@ -1,0 +1,47 @@
+# 로컬 개발 관련 설정
+
+server:
+  port: 8080                                                    # 로컬 개발 시 사용할 서버 포트 번호
+
+spring:
+  # 데이버테이스 설정
+  datasource:
+    url: jdbc:postgresql://localhost:5432/discodeit             # 로컬 PC 내 PostgreSQL 접속 주소
+    username: discodeit_user
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver                    # PostgreSQL 전용 드라이버 지정
+
+  jpa:
+    hibernate:                                                  # 엔티티 - DB 테이블이 일치 여부 확인
+      ddl-auto: update                                          # 엔티티 변경 시 DB 테이블 구조를 자동으로 업데이트
+
+    show-sql: true                                              # 실행되는 모든 SQL 문을 콘솔에 출력
+
+    properties:                                                 # SQL 로그 설정 값
+      hibernate:
+        format_sql: true                                        # SQL 문을 가독성 좋게 포맷팅
+        highlight_sql: true                                     # SQL 문 내 키워드 색상 활성화
+        dialect: org.hibernate.dialect.PostgreSQLDialect        # PostgreSQL 전용 SQL 사용
+
+    open-in-view: false                                         # OVIS 비활성화
+
+  sql:                                                          # 애플리케이션 실행 시, schema.sql 항상 실행
+    init:
+      mode: always
+
+# 로깅 설정 값
+logging:
+  level:
+    root: debug
+    com.sprint.mission.discodeit: debug                         # 개발 환경에서는 로그를 상세히 출력
+    org.hibernate: warn                                         # 잠재적인 문제 이상에 대한 경고 이상부터 출력
+    org.hibernate.SQL: debug                                    # 실행 SQL 쿼리문을 콘솔에 상세히 출력
+    org.hibernate.orm.jdbc.bind: trace                          # SQL에 바인딩되는 파라미터 값 추적 및 출력
+    org.hibernate.orm.jdbc.extract: trace                       # ResultSet에서 데이터를 추출하는 과정 출력
+
+# 커스텀 설정 값
+discodeit:
+  storage:                                                      # 로컬 저장소 설정 값
+    type: local                                                 # 로컬 서버 저장
+    local:
+      root-path: ./upload-files                                 # 실제 저장 경로
