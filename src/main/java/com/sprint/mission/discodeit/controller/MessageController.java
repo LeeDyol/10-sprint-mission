@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "Message", description = "Message API")
+@Slf4j
 @RestController
 @RequestMapping("/api/messages")
 @RequiredArgsConstructor
@@ -33,6 +35,12 @@ public class MessageController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MessageDto> create(@Valid @RequestPart("messageCreateRequest") MessageCreateRequest messageCreateRequest,
                                              @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
+        log.info("[MESSAGE_CREATE] 메시지 생성 요청: content={}, authorId={}, channelId={}",
+                messageCreateRequest.content(),
+                messageCreateRequest.authorId(),
+                messageCreateRequest.channelId()
+        );
+
         MessageDto response = messageService.create(messageCreateRequest, attachments);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -52,6 +60,10 @@ public class MessageController {
     @PatchMapping("/{messageId}")
     public ResponseEntity<MessageDto> update(@PathVariable UUID messageId,
                                              @Valid @RequestBody MessageUpdateRequest messageUpdateRequest) {
+        log.info("[MESSAGE_UPDATE] 메시지 수정 요청: id={}, newContent={}",
+                messageId,
+                messageUpdateRequest.newContent()
+        );
 
         MessageDto response = messageService.update(messageId, messageUpdateRequest);
 
@@ -61,6 +73,8 @@ public class MessageController {
     @Operation(summary = "Message 삭제", operationId = "delete_1")
     @DeleteMapping("/{messageId}")
     public ResponseEntity<Void> delete(@PathVariable UUID messageId) {
+        log.info("[MESSAGE_DELETE] 메시지 삭제 요청: id={}", messageId);
+
         messageService.delete(messageId);
 
         return ResponseEntity.noContent().build();

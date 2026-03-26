@@ -19,6 +19,7 @@ import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ import java.util.UUID;
 import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateDuplicateValue;
 import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateString;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -55,7 +57,7 @@ public class BasicMessageService implements MessageService {
 
         MessageEntity newMessage = messageMapper.toEntity(messageCreateRequest, targetUser, targetChannel);
 
-        // Null 일 경우, 빈 리스트 반환
+        // 메시지와 함께 전송된 첨부 파일이 Null 일 경우, 빈 리스트 반환
         List<MultipartFile> attachmentsOfUser = (attachments == null) ? List.of() : attachments;
 
         for (MultipartFile file : attachmentsOfUser) {
@@ -66,17 +68,23 @@ public class BasicMessageService implements MessageService {
                         file.getContentType());
 
                 binaryContentRepository.save(newBinaryContent);
-
                 binaryContentStorage.put(newBinaryContent.getId(), file.getBytes());
 
                 newMessage.addAttachment(newBinaryContent);
             } catch (Exception e) {
+                log.error("[MESSAGE_CREATE] 메시지 첨부파일 생성 실패: ", e);
                 throw new RuntimeException("Failed to process attachment: " + file.getOriginalFilename(), e);
             }
         }
 
         messageRepository.save(newMessage);
-
+        log.info("[MESSAGE_CREATE] 메시지 생성 완료: id={}, authorId={}, channelId={}, content={}, attachments= 총 {}개",
+                newMessage.getId(),
+                newMessage.getAuthor().getId(),
+                newMessage.getChannel().getId(),
+                newMessage.getContent(),
+                newMessage.getAttachments().size()
+        );
         return messageMapper.toDto(newMessage);
     }
 
@@ -142,6 +150,10 @@ public class BasicMessageService implements MessageService {
     @Transactional
     public MessageDto update(UUID messageId, MessageUpdateRequest messageUpdateRequest) {
         MessageEntity targetMessage = getMessageEntityOrThrow(messageId);
+        log.debug("[MESSAGE_UPDATE] 기존 메시지 정보: id={}, content={}",
+                targetMessage.getId(),
+                targetMessage.getContent()
+        );
 
         String newContent = messageUpdateRequest.newContent();
 
@@ -149,6 +161,10 @@ public class BasicMessageService implements MessageService {
         validateDuplicateValue(targetMessage.getContent(), newContent, "New content is same as current");
         targetMessage.updateMessage(messageUpdateRequest.newContent());
 
+        log.info("[MESSAGE_UPDATE] 메시지 수정 완료: id={}, content={}",
+                messageId,
+                newContent
+        );
         return messageMapper.toDto(targetMessage);
     }
 
@@ -159,6 +175,10 @@ public class BasicMessageService implements MessageService {
         MessageEntity targetMessage = getMessageEntityOrThrow(messageId);
 
         messageRepository.delete(targetMessage);
+        log.info("[MESSAGE_DELETE] 메시지 삭제 완료: id={}, content={}",
+                targetMessage.getId(),
+                targetMessage.getContent()
+        );
     }
 
     // 사용자 반환
