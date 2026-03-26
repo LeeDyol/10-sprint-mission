@@ -14,6 +14,7 @@ import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,7 @@ import java.util.UUID;
 import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateDuplicateValue;
 import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateString;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -43,6 +45,11 @@ public class BasicChannelService implements ChannelService {
         ChannelEntity newChannel = channelMapper.toPublicEntity(publicChannelCreateRequest);
         channelRepository.save(newChannel);
 
+        log.info("[PUBLIC_CHANNEL_CREATE] 공개 채널 생성 완료: id={}, name={}, description={}",
+                newChannel.getId(),
+                newChannel.getName(),
+                newChannel.getDescription()
+        );
         return toChannelDto(newChannel);
     }
 
@@ -62,6 +69,10 @@ public class BasicChannelService implements ChannelService {
         });
 
         channelRepository.save(newChannel);
+        log.info("[PRIVATE_CHANNEL_CREATE] 비공개 채널 생성 완료: id={}, 총 {}명",
+                newChannel.getId(),
+                newChannel.getReadStatuses().size()
+        );
         return toChannelDto(newChannel);
     }
 
@@ -95,9 +106,15 @@ public class BasicChannelService implements ChannelService {
     @Transactional
     public ChannelDto update(UUID channelId, PublicChannelUpdateRequest publicChannelUpdateRequest) {
         ChannelEntity targetChannel = getChannelEntityOrThrow(channelId);
+        log.debug("[PUBLIC_CHANNEL_UPDATE] 기존 공개 채널 정보: id={}, name={}, description={}",
+                channelId,
+                targetChannel.getName(),
+                targetChannel.getDescription()
+        );
 
         // Private 채널 제외
         if (targetChannel.getType() == ChannelType.PRIVATE) {
+            log.warn("[PUBLIC_CHANNEL_UPDATE] 비공개 채널 수정 실패: type={}", targetChannel.getType());
             throw new IllegalArgumentException("Private channel cannot be updated");
         }
 
@@ -117,6 +134,11 @@ public class BasicChannelService implements ChannelService {
                     targetChannel.updateChannelDescription(publicChannelUpdateRequest.newDescription());
                 });
 
+        log.info("[PUBLIC_CHANNEL_UPDATE] 공개 채널 수정 완료: id={}, name={}, description={}",
+                targetChannel.getId(),
+                targetChannel.getName(),
+                targetChannel.getDescription()
+        );
         return toChannelDto(targetChannel);
     }
 
@@ -127,6 +149,10 @@ public class BasicChannelService implements ChannelService {
         ChannelEntity targetChannel = getChannelEntityOrThrow(channelId);
 
         channelRepository.delete(targetChannel);
+        log.info("[CHANNEL_DELETE] 채널 삭제 완료: id={}, name={}",
+                targetChannel.getId(),
+                targetChannel.getName() != null ? targetChannel.getName() : "NONE"      // 비공개 채널은 채널 이름 미존재
+        );
     }
 
     // 채널 참가자 초대
@@ -171,11 +197,6 @@ public class BasicChannelService implements ChannelService {
     public ReadStatusEntity getUserStatusEntityOrThrow(UUID userId, UUID channelId) {
         return readStatusRepository.findByUserIdAndChannelId(userId, channelId)
                 .orElseThrow(() -> new ResourceNotFoundException("User with id {" + userId + "} and channel with id {" + channelId + "} not found"));
-    }
-
-    // 유효성 검증 (사용자 존재 여부)
-    public boolean existsByUserId(UUID userId){
-        return userRepository.existsById(userId);
     }
 
     // 유효성 검증 (읽음 상태 존재 여부)
