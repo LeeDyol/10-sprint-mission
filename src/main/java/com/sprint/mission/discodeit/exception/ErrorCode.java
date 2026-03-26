@@ -39,7 +39,7 @@ public enum ErrorCode {
 
     // BinaryContent
     BINARY_CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Binary content with id not found"),
-    FILE_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Error occurred while processing file");
+    BINARY_CONTENT_FILE_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Error occurred while processing file");
 
     private final HttpStatus httpStatus;
     private final String message;

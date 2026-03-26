@@ -4,12 +4,12 @@ import com.sprint.mission.discodeit.exception.ErrorCode;
 
 import java.util.Map;
 
-public class DuplicateEamilException extends UserException {
-    public DuplicateEamilException(ErrorCode errorCode) {
+public class DuplicateEmailException extends UserException {
+    public DuplicateEmailException(ErrorCode errorCode) {
         super(errorCode);
     }
 
-    public DuplicateEamilException(ErrorCode errorCode, Map<String, Object> details) {
+    public DuplicateEmailException(ErrorCode errorCode, Map<String, Object> details) {
         super(errorCode, details);
     }
 }
