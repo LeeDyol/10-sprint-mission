@@ -58,9 +58,10 @@ public class UserController {
     public ResponseEntity<UserDto> update(@PathVariable UUID userId,
                                           @RequestPart UserUpdateRequest userUpdateRequest,
                                           @RequestPart(value = "profile", required = false) MultipartFile profile){
-        log.info("[USER_UPDATE] 사용자 정보 수정 요청: newEmail={}, newUsername={}",
+        log.info("[USER_UPDATE] 사용자 정보 수정 요청: newEmail={}, newUsername={}, profile={}",
                 userUpdateRequest.newEmail(),
-                userUpdateRequest.newUsername()
+                userUpdateRequest.newUsername(),
+                (profile != null && !profile.isEmpty()) ? profile.getOriginalFilename() : "NONE"
         );
 
         UserDto updatedUser = userService.update(userId, userUpdateRequest, profile);
