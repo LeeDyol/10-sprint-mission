@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.dto.request.userStatus;
+package com.sprint.mission.discodeit.dto.request.userstatus;
 
 import lombok.Builder;
 import lombok.NonNull;

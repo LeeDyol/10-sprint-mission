@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.dto.request.readStatus;
+package com.sprint.mission.discodeit.dto.request.readstatus;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
