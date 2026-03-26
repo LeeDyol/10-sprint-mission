@@ -6,7 +6,9 @@ import com.sprint.mission.discodeit.dto.response.ReadStatusDto;
 import com.sprint.mission.discodeit.entity.ChannelEntity;
 import com.sprint.mission.discodeit.entity.ReadStatusEntity;
 import com.sprint.mission.discodeit.entity.UserEntity;
-import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
+import com.sprint.mission.discodeit.exception.ErrorCode;
+import com.sprint.mission.discodeit.exception.readstatus.DuplicateReadStatusException;
+import com.sprint.mission.discodeit.exception.readstatus.ReadStatusNotFoundException;
 import com.sprint.mission.discodeit.mapper.ReadStatusMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -92,27 +95,42 @@ public class BasicReadStatusService implements ReadStatusService {
     }
 
     // 사용자 반환
-    public UserEntity getUserEntityOrThrow(UUID userId){
+    private UserEntity getUserEntityOrThrow(UUID userId){
         return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User with id {" + userId + "} not found"));
+                .orElseThrow(() -> new ReadStatusNotFoundException(
+                        ErrorCode.READ_STATUS_NOT_FOUND,
+                        Map.of("userId", userId)
+                ));
     }
 
     // 채널 반환
-    public ChannelEntity getChannelEntityOrThrow(UUID channelId){
+    private ChannelEntity getChannelEntityOrThrow(UUID channelId){
         return channelRepository.findById(channelId)
-                .orElseThrow(() -> new ResourceNotFoundException("Channel with id {" + channelId + "} not found"));
+                .orElseThrow(() -> new ReadStatusNotFoundException(
+                        ErrorCode.READ_STATUS_NOT_FOUND,
+                        Map.of("channelId", channelId)
+                ));
     }
 
     // 읽음 상태 엔티티 반환
-    public ReadStatusEntity getReadStatusEntity(UUID readStatusId){
+    private ReadStatusEntity getReadStatusEntity(UUID readStatusId){
         return readStatusRepository.findBysIdWithDetails(readStatusId)
-                .orElseThrow(() -> new ResourceNotFoundException("ReadStatus with id {" + readStatusId + "} not found"));
+                .orElseThrow(() -> new ReadStatusNotFoundException(
+                        ErrorCode.READ_STATUS_NOT_FOUND,
+                        Map.of("readStatusId", readStatusId)
+                ));
     }
 
     // 유효성 검사 (중복 확인)
-    public void existsByUserIdAndChannelId(UUID userId, UUID channelId) {
+    private void existsByUserIdAndChannelId(UUID userId, UUID channelId) {
         if (readStatusRepository.existsByUserIdAndChannelId(userId, channelId)) {
-            throw new IllegalArgumentException("ReadStatus with userId {" + userId + "} and channelId {" + channelId + "} already exists");
+            throw new DuplicateReadStatusException(
+                    ErrorCode.DUPLICATE_READ_STATUS,
+                    Map.of(
+                            "userId", userId,
+                            "channelId", channelId
+                    )
+            );
         }
     }
 }

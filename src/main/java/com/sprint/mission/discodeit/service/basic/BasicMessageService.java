@@ -8,7 +8,11 @@ import com.sprint.mission.discodeit.entity.BinaryContentEntity;
 import com.sprint.mission.discodeit.entity.ChannelEntity;
 import com.sprint.mission.discodeit.entity.MessageEntity;
 import com.sprint.mission.discodeit.entity.UserEntity;
-import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
+import com.sprint.mission.discodeit.exception.ErrorCode;
+import com.sprint.mission.discodeit.exception.binarycontent.BinaryContentFileProcessingErrorException;
+import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
+import com.sprint.mission.discodeit.exception.message.MessageNotFoundException;
+import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
 import com.sprint.mission.discodeit.mapper.PageResponseMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
@@ -28,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateDuplicateValue;
@@ -72,8 +77,10 @@ public class BasicMessageService implements MessageService {
 
                 newMessage.addAttachment(newBinaryContent);
             } catch (Exception e) {
-                log.error("[MESSAGE_CREATE] 메시지 첨부파일 생성 실패: ", e);
-                throw new RuntimeException("Failed to process attachment: " + file.getOriginalFilename(), e);
+                throw new BinaryContentFileProcessingErrorException(
+                        ErrorCode.BINARY_CONTENT_FILE_PROCESSING_ERROR,
+                        Map.of("filename", file.getName())
+                );
             }
         }
 
@@ -182,20 +189,29 @@ public class BasicMessageService implements MessageService {
     }
 
     // 사용자 반환
-    public UserEntity getUserEntityOrThrow(UUID userId){
+    private UserEntity getUserEntityOrThrow(UUID userId){
         return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User with id {" + userId + "} not found"));
+                .orElseThrow(() -> new UserNotFoundException(
+                        ErrorCode.USER_NOT_FOUND,
+                        Map.of("userId", userId)
+                ));
     }
 
     // 채널 반환
-    public ChannelEntity getChannelEntityOrThrow(UUID channelId){
+    private ChannelEntity getChannelEntityOrThrow(UUID channelId){
         return channelRepository.findById(channelId)
-                .orElseThrow(() -> new ResourceNotFoundException("Channel with id {" + channelId + "} not found"));
+                .orElseThrow(() -> new ChannelNotFoundException(
+                        ErrorCode.CHANNEL_NOT_FOUND,
+                        Map.of("channelId", channelId)
+                ));
     }
 
     // 메시지 반환
-    public MessageEntity getMessageEntityOrThrow(UUID messageId){
+    private MessageEntity getMessageEntityOrThrow(UUID messageId){
         return messageRepository.findWithDetails(messageId)
-                .orElseThrow(() -> new ResourceNotFoundException("Message with id {" + messageId + "} not found"));
+                .orElseThrow(() -> new MessageNotFoundException(
+                        ErrorCode.MESSAGE_NOT_FOUND,
+                        Map.of("messageId", messageId)
+                ));
     }
 }

@@ -5,7 +5,13 @@ import com.sprint.mission.discodeit.dto.request.user.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.entity.*;
-import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
+import com.sprint.mission.discodeit.exception.ErrorCode;
+import com.sprint.mission.discodeit.exception.binarycontent.BinaryContentFileProcessingErrorException;
+import com.sprint.mission.discodeit.exception.channel.AccessDeniedPrivateChannelException;
+import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
+import com.sprint.mission.discodeit.exception.user.DuplicateEmailException;
+import com.sprint.mission.discodeit.exception.user.DuplicateUsernameException;
+import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.UserService;
@@ -53,30 +59,12 @@ public class BasicUserService implements UserService {
         userStatusRepository.save(newUserStatus);
 
         // 선택적 프로필 이미지 생성
-        if (profile != null && !profile.isEmpty()) {
-            try {
-                BinaryContentEntity newUserProfile = new BinaryContentEntity(
-                        profile.getOriginalFilename(),
-                        profile.getSize(),
-                        profile.getContentType()
-                );
-
-                binaryContentRepository.save(newUserProfile);
-                binaryContentStorage.put(newUserProfile.getId(), profile.getBytes());
-
-                // User - BinaryContent 연관 관계 설정
-                newUser.updateProfile(newUserProfile);
-
-            } catch (IOException e) {
-                log.error("[USER_CREATE] 사용자 Profile 생성 실패: username={}", newUser.getUsername(), e);
-                throw new RuntimeException("Error occurred while processing file", e);
-            }
-        }
+        createProfile(newUser, profile);
 
         log.info("[USER_CREATE] 사용자 생성 완료: id={}, userStatusId={}, profileId={}",
                 newUser.getId(),
                 newUser.getUserStatus().getId(),
-                newUser.getProfile() != null? newUser.getProfile().getId() : "NONE"
+                newUser.getProfile() != null ? newUser.getProfile().getId() : "NONE"
         );
         return userMapper.toDto(newUser);
     }
@@ -105,7 +93,13 @@ public class BasicUserService implements UserService {
         // Private 채널은 채널 참여자만 조회 가능
         if (targetChannel.getType() == ChannelType.PRIVATE &&
                 !existsByUserIdAndChannelId(memberFindRequestDTO.requesterId(), targetChannel.getId())) {
-            throw new RuntimeException("Access denied for private channel members");
+            throw new AccessDeniedPrivateChannelException(
+                    ErrorCode.ACCESS_DENIED_PRIVATE_CHANNEL,
+                    Map.of(
+                            "userId", memberFindRequestDTO.requesterId(),
+                            "channelId", targetChannel.getId()
+                    )
+            );
         }
 
         return readStatusRepository.findAllByChannel(targetChannel).stream()
@@ -154,24 +148,7 @@ public class BasicUserService implements UserService {
 
         // 프로필 이미지 변경
         Optional.ofNullable(profile)
-                .ifPresent(newUserProfile -> {
-                    try {
-                        BinaryContentEntity newBinaryContent = new BinaryContentEntity(
-                                newUserProfile.getOriginalFilename(),
-                                newUserProfile.getSize(),
-                                newUserProfile.getContentType()
-                        );
-
-                        binaryContentRepository.save(newBinaryContent);
-                        binaryContentStorage.put(newBinaryContent.getId(), newUserProfile.getBytes());
-
-                        // 기존 프로필은 고아가 되어 자동 삭제
-                        targetUser.updateProfile(newBinaryContent);
-                    } catch (IOException e) {
-                        log.error("[USER_UPDATE] 사용자 Profile 수정 실패: username={}", targetUser.getUsername(), e);
-                        throw new RuntimeException("Error occurred while processing profile image", e);
-                    }
-                });
+                .ifPresent(newUserProfile -> createProfile(targetUser, newUserProfile));
 
         log.info("[USER_UPDATE] 사용자 정보 수정 완료: id={}, username={}, email={}, profileId={}",
                 targetUser.getId(),
@@ -206,31 +183,64 @@ public class BasicUserService implements UserService {
     }
 
     // 사용자 엔티티 반환
-    public UserEntity getUserEntityOrThrow(UUID userId) {
+    private UserEntity getUserEntityOrThrow(UUID userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User with id {" + userId + "} not found"));
+                .orElseThrow(() -> new UserNotFoundException(
+                        ErrorCode.USER_NOT_FOUND,
+                        Map.of("userId", userId)
+                ));
     }
 
     // 채널 반환
-    public ChannelEntity getChannelEntityOrThrow(UUID channelId){
+    private ChannelEntity getChannelEntityOrThrow(UUID channelId){
         return channelRepository.findById(channelId)
-                .orElseThrow(() -> new ResourceNotFoundException("Channel with id {" + channelId + "} not found"));
+                .orElseThrow(() -> new ChannelNotFoundException(
+                        ErrorCode.CHANNEL_NOT_FOUND,
+                        Map.of("channelId", channelId)
+                ));
     }
 
     // 유효성 검사 (이메일 중복)
-    public void isEmailDuplicate(String newEmail) {
+    private void isEmailDuplicate(String newEmail) {
         if (userRepository.existsByEmail(newEmail))
-            throw new IllegalArgumentException("User with email {" + newEmail + "} already exists");
+            throw new DuplicateEmailException(
+                    ErrorCode.DUPLICATE_EMAIL,
+                    Map.of("email", newEmail)
+            );
     }
 
     // 유효성 검사 (이름 중복)
-    public void isUsernameDuplicate(String newUsername) {
+    private void isUsernameDuplicate(String newUsername) {
         if (userRepository.existsByUsername(newUsername))
-            throw new IllegalArgumentException("User with username {" + newUsername + "} already exists");
+            throw new DuplicateUsernameException(
+                    ErrorCode.DUPLICATE_USERNAME,
+                    Map.of("username", newUsername)
+            );
     }
 
     // 유효성 검사 (읽음 상태 존재 여부)
-    public boolean existsByUserIdAndChannelId(UUID userId, UUID channelId) {
+    private boolean existsByUserIdAndChannelId(UUID userId, UUID channelId) {
         return readStatusRepository.existsByUserIdAndChannelId(userId, channelId);
+    }
+
+    // 프로필 이미지 생성 및 저장
+    private void createProfile (UserEntity targetUser, MultipartFile profile) {
+        if (profile != null && !profile.isEmpty()){
+            try {
+                BinaryContentEntity newBinaryContent = new BinaryContentEntity(
+                        profile.getOriginalFilename(),
+                        profile.getSize(),
+                        profile.getContentType()
+                );
+
+                binaryContentRepository.save(newBinaryContent);
+                binaryContentStorage.put(newBinaryContent.getId(), profile.getBytes());
+
+                // 기존 프로필은 고아가 되어 자동 삭제
+                targetUser.updateProfile(newBinaryContent);
+            } catch (IOException e) {
+                throw new BinaryContentFileProcessingErrorException(ErrorCode.BINARY_CONTENT_FILE_PROCESSING_ERROR);
+            }
+        }
     }
 }

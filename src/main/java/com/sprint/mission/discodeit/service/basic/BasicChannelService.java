@@ -6,7 +6,13 @@ import com.sprint.mission.discodeit.dto.request.channel.PrivateChannelCreateRequ
 import com.sprint.mission.discodeit.dto.request.channel.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.response.ChannelDto;
 import com.sprint.mission.discodeit.entity.*;
-import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
+import com.sprint.mission.discodeit.exception.ErrorCode;
+import com.sprint.mission.discodeit.exception.channel.AccessDeniedPrivateChannelException;
+import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
+import com.sprint.mission.discodeit.exception.channel.ChannelParticipantAlreadyExistsException;
+import com.sprint.mission.discodeit.exception.channel.ChannelParticipantNotFoundException;
+import com.sprint.mission.discodeit.exception.readstatus.ReadStatusNotFoundException;
+import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -20,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -114,8 +121,7 @@ public class BasicChannelService implements ChannelService {
 
         // Private 채널 제외
         if (targetChannel.getType() == ChannelType.PRIVATE) {
-            log.warn("[PUBLIC_CHANNEL_UPDATE] 비공개 채널 수정 실패: type={}", targetChannel.getType());
-            throw new IllegalArgumentException("Private channel cannot be updated");
+            throw new AccessDeniedPrivateChannelException(ErrorCode.ACCESS_DENIED_PRIVATE_CHANNEL);
         }
 
         // 채널 이름 변경
@@ -182,39 +188,63 @@ public class BasicChannelService implements ChannelService {
     }
 
     // 사용자 반환
-    public UserEntity getUserEntityOrThrow(UUID userId){
+    private UserEntity getUserEntityOrThrow(UUID userId){
         return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User with id {" + userId + "} not found"));
+                .orElseThrow(() -> new UserNotFoundException(
+                        ErrorCode.USER_NOT_FOUND,
+                        Map.of("userId", userId)
+                ));
     }
 
     // 채널 엔티티 반환
-    public ChannelEntity getChannelEntityOrThrow(UUID channelId) {
+    private ChannelEntity getChannelEntityOrThrow(UUID channelId) {
         return channelRepository.findById(channelId)
-                .orElseThrow(() -> new ResourceNotFoundException("Channel with id {" + channelId + "} not found"));
+                .orElseThrow(() -> new ChannelNotFoundException(
+                        ErrorCode.CHANNEL_NOT_FOUND,
+                        Map.of("channelId", channelId)
+                ));
     }
 
-    // 읽음 상태 엔티티 목록 반환
-    public ReadStatusEntity getUserStatusEntityOrThrow(UUID userId, UUID channelId) {
+    // 읽음 상태 엔티티 반환
+    private ReadStatusEntity getUserStatusEntityOrThrow(UUID userId, UUID channelId) {
         return readStatusRepository.findByUserIdAndChannelId(userId, channelId)
-                .orElseThrow(() -> new ResourceNotFoundException("User with id {" + userId + "} and channel with id {" + channelId + "} not found"));
+                .orElseThrow(() -> new ReadStatusNotFoundException(
+                        ErrorCode.READ_STATUS_NOT_FOUND,
+                        Map.of(
+                                "userId", userId,
+                                "channelId", channelId
+                        )
+                ));
     }
 
     // 유효성 검증 (읽음 상태 존재 여부)
-    public boolean existsByUserIdAndChannelId(UUID userId, UUID channelId) {
+    private boolean existsByUserIdAndChannelId(UUID userId, UUID channelId) {
         return readStatusRepository.existsByUserIdAndChannelId(userId, channelId);
     }
 
     // 유효성 검증 (초대)
-    public void validateMemberExists(UUID userId, UUID channelId) {
+    private void validateMemberExists(UUID userId, UUID channelId) {
         if (existsByUserIdAndChannelId(userId, channelId)) {
-            throw new IllegalArgumentException("User is already a participant of this channel");
+            throw new ChannelParticipantAlreadyExistsException(
+                    ErrorCode.CHANNEL_PARTICIPANT_ALREADY_EXISTS,
+                    Map.of(
+                            "requestMemberId", userId,
+                            "requestChannelId", channelId
+                    )
+            );
         }
     }
 
     // 유효성 검증 (퇴장)
-    public void validateUserNotInChannel(UUID userId, UUID channelId) {
+    private void validateUserNotInChannel(UUID userId, UUID channelId) {
         if (!existsByUserIdAndChannelId(userId, channelId)) {
-            throw new IllegalArgumentException("User is not a participant of this channel");
+            throw new ChannelParticipantNotFoundException(
+                    ErrorCode.CHANNEL_PARTICIPANT_NOT_FOUND,
+                    Map.of(
+                            "requestMemberId", userId,
+                            "requestChannelId", channelId
+                    )
+            );
         }
     }
 
