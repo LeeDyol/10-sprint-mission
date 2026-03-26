@@ -29,15 +29,15 @@ spring:
     init:
       mode: always
 
-# 로깅 설정 값
-logging:
-  level:
-    root: debug
-    com.sprint.mission.discodeit: debug                         # 개발 환경에서는 로그를 상세히 출력
-    org.hibernate: warn                                         # 잠재적인 문제 이상에 대한 경고 이상부터 출력
-    org.hibernate.SQL: debug                                    # 실행 SQL 쿼리문을 콘솔에 상세히 출력
-    org.hibernate.orm.jdbc.bind: trace                          # SQL에 바인딩되는 파라미터 값 추적 및 출력
-    org.hibernate.orm.jdbc.extract: trace                       # ResultSet에서 데이터를 추출하는 과정 출력
+## 로깅 설정 값
+#logging:
+#  level:
+#    root: debug
+#    com.sprint.mission.discodeit: debug                         # 개발 환경에서는 로그를 상세히 출력
+#    org.hibernate: warn                                         # 잠재적인 문제 이상에 대한 경고 이상부터 출력
+#    org.hibernate.SQL: debug                                    # 실행 SQL 쿼리문을 콘솔에 상세히 출력
+#    org.hibernate.orm.jdbc.bind: trace                          # SQL에 바인딩되는 파라미터 값 추적 및 출력
+#    org.hibernate.orm.jdbc.extract: trace                       # ResultSet에서 데이터를 추출하는 과정 출력
 
 # 커스텀 설정 값
 discodeit:

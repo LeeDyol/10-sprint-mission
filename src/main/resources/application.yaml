@@ -7,10 +7,10 @@ spring:
   profiles:
     active: dev
 
-# 로깅 설정 값
-logging:
-  level:
-    root: info                                            # 프로젝트 전체에서 로그를 핵심 정보 위주로 출력하도록 설정
+## 로깅 설정 값
+#logging:
+#  level:
+#    root: info                                            # 프로젝트 전체에서 로그를 핵심 정보 위주로 출력하도록 설정
 
 # Swagger 설정 값
 springdoc:

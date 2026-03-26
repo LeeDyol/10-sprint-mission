@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <property name="LOG_DIR" value="./.logs" />
+    <property name="LOG_FILE_NAME" value="discodeit" />
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/${LOG_FILE_NAME}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/${LOG_FILE_NAME}.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>5GB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <springProfile name="dev">
+        <root level="debug" /> <logger name="com.sprint.mission.discodeit" level="debug" />
+        <logger name="org.hibernate" level="warn" />
+        <logger name="org.hibernate.SQL" level="debug" />
+        <logger name="org.hibernate.orm.jdbc.bind" level="trace" />
+        <logger name="org.hibernate.orm.jdbc.extract" level="trace" />
+
+        <root level="debug">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="FILE" />
+        </root>
+    </springProfile>
+
+    <springProfile name="prod">
+        <root level="warn"> <appender-ref ref="CONSOLE" />
+            <appender-ref ref="FILE" />
+        </root>
+        <logger name="com.sprint.mission.discodeit" level="info" />
+    </springProfile>
+
+</configuration>

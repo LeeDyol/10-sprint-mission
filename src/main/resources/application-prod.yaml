@@ -24,13 +24,13 @@ spring:
 
     open-in-view: false                                         # OVIS 비활성화
 
-# 로깅 설정 값
-logging:
-  level:
-    root: warn                                                  # 잠재적 경로 이상부터 기록
-    com.sprint.mission.discodeit: info                          # 프로젝트의 핵심 정보 위주로 출력
-  file:
-    name: logs/discodeit.log
+## 로깅 설정 값
+#logging:
+#  level:
+#    root: warn                                                  # 잠재적 경로 이상부터 기록
+#    com.sprint.mission.discodeit: info                          # 프로젝트의 핵심 정보 위주로 출력
+#  file:
+#    name: logs/discodeit.log
 
 # 커스텀 설정 값
 discodeit:
