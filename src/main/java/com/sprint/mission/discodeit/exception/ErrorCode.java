@@ -1,0 +1,46 @@
+package com.sprint.mission.discodeit.exception;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+
+@Getter
+@RequiredArgsConstructor
+public enum ErrorCode {
+    // 공통
+    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "Invalid input value"),
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"),
+
+    // Auth
+    WRONG_PASSWORD(HttpStatus.BAD_REQUEST, "Wrong password"),
+
+    // User
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "User with id not found"),
+    DUPLICATE_USERNAME(HttpStatus.BAD_REQUEST, "User with username already exists"),
+    DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "User with email already exists"),
+
+    // Channel
+    CHANNEL_NOT_FOUND(HttpStatus.NOT_FOUND, "Channel with id not found"),
+    ACCESS_DENIED_PRIVATE_CHANNEL(HttpStatus.FORBIDDEN, "Access denied for private channel members"),
+    PRIVATE_CHANNEL_NOT_UPDATABLE(HttpStatus.BAD_REQUEST, "Private channel cannot be updated"),
+    CHANNEL_PARTICIPANT_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "User is already a participant of this channel"),
+    CHANNEL_PARTICIPANT_NOT_FOUND(HttpStatus.NOT_FOUND, "User is not a participant of this channel"),
+
+    // Message
+    MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "Message with id not found"),
+
+    // ReadStatus
+    READ_STATUS_NOT_FOUND(HttpStatus.NOT_FOUND, "ReadStatus with id not found"),
+    DUPLICATE_READ_STATUS(HttpStatus.BAD_REQUEST, "ReadStatus with userId and channelId already exists"),
+
+    // UserStatus
+    USER_STATUS_NOT_FOUND(HttpStatus.NOT_FOUND, "UserStatus with id not found"),
+    DUPLICATE_USER_STATUS(HttpStatus.BAD_REQUEST, "UserStatus with userId already exists"),
+
+    // BinaryContent
+    BINARY_CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Binary content with id not found"),
+    FILE_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Error occurred while processing file");
+
+    private final HttpStatus httpStatus;
+    private final String message;
+}
