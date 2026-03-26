@@ -35,10 +35,11 @@ public class MessageController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MessageDto> create(@Valid @RequestPart("messageCreateRequest") MessageCreateRequest messageCreateRequest,
                                              @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
-        log.info("[MESSAGE_CREATE] 메시지 생성 요청: content={}, authorId={}, channelId={}",
+        log.info("[MESSAGE_CREATE] 메시지 생성 요청: content={}, authorId={}, channelId={}, attachments= 총 {}개",
                 messageCreateRequest.content(),
                 messageCreateRequest.authorId(),
-                messageCreateRequest.channelId()
+                messageCreateRequest.channelId(),
+                (attachments != null && !attachments.isEmpty())? attachments.size() : "NONE"
         );
 
         MessageDto response = messageService.create(messageCreateRequest, attachments);

@@ -42,9 +42,10 @@ public class UserController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserDto> create(@Valid @RequestPart(value = "userCreateRequest") UserCreateRequest userCreateRequest,
                                           @RequestPart(value = "profile", required = false) MultipartFile profile){
-        log.info("[USER_CREATE] 사용자 생성 요청: username={}, email={}",
+        log.info("[USER_CREATE] 사용자 생성 요청: username={}, email={}, profile={}",
                 userCreateRequest.username(),
-                userCreateRequest.email()
+                userCreateRequest.email(),
+                (profile != null && !profile.isEmpty()) ? profile.getOriginalFilename() : "NONE"
         );
 
         UserDto newUser = userService.create(userCreateRequest, profile);

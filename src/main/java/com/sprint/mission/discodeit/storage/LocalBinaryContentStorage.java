@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.storage;
 
 import com.sprint.mission.discodeit.dto.response.BinaryContentDto;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.InputStreamResource;
@@ -17,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 
+@Slf4j
 @Component
 @ConditionalOnProperty(name = "discodeit.storage.type", havingValue = "local")
 public class LocalBinaryContentStorage implements BinaryContentStorage {
@@ -62,6 +64,10 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
     public ResponseEntity<Resource> download(BinaryContentDto binaryContentDto) {
         Resource resource = new InputStreamResource(get(binaryContentDto.id()));
 
+        log.info("[BINARY_CONTENT_DOWNLOAD] 첨부파일 다운로드 완료: id={}, filename={}",
+                binaryContentDto.id(),
+                binaryContentDto.fileName()
+        );
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + binaryContentDto.fileName() + "\"")
                 .contentType(MediaType.parseMediaType(binaryContentDto.contentType()))
