@@ -11,6 +11,7 @@ import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +22,7 @@ import java.util.*;
 import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateDuplicateValue;
 import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateString;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -40,6 +42,7 @@ public class BasicUserService implements UserService {
     @Override
     @Transactional
     public UserDto create(UserCreateRequest userCreateRequest, MultipartFile profile) {
+        // 유효성 검증 (중복 확인)
         isEmailDuplicate(userCreateRequest.email());
         isUsernameDuplicate(userCreateRequest.username());
 
@@ -49,6 +52,7 @@ public class BasicUserService implements UserService {
         UserStatusEntity newUserStatus = new UserStatusEntity(newUser);
         userStatusRepository.save(newUserStatus);
 
+        // 선택적 프로필 이미지 생성
         if (profile != null && !profile.isEmpty()) {
             try {
                 BinaryContentEntity newUserProfile = new BinaryContentEntity(
@@ -58,15 +62,22 @@ public class BasicUserService implements UserService {
                 );
 
                 binaryContentRepository.save(newUserProfile);
-
                 binaryContentStorage.put(newUserProfile.getId(), profile.getBytes());
 
+                // User - BinaryContent 연관 관계 설정
                 newUser.updateProfile(newUserProfile);
+
             } catch (IOException e) {
+                log.error("[USER_CREATE] 사용자 Profile 생성 실패: username={}", newUser.getUsername(), e);
                 throw new RuntimeException("Error occurred while processing file", e);
             }
         }
 
+        log.info("[USER_CREATE] 사용자 생성 완료: id={}, userStatusId={}, profileId={}",
+                newUser.getId(),
+                newUser.getUserStatus().getId(),
+                newUser.getProfile() != null? newUser.getProfile().getId() : "NONE"
+        );
         return userMapper.toDto(newUser);
     }
 
@@ -108,6 +119,12 @@ public class BasicUserService implements UserService {
     @Transactional
     public UserDto update(UUID userId, UserUpdateRequest userUpdateRequest, MultipartFile profile) {
         UserEntity targetUser = getUserEntityOrThrow(userId);
+        log.debug("[USER_UPDATE] 기존 사용자 정보: id={}, email={}, username={}, profile={}",
+                targetUser.getId(),
+                targetUser.getEmail(),
+                targetUser.getUsername(),
+                targetUser.getProfile() != null? targetUser.getProfile().getId() : "NONE"
+        );
 
         // 닉네임 필드 변경
         Optional.ofNullable(userUpdateRequest.newUsername())
@@ -146,16 +163,22 @@ public class BasicUserService implements UserService {
                         );
 
                         binaryContentRepository.save(newBinaryContent);
-
                         binaryContentStorage.put(newBinaryContent.getId(), newUserProfile.getBytes());
 
                         // 기존 프로필은 고아가 되어 자동 삭제
                         targetUser.updateProfile(newBinaryContent);
                     } catch (IOException e) {
+                        log.error("[USER_UPDATE] 사용자 Profile 수정 실패: username={}", targetUser.getUsername(), e);
                         throw new RuntimeException("Error occurred while processing profile image", e);
                     }
                 });
 
+        log.info("[USER_UPDATE] 사용자 정보 수정 완료: id={}, username={}, email={}, profileId={}",
+                targetUser.getId(),
+                targetUser.getUsername(),
+                targetUser.getEmail(),
+                targetUser.getProfile() != null? targetUser.getProfile().getId() : "NONE"
+        );
         return userMapper.toDto(targetUser);
     }
 
@@ -166,14 +189,20 @@ public class BasicUserService implements UserService {
         UserEntity targetUser = getUserEntityOrThrow(userId);
 
         // 삭제된 사용자가 참여한 모든 채널 내 멤버에서 사용자 연쇄 삭제
-        List<ReadStatusEntity> readStatuses = readStatusRepository.findAllByUser(targetUser);
-        readStatusRepository.deleteAll(readStatuses);
+        List<ReadStatusEntity> deleteReadStatuses = readStatusRepository.findAllByUser(targetUser);
+        readStatusRepository.deleteAll(deleteReadStatuses);
 
         // 삭제된 사용자가 발행한 메시지 연쇄 삭제
         List<MessageEntity> deleteMessages = messageRepository.findByAuthor(targetUser);
         messageRepository.deleteAll(deleteMessages);
 
         userRepository.delete(targetUser);
+        log.info("[USER_DELETE] 사용자 삭제 완료: id={}, username={}, ReadStatus: 총 {} 건, Message: 총 {} 건",
+                targetUser.getId(),
+                targetUser.getUsername(),
+                deleteReadStatuses.size(),
+                deleteMessages.size()
+        );
     }
 
     // 사용자 엔티티 반환
