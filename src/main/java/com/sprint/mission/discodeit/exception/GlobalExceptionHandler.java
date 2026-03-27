@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -32,12 +34,25 @@ public class GlobalExceptionHandler {
     // DTO 검증 오류 (@Valid)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        String errorMessage = e.getBindingResult().getAllErrors().get(0).getDefaultMessage();           // 첫번째 에러 메시지만
+        // 첫번째 에러의 메시지를 전체 응답의 대표 메시지로 설정
+        String firstErrorMessage = e.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+
+        // 핃르 에러(Filed Error)와 관련된 추가 정보 목록
+        Map<String, Object> details = new HashMap<>();
+        e.getBindingResult().getFieldErrors().forEach(
+                fieldError -> {
+                    details.put(
+                            fieldError.getField(),              // 에러가 발생한 변수 이름
+                            fieldError.getDefaultMessage()      // 해당 변수에 설정된 에러 메시지
+                    );
+                }
+        );
 
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(Instant.now())
                 .code(ErrorCode.INVALID_INPUT_VALUE.name())
-                .message(errorMessage)
+                .message(firstErrorMessage)
+                .details(details)
                 .exceptionType(e.getClass().getSimpleName())
                 .status(HttpStatus.BAD_REQUEST.value())
                 .build();
