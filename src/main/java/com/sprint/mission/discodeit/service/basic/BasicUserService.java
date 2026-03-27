@@ -58,7 +58,9 @@ public class BasicUserService implements UserService {
         userStatusRepository.save(newUserStatus);
 
         // 선택적 프로필 이미지 생성
-        createProfile(newUser, profile);
+        BinaryContentEntity newProfileImage = createProfile(newUser, profile);
+        // 기존 프로필은 고아가 되어 자동 삭제
+        newUser.updateProfile(newProfileImage);
 
         log.info("[USER_CREATE] 사용자 생성 완료: id={}, userStatusId={}, profileId={}",
                 newUser.getId(),
@@ -220,20 +222,19 @@ public class BasicUserService implements UserService {
     }
 
     // 프로필 이미지 생성 및 저장
-    private void createProfile (UserEntity targetUser, MultipartFile profile) {
+    private BinaryContentEntity createProfile (UserEntity targetUser, MultipartFile profile) {
+        BinaryContentEntity newProfile = null;
+
         if (profile != null && !profile.isEmpty()){
             try {
-                BinaryContentEntity newBinaryContent = new BinaryContentEntity(
+                newProfile = new BinaryContentEntity(
                         profile.getOriginalFilename(),
                         profile.getSize(),
                         profile.getContentType()
                 );
 
-                binaryContentRepository.save(newBinaryContent);
-                binaryContentStorage.put(newBinaryContent.getId(), profile.getBytes());
-
-                // 기존 프로필은 고아가 되어 자동 삭제
-                targetUser.updateProfile(newBinaryContent);
+                binaryContentRepository.save(newProfile);
+                binaryContentStorage.put(newProfile.getId(), profile.getBytes());
             } catch (IOException e) {
                 throw new BinaryContentFileProcessingErrorException(
                         ErrorCode.BINARY_CONTENT_FILE_PROCESSING_ERROR,
@@ -244,5 +245,6 @@ public class BasicUserService implements UserService {
                 );
             }
         }
+        return newProfile;
     }
 }
