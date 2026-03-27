@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateDuplicateValue;
-import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateString;
 
 @Slf4j
 @Service
@@ -92,11 +91,11 @@ public class BasicUserService implements UserService {
 
         // Private 채널은 채널 참여자만 조회 가능
         if (targetChannel.getType() == ChannelType.PRIVATE &&
-                !existsByUserIdAndChannelId(memberFindRequestDTO.requesterId(), targetChannel.getId())) {
+                !existsReadStatusByUserIdAndChannelId(memberFindRequestDTO.userId(), targetChannel.getId())) {
             throw new AccessDeniedPrivateChannelException(
                     ErrorCode.ACCESS_DENIED_PRIVATE_CHANNEL,
                     Map.of(
-                            "userId", memberFindRequestDTO.requesterId(),
+                            "userId", memberFindRequestDTO.userId(),
                             "channelId", targetChannel.getId()
                     )
             );
@@ -123,17 +122,15 @@ public class BasicUserService implements UserService {
         // 닉네임 필드 변경
         Optional.ofNullable(userUpdateRequest.newUsername())
                 .ifPresent(newUsername -> {
-                    isUsernameDuplicate(newUsername);
-                    validateString(newUsername, "Invalid username format");
-                    validateDuplicateValue(targetUser.getUsername(), newUsername, "New username is same as current");
+                    isUsernameDuplicate(newUsername);                                   // 다른 사용자와의 중복 확인
+                    validateDuplicateValue(targetUser.getUsername(), newUsername);      // 변경 전 필드와의 중복 확인
                     targetUser.updateUsername(newUsername);
                 });
 
         // 비밀번호 필드 변경
         Optional.ofNullable(userUpdateRequest.newPassword())
                 .ifPresent(newPassword -> {
-                    validateString(newPassword, "Invalid password format");
-                    validateDuplicateValue(targetUser.getPassword(), newPassword, "New password is same as current");
+                    validateDuplicateValue(targetUser.getPassword(), newPassword);
                     targetUser.updatePassword(newPassword);
                 });
 
@@ -141,8 +138,7 @@ public class BasicUserService implements UserService {
         Optional.ofNullable(userUpdateRequest.newEmail())
                 .ifPresent(newEmail -> {
                     isEmailDuplicate(newEmail);
-                    validateString(newEmail, "Invalid email format");
-                    validateDuplicateValue(targetUser.getEmail(), newEmail, "New email is same as current");
+                    validateDuplicateValue(targetUser.getEmail(), newEmail);
                     targetUser.updateEmail(newEmail);
                 });
 
@@ -219,7 +215,7 @@ public class BasicUserService implements UserService {
     }
 
     // 유효성 검사 (읽음 상태 존재 여부)
-    private boolean existsByUserIdAndChannelId(UUID userId, UUID channelId) {
+    private boolean existsReadStatusByUserIdAndChannelId(UUID userId, UUID channelId) {
         return readStatusRepository.existsByUserIdAndChannelId(userId, channelId);
     }
 
@@ -239,7 +235,13 @@ public class BasicUserService implements UserService {
                 // 기존 프로필은 고아가 되어 자동 삭제
                 targetUser.updateProfile(newBinaryContent);
             } catch (IOException e) {
-                throw new BinaryContentFileProcessingErrorException(ErrorCode.BINARY_CONTENT_FILE_PROCESSING_ERROR);
+                throw new BinaryContentFileProcessingErrorException(
+                        ErrorCode.BINARY_CONTENT_FILE_PROCESSING_ERROR,
+                        Map.of(
+                                "username", targetUser.getUsername(),
+                                "filename", profile.getName()
+                        )
+                );
             }
         }
     }

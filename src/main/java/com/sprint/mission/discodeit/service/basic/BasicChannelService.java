@@ -31,7 +31,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateDuplicateValue;
-import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateString;
 
 @Slf4j
 @Service
@@ -99,7 +98,7 @@ public class BasicChannelService implements ChannelService {
                 .toList();
     }
 
-    // 채널 종류에 따른 채널 전체 조회
+    // 특정 사용자가 참여하고 있는 채널 목록 조회
     public List<ChannelDto> findAllByUserId(UUID userId) {
         UserEntity targetUser = getUserEntityOrThrow(userId);
 
@@ -127,16 +126,14 @@ public class BasicChannelService implements ChannelService {
         // 채널 이름 변경
         Optional.ofNullable(publicChannelUpdateRequest.newName())
                 .ifPresent(newChannelName -> {
-                    validateString(newChannelName, "Invalid channel name format");
-                    validateDuplicateValue(targetChannel.getName(), newChannelName, "New channel name is same as current");
+                    validateDuplicateValue(targetChannel.getName(), newChannelName);
                     targetChannel.updateChannelName(publicChannelUpdateRequest.newName());
                 });
 
         // 채널 설명 변경
         Optional.ofNullable(publicChannelUpdateRequest.newDescription())
                 .ifPresent(newChannelDescription -> {
-                    validateString(newChannelDescription, "Invalid channel description format");
-                    validateDuplicateValue(targetChannel.getDescription(), newChannelDescription, "New description is same as current");
+                    validateDuplicateValue(targetChannel.getDescription(), newChannelDescription);
                     targetChannel.updateChannelDescription(publicChannelUpdateRequest.newDescription());
                 });
 
@@ -183,7 +180,7 @@ public class BasicChannelService implements ChannelService {
 
         validateUserNotInChannel(targetUser.getId(), targetChannel.getId());
 
-        ReadStatusEntity targetReadStatus = getUserStatusEntityOrThrow(targetUser.getId(), targetChannel.getId());
+        ReadStatusEntity targetReadStatus = getReadStatusEntityOrThrow(targetUser.getId(), targetChannel.getId());
         targetChannel.getReadStatuses().remove(targetReadStatus);
     }
 
@@ -206,7 +203,7 @@ public class BasicChannelService implements ChannelService {
     }
 
     // 읽음 상태 엔티티 반환
-    private ReadStatusEntity getUserStatusEntityOrThrow(UUID userId, UUID channelId) {
+    private ReadStatusEntity getReadStatusEntityOrThrow(UUID userId, UUID channelId) {
         return readStatusRepository.findByUserIdAndChannelId(userId, channelId)
                 .orElseThrow(() -> new ReadStatusNotFoundException(
                         ErrorCode.READ_STATUS_NOT_FOUND,
@@ -218,18 +215,18 @@ public class BasicChannelService implements ChannelService {
     }
 
     // 유효성 검증 (읽음 상태 존재 여부)
-    private boolean existsByUserIdAndChannelId(UUID userId, UUID channelId) {
+    private boolean existsReadStatusByUserIdAndChannelId(UUID userId, UUID channelId) {
         return readStatusRepository.existsByUserIdAndChannelId(userId, channelId);
     }
 
     // 유효성 검증 (초대)
     private void validateMemberExists(UUID userId, UUID channelId) {
-        if (existsByUserIdAndChannelId(userId, channelId)) {
+        if (existsReadStatusByUserIdAndChannelId(userId, channelId)) {
             throw new ChannelParticipantAlreadyExistsException(
                     ErrorCode.CHANNEL_PARTICIPANT_ALREADY_EXISTS,
                     Map.of(
-                            "requestMemberId", userId,
-                            "requestChannelId", channelId
+                            "userId", userId,
+                            "channelId", channelId
                     )
             );
         }
@@ -237,12 +234,12 @@ public class BasicChannelService implements ChannelService {
 
     // 유효성 검증 (퇴장)
     private void validateUserNotInChannel(UUID userId, UUID channelId) {
-        if (!existsByUserIdAndChannelId(userId, channelId)) {
+        if (!existsReadStatusByUserIdAndChannelId(userId, channelId)) {
             throw new ChannelParticipantNotFoundException(
                     ErrorCode.CHANNEL_PARTICIPANT_NOT_FOUND,
                     Map.of(
-                            "requestMemberId", userId,
-                            "requestChannelId", channelId
+                            "userId", userId,
+                            "channelId", channelId
                     )
             );
         }

@@ -36,7 +36,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateDuplicateValue;
-import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateString;
 
 @Slf4j
 @Service
@@ -61,28 +60,7 @@ public class BasicMessageService implements MessageService {
         ChannelEntity targetChannel = getChannelEntityOrThrow(messageCreateRequest.channelId());
 
         MessageEntity newMessage = messageMapper.toEntity(messageCreateRequest, targetUser, targetChannel);
-
-        // 메시지와 함께 전송된 첨부 파일이 Null 일 경우, 빈 리스트 반환
-        List<MultipartFile> attachmentsOfUser = (attachments == null) ? List.of() : attachments;
-
-        for (MultipartFile file : attachmentsOfUser) {
-            try {
-                BinaryContentEntity newBinaryContent = new BinaryContentEntity(
-                        file.getOriginalFilename(),
-                        file.getSize(),
-                        file.getContentType());
-
-                binaryContentRepository.save(newBinaryContent);
-                binaryContentStorage.put(newBinaryContent.getId(), file.getBytes());
-
-                newMessage.addAttachment(newBinaryContent);
-            } catch (Exception e) {
-                throw new BinaryContentFileProcessingErrorException(
-                        ErrorCode.BINARY_CONTENT_FILE_PROCESSING_ERROR,
-                        Map.of("filename", file.getName())
-                );
-            }
-        }
+        createAttachments(newMessage, attachments);
 
         messageRepository.save(newMessage);
         log.info("[MESSAGE_CREATE] 메시지 생성 완료: id={}, authorId={}, channelId={}, content={}, attachments= 총 {}개",
@@ -126,7 +104,9 @@ public class BasicMessageService implements MessageService {
         }
 
         boolean hasNext = messages.size() > size;
-        List<MessageEntity> pagedMessages = hasNext ? messages.subList(0, size) : messages;
+        List<MessageEntity> pagedMessages = hasNext
+                ? messages.subList(0, size)         // 10개씩 자르기
+                : messages;
 
         // 다음 페이지 시작점 (커서)
         String nextCursor = (hasNext && !pagedMessages.isEmpty())
@@ -135,11 +115,19 @@ public class BasicMessageService implements MessageService {
 
         long totalElements = messageRepository.countByChannelId(channelId);
 
+        // 메시지 엔티티 -> 응답 DTO 변환
         List<MessageDto> messageDtoList = pagedMessages.stream()
                 .map(messageMapper::toDto)
                 .toList();
 
-        return pageResponseMapper.fromCursor(messageDtoList, nextCursor, messageDtoList.size(), hasNext, totalElements);
+        // 응답 DTO -> 페이지 전용 DTO 변환
+        return pageResponseMapper.fromCursor(
+                messageDtoList,
+                nextCursor,
+                messageDtoList.size(),
+                hasNext,
+                totalElements
+        );
     }
 
     // 특정 사용자가 발행한 전체 메시지 목록 조회
@@ -162,15 +150,12 @@ public class BasicMessageService implements MessageService {
                 targetMessage.getContent()
         );
 
-        String newContent = messageUpdateRequest.newContent();
-
-        validateString(newContent, "Invalid message content format");
-        validateDuplicateValue(targetMessage.getContent(), newContent, "New content is same as current");
+        validateDuplicateValue(targetMessage.getContent(), messageUpdateRequest.newContent());
         targetMessage.updateMessage(messageUpdateRequest.newContent());
 
         log.info("[MESSAGE_UPDATE] 메시지 수정 완료: id={}, content={}",
                 messageId,
-                newContent
+                targetMessage.getContent()
         );
         return messageMapper.toDto(targetMessage);
     }
@@ -213,5 +198,36 @@ public class BasicMessageService implements MessageService {
                         ErrorCode.MESSAGE_NOT_FOUND,
                         Map.of("messageId", messageId)
                 ));
+    }
+
+    // 메시지와 함께 전송된 첨부 파일 생성 및 저장
+    private void createAttachments (MessageEntity newMessage, List<MultipartFile> attachments) {
+        // 메시지와 함께 전송된 첨부 파일이 Null 일 경우, 빈 리스트 반환
+        List<MultipartFile> attachmentsOfUser = (attachments == null)
+                ? List.of()
+                : attachments;
+
+        for (MultipartFile file : attachmentsOfUser) {
+            try {
+                BinaryContentEntity newBinaryContent = new BinaryContentEntity(
+                        file.getOriginalFilename(),
+                        file.getSize(),
+                        file.getContentType());
+
+                binaryContentRepository.save(newBinaryContent);
+                binaryContentStorage.put(newBinaryContent.getId(), file.getBytes());
+
+                // BinaryContent - Message 간 연관 관계 설정
+                newMessage.addAttachment(newBinaryContent);
+            } catch (Exception e) {
+                throw new BinaryContentFileProcessingErrorException(
+                        ErrorCode.BINARY_CONTENT_FILE_PROCESSING_ERROR,
+                        Map.of(
+                                "messageId", newMessage.getId(),
+                                "filename", file.getName()
+                        )
+                );
+            }
+        }
     }
 }
