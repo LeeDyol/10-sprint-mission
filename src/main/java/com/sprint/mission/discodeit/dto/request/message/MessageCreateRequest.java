@@ -9,10 +9,10 @@ import java.util.UUID;
 public record MessageCreateRequest(
         String content,
 
-        @NotNull
+        @NotNull(message = "작성자 ID는 필수입니다.")
         UUID authorId,
 
-        @NotNull
+        @NotNull(message = "채널 ID는 필수입니다.")
         UUID channelId
 ) {
 

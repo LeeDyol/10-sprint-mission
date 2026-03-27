@@ -8,13 +8,13 @@ import java.util.UUID;
 
 @Builder
 public record ReadStatusCreateRequest(
-    @NotNull
+    @NotNull(message = "사용자 ID는 필수입니다.")
     UUID userId,
 
-    @NotNull
+    @NotNull(message = "채널 ID는 필수입니다.")
     UUID channelId,
 
-    @NotNull
+    @NotNull(message = "마지막 읽음 시간은 필수 입력값입니다.")
     Instant lastReadAt
 ) {
 

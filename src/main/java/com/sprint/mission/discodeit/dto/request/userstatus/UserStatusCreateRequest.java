@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @Builder
 public record UserStatusCreateRequest(
-    @NotNull
+    @NotNull(message = "사용자 ID는 필수입니다.")
     UUID userId
 ) {
 

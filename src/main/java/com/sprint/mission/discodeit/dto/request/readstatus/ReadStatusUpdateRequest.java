@@ -7,7 +7,7 @@ import java.time.Instant;
 
 @Builder
 public record ReadStatusUpdateRequest(
-        @NotNull
+        @NotNull(message = "마지막 읽음 시간은 필수 입력값입니다.")
         Instant newLastReadAt
 ) {
 

@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
 
 @Builder
 public record PrivateChannelCreateRequest(
-        @NotNull
+        @NotNull(message = "참여자 ID를 모두 입력해주세요.")
         List<UUID> participantIds
 ) {
 
