@@ -56,7 +56,7 @@ public class UserController {
     @Operation(summary = "User 정보 수정", operationId = "update")
     @PatchMapping(path = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserDto> update(@PathVariable UUID userId,
-                                          @RequestPart UserUpdateRequest userUpdateRequest,
+                                          @Valid @RequestPart UserUpdateRequest userUpdateRequest,
                                           @RequestPart(value = "profile", required = false) MultipartFile profile){
         log.info("[USER_UPDATE] 사용자 정보 수정 요청: newEmail={}, newUsername={}, profile={}",
                 userUpdateRequest.newEmail(),

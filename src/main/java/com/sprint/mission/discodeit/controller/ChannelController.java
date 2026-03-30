@@ -58,7 +58,7 @@ public class ChannelController {
     @Operation(summary = "Channel 정보 수정", operationId = "update_3")
     @PatchMapping("/{channelId}")
     public ResponseEntity<ChannelDto> update(@PathVariable UUID channelId,
-                                             @RequestBody PublicChannelUpdateRequest publicChannelUpdateRequest) {
+                                             @Valid @RequestBody PublicChannelUpdateRequest publicChannelUpdateRequest) {
         log.info("[PUBLIC_CHANNEL_UPDATE] 공개 채널 수정 요청: name={}, description={}",
                 publicChannelUpdateRequest.newName(), publicChannelUpdateRequest.newDescription()
         );
