@@ -92,6 +92,8 @@ public class BasicMessageService implements MessageService {
     // 특정 채널에서 발행된 메시지 목록 조회
     @Override
     public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant cursor, int size) {
+        getChannelEntityOrThrow(channelId);
+
         // 다음 페이지 여부 확인을 위해 size + 1개 조회
         Pageable limit = PageRequest.of(0, size + 1);
         List<MessageEntity> messages;
