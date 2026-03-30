@@ -146,7 +146,10 @@ public class BasicUserService implements UserService {
 
         // 프로필 이미지 변경
         Optional.ofNullable(profile)
-                .ifPresent(newUserProfile -> createProfile(targetUser, newUserProfile));
+                .ifPresent(newUserProfile -> {
+                    BinaryContentEntity newProfileImage = createProfile(targetUser, newUserProfile);
+                    targetUser.updateProfile(newProfileImage);
+                });
 
         log.info("[USER_UPDATE] 사용자 정보 수정 완료: id={}, username={}, email={}, profileId={}",
                 targetUser.getId(),
