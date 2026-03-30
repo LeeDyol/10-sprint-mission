@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -11,6 +12,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -28,6 +30,11 @@ public class GlobalExceptionHandler {
                 .status(errorCode.getHttpStatus().value())                  // 발생한 에러의 HTTP Status
                 .build();
 
+        log.error("[CUSTOM_EXCEPTION] ERROR CODE={}, Message={}, details={}",
+                error.code(),
+                error.message(),
+                error.details()
+        );
         return ResponseEntity.status(error.status()).body(error);
     }
 
@@ -57,6 +64,11 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST.value())
                 .build();
 
+        log.warn("[VALIDATION_EXCEPTION] ERROR_CODE={}, Message={}, Invalid Input={}",
+                error.code(),
+                error.message(),
+                error.details()
+        );
         return ResponseEntity.status(error.status()).body(error);
     }
 
@@ -73,6 +85,10 @@ public class GlobalExceptionHandler {
                 .status(errorCode.getHttpStatus().value())
                 .build();
 
+        log.warn("[HTTP_METHOD_EXCEPTION] ERROR CODE={}, Message={}",
+                error.code(),
+                error.message()
+        );
         return ResponseEntity.status(error.status()).body(error);
     }
 
@@ -89,6 +105,11 @@ public class GlobalExceptionHandler {
                 .status(errorCode.getHttpStatus().value())
                 .build();
 
+        log.error("[UNEXPECTED_EXCEPTION] ERROR CODE={}, Message={}",
+                error.code(),
+                error.message(),
+                e
+        );
         return ResponseEntity.status(error.status()).body(error);
     }
 }
