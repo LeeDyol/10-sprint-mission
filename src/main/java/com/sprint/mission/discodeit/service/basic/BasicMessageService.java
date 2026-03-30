@@ -63,11 +63,10 @@ public class BasicMessageService implements MessageService {
         createAttachments(newMessage, attachments);
 
         messageRepository.save(newMessage);
-        log.info("[MESSAGE_CREATE] 메시지 생성 완료: id={}, authorId={}, channelId={}, content={}, attachments= 총 {}개",
+        log.info("[MESSAGE_CREATE] 메시지 생성 완료: id={}, authorId={}, channelId={}, attachments= 총 {}개",
                 newMessage.getId(),
                 newMessage.getAuthor().getId(),
                 newMessage.getChannel().getId(),
-                newMessage.getContent(),
                 newMessage.getAttachments().size()
         );
         return messageMapper.toDto(newMessage);
@@ -147,18 +146,11 @@ public class BasicMessageService implements MessageService {
     @Transactional
     public MessageDto update(UUID messageId, MessageUpdateRequest messageUpdateRequest) {
         MessageEntity targetMessage = getMessageEntityOrThrow(messageId);
-        log.debug("[MESSAGE_UPDATE] 기존 메시지 정보: id={}, content={}",
-                targetMessage.getId(),
-                targetMessage.getContent()
-        );
 
         validateDuplicateValue(targetMessage.getContent(), messageUpdateRequest.newContent());
         targetMessage.updateMessage(messageUpdateRequest.newContent());
 
-        log.info("[MESSAGE_UPDATE] 메시지 수정 완료: id={}, content={}",
-                messageId,
-                targetMessage.getContent()
-        );
+        log.info("[MESSAGE_UPDATE] 메시지 수정 완료: id={}",targetMessage.getId());
         return messageMapper.toDto(targetMessage);
     }
 
@@ -169,10 +161,7 @@ public class BasicMessageService implements MessageService {
         MessageEntity targetMessage = getMessageEntityOrThrow(messageId);
 
         messageRepository.delete(targetMessage);
-        log.info("[MESSAGE_DELETE] 메시지 삭제 완료: id={}, content={}",
-                targetMessage.getId(),
-                targetMessage.getContent()
-        );
+        log.info("[MESSAGE_DELETE] 메시지 삭제 완료: id={}", targetMessage.getId());
     }
 
     // 사용자 반환

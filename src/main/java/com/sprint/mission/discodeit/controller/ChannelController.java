@@ -36,9 +36,7 @@ public class ChannelController {
     @Operation(summary = "Public Channel 생성", operationId = "create_3")
     @PostMapping("/public")
     public ResponseEntity<ChannelDto> createPublicChannel(@Valid @RequestBody PublicChannelCreateRequest publicChannelCreateRequest) {
-        log.info("[PUBLIC_CHANNEL_CREATE] 공개 채널 생성 요청: name={}, description={}",
-                publicChannelCreateRequest.name(), publicChannelCreateRequest.description()
-        );
+        log.info("[PUBLIC_CHANNEL_CREATE] 공개 채널 생성 요청: name={}", publicChannelCreateRequest.name());
 
         ChannelDto newChannel = channelService.createPublicChannel(publicChannelCreateRequest);
 
@@ -59,9 +57,7 @@ public class ChannelController {
     @PatchMapping("/{channelId}")
     public ResponseEntity<ChannelDto> update(@PathVariable UUID channelId,
                                              @Valid @RequestBody PublicChannelUpdateRequest publicChannelUpdateRequest) {
-        log.info("[PUBLIC_CHANNEL_UPDATE] 공개 채널 수정 요청: name={}, description={}",
-                publicChannelUpdateRequest.newName(), publicChannelUpdateRequest.newDescription()
-        );
+        log.info("[PUBLIC_CHANNEL_UPDATE] 공개 채널 수정 요청: channelId={}", channelId);
 
         ChannelDto updateChannel = channelService.update(channelId, publicChannelUpdateRequest);
 

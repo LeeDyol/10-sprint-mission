@@ -42,11 +42,7 @@ public class UserController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserDto> create(@Valid @RequestPart(value = "userCreateRequest") UserCreateRequest userCreateRequest,
                                           @RequestPart(value = "profile", required = false) MultipartFile profile){
-        log.info("[USER_CREATE] 사용자 생성 요청: username={}, email={}, profile={}",
-                userCreateRequest.username(),
-                userCreateRequest.email(),
-                (profile != null && !profile.isEmpty()) ? profile.getOriginalFilename() : "NONE"
-        );
+        log.info("[USER_CREATE] 사용자 생성 요청: username={}", userCreateRequest.username());
 
         UserDto newUser = userService.create(userCreateRequest, profile);
 
@@ -58,11 +54,7 @@ public class UserController {
     public ResponseEntity<UserDto> update(@PathVariable UUID userId,
                                           @Valid @RequestPart UserUpdateRequest userUpdateRequest,
                                           @RequestPart(value = "profile", required = false) MultipartFile profile){
-        log.info("[USER_UPDATE] 사용자 정보 수정 요청: newEmail={}, newUsername={}, profile={}",
-                userUpdateRequest.newEmail(),
-                userUpdateRequest.newUsername(),
-                (profile != null && !profile.isEmpty()) ? profile.getOriginalFilename() : "NONE"
-        );
+        log.info("[USER_UPDATE] 사용자 정보 수정 요청: userId={}", userId);
 
         UserDto updatedUser = userService.update(userId, userUpdateRequest, profile);
 

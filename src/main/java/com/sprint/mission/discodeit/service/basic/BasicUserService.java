@@ -114,12 +114,6 @@ public class BasicUserService implements UserService {
     @Transactional
     public UserDto update(UUID userId, UserUpdateRequest userUpdateRequest, MultipartFile profile) {
         UserEntity targetUser = getUserEntityOrThrow(userId);
-        log.debug("[USER_UPDATE] 기존 사용자 정보: id={}, email={}, username={}, profile={}",
-                targetUser.getId(),
-                targetUser.getEmail(),
-                targetUser.getUsername(),
-                targetUser.getProfile() != null? targetUser.getProfile().getId() : "NONE"
-        );
 
         // 닉네임 필드 변경
         Optional.ofNullable(userUpdateRequest.newUsername())
@@ -151,12 +145,7 @@ public class BasicUserService implements UserService {
                     targetUser.updateProfile(newProfileImage);
                 });
 
-        log.info("[USER_UPDATE] 사용자 정보 수정 완료: id={}, username={}, email={}, profileId={}",
-                targetUser.getId(),
-                targetUser.getUsername(),
-                targetUser.getEmail(),
-                targetUser.getProfile() != null? targetUser.getProfile().getId() : "NONE"
-        );
+        log.info("[USER_UPDATE] 사용자 정보 수정 완료: id={}", targetUser.getId());
         return userMapper.toDto(targetUser);
     }
 
@@ -175,9 +164,8 @@ public class BasicUserService implements UserService {
         messageRepository.deleteAll(deleteMessages);
 
         userRepository.delete(targetUser);
-        log.info("[USER_DELETE] 사용자 삭제 완료: id={}, username={}, ReadStatus: 총 {} 건, Message: 총 {} 건",
+        log.info("[USER_DELETE] 사용자 삭제 완료: id={}, ReadStatus: 총 {} 건, Message: 총 {} 건",
                 targetUser.getId(),
-                targetUser.getUsername(),
                 deleteReadStatuses.size(),
                 deleteMessages.size()
         );

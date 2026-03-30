@@ -51,11 +51,7 @@ public class BasicChannelService implements ChannelService {
         ChannelEntity newChannel = channelMapper.toPublicEntity(publicChannelCreateRequest);
         channelRepository.save(newChannel);
 
-        log.info("[PUBLIC_CHANNEL_CREATE] 공개 채널 생성 완료: id={}, name={}, description={}",
-                newChannel.getId(),
-                newChannel.getName(),
-                newChannel.getDescription()
-        );
+        log.info("[PUBLIC_CHANNEL_CREATE] 공개 채널 생성 완료: id={}", newChannel.getId());
         return toChannelDto(newChannel);
     }
 
@@ -112,11 +108,6 @@ public class BasicChannelService implements ChannelService {
     @Transactional
     public ChannelDto update(UUID channelId, PublicChannelUpdateRequest publicChannelUpdateRequest) {
         ChannelEntity targetChannel = getChannelEntityOrThrow(channelId);
-        log.debug("[PUBLIC_CHANNEL_UPDATE] 기존 공개 채널 정보: id={}, name={}, description={}",
-                channelId,
-                targetChannel.getName(),
-                targetChannel.getDescription()
-        );
 
         // Private 채널 제외
         if (targetChannel.getType() == ChannelType.PRIVATE) {
@@ -137,11 +128,7 @@ public class BasicChannelService implements ChannelService {
                     targetChannel.updateChannelDescription(publicChannelUpdateRequest.newDescription());
                 });
 
-        log.info("[PUBLIC_CHANNEL_UPDATE] 공개 채널 수정 완료: id={}, name={}, description={}",
-                targetChannel.getId(),
-                targetChannel.getName(),
-                targetChannel.getDescription()
-        );
+        log.info("[PUBLIC_CHANNEL_UPDATE] 공개 채널 수정 완료: id={}", targetChannel.getId());
         return toChannelDto(targetChannel);
     }
 
@@ -152,10 +139,7 @@ public class BasicChannelService implements ChannelService {
         ChannelEntity targetChannel = getChannelEntityOrThrow(channelId);
 
         channelRepository.delete(targetChannel);
-        log.info("[CHANNEL_DELETE] 채널 삭제 완료: id={}, name={}",
-                targetChannel.getId(),
-                targetChannel.getName() != null ? targetChannel.getName() : "NONE"      // 비공개 채널은 채널 이름 미존재
-        );
+        log.info("[CHANNEL_DELETE] 채널 삭제 완료: id={}", targetChannel.getId());
     }
 
     // 채널 참가자 초대

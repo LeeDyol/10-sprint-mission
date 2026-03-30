@@ -35,8 +35,7 @@ public class MessageController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MessageDto> create(@Valid @RequestPart("messageCreateRequest") MessageCreateRequest messageCreateRequest,
                                              @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
-        log.info("[MESSAGE_CREATE] 메시지 생성 요청: content={}, authorId={}, channelId={}, attachments= 총 {}개",
-                messageCreateRequest.content(),
+        log.info("[MESSAGE_CREATE] 메시지 생성 요청: authorId={}, channelId={}, attachments= 총 {}개",
                 messageCreateRequest.authorId(),
                 messageCreateRequest.channelId(),
                 (attachments != null && !attachments.isEmpty())? attachments.size() : "NONE"
@@ -61,10 +60,7 @@ public class MessageController {
     @PatchMapping("/{messageId}")
     public ResponseEntity<MessageDto> update(@PathVariable UUID messageId,
                                              @Valid @RequestBody MessageUpdateRequest messageUpdateRequest) {
-        log.info("[MESSAGE_UPDATE] 메시지 수정 요청: id={}, newContent={}",
-                messageId,
-                messageUpdateRequest.newContent()
-        );
+        log.info("[MESSAGE_UPDATE] 메시지 수정 요청: id={}", messageId);
 
         MessageDto response = messageService.update(messageId, messageUpdateRequest);
 
