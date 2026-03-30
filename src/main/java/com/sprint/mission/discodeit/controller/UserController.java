@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +21,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Tag(name = "User", description = "User API")
-@Slf4j
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -42,8 +40,6 @@ public class UserController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserDto> create(@Valid @RequestPart(value = "userCreateRequest") UserCreateRequest userCreateRequest,
                                           @RequestPart(value = "profile", required = false) MultipartFile profile){
-        log.info("[USER_CREATE] 사용자 생성 요청: username={}", userCreateRequest.username());
-
         UserDto newUser = userService.create(userCreateRequest, profile);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
@@ -54,8 +50,6 @@ public class UserController {
     public ResponseEntity<UserDto> update(@PathVariable UUID userId,
                                           @Valid @RequestPart UserUpdateRequest userUpdateRequest,
                                           @RequestPart(value = "profile", required = false) MultipartFile profile){
-        log.info("[USER_UPDATE] 사용자 정보 수정 요청: userId={}", userId);
-
         UserDto updatedUser = userService.update(userId, userUpdateRequest, profile);
 
         return ResponseEntity.ok(updatedUser);
@@ -64,7 +58,6 @@ public class UserController {
     @Operation(summary = "User 삭제", operationId = "delete")
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> delete (@PathVariable UUID userId){
-        log.info("[User_DELETE] 사용자 삭제 요청: id={}", userId);
         userService.delete(userId);
 
         return ResponseEntity.noContent().build();
