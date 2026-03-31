@@ -26,28 +26,41 @@ repositories {
 }
 
 dependencies {
+	// Spring Boot
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
-	// 1. Lombok 설정
+	// Lombok 설정
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
-
-	// Lombok-MapStruct 바인딩
-	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
 	// MapStruct 설정
 	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
 	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 
-	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-	implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15"
-	implementation 'org.postgresql:postgresql:42.7.3'
+	// Lombok-MapStruct 바인딩
+	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
+	// Database
+	// PostgreSQL
+	implementation 'org.postgresql:postgresql:42.7.3'
+	// H2 In-Memory
+	testImplementation 'com.h2database:h2'
+
+	// Documentation & Utilities
+	implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15"
+	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+	// Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	runtimeOnly 'com.h2database:h2'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// Test 내 Lombok 사용
+	testCompileOnly 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
 tasks.named('test') {
