@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS users;
 
 CREATE TABLE binary_contents (
     id UUID PRIMARY KEY,
+    message_id UUID,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     file_name VARCHAR(255) NOT NULL,
     size BIGINT NOT NULL,
