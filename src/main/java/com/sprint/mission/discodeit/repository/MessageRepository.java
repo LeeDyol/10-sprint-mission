@@ -69,22 +69,22 @@ public interface MessageRepository extends JpaRepository<MessageEntity, UUID> {
     // 다건 조회 (특정 사용자가 발행한 메시지 목록)
     // 커서가 없는 경우
     @Query("""
-        SELECT m FROM MessageEntity m 
-        JOIN FETCH m.author 
-        LEFT JOIN FETCH m.attachments 
-        WHERE m.channel.id = :channelId 
-        ORDER BY m.createdAt DESC
+        SELECT message FROM MessageEntity message
+        JOIN FETCH message.author
+        LEFT JOIN FETCH message.attachments
+        WHERE message.channel.id = :channelId
+        ORDER BY message.createdAt DESC
     """)
     List<MessageEntity> findFirstPageByChannelId(@Param("channelId") UUID channelId, Pageable pageable);
 
     // 커서가 있는 경우
     @Query("""
-        SELECT m FROM MessageEntity m 
-        JOIN FETCH m.author 
-        LEFT JOIN FETCH m.attachments 
-        WHERE m.channel.id = :channelId 
-        AND m.createdAt < :cursor 
-        ORDER BY m.createdAt DESC
+        SELECT message FROM MessageEntity message
+        JOIN FETCH message.author
+        LEFT JOIN FETCH message.attachments
+        WHERE message.channel.id = :channelId
+        AND message.createdAt < :cursor
+        ORDER BY message.createdAt DESC
     """)
     List<MessageEntity> findNextPageByChannelId(@Param("channelId") UUID channelId, @Param("cursor") Instant cursor, Pageable pageable);
 
