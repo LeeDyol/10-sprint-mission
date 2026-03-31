@@ -29,7 +29,7 @@ spring:
     init:
       mode: always
 
-## 로깅 설정 값
+## 로깅 설정 값정
 #logging:
 #  level:
 #    root: debug

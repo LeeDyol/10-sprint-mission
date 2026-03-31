@@ -1,0 +1,33 @@
+# 테스트 환경 설정
+
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  # 데이터베이스 설정
+  datasource:
+    url: jdbc:h2:mem:discodeit_test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:                                                  # 엔티티 - DB 테이블 일치 여부 확인
+      ddl-auto: create-drop                                     # 테스트마다 새로운 테이블 생성
+
+    show-sql: true                                              # 실행되는 모든 SQL 문을 콘솔에 출력
+
+    properties:                                                 # SQL 로그 설정 값
+      hibernate:
+        format_sql: true                                        # SQL 문을 가독성 좋게 포맷팅
+        highlight_sql: true                                     # SQL 문 내 키워드 색상 활성화
+        dialect: org.hibernate.dialect.H2Dialect                # H2 전용 데이터베이스 언어 사용
+
+    defer-datasource-initialization: true                       # .sql 파일은 Hibernate 이후 실행
+
+# 로그 설정
+logging:
+  level:
+    org.hibernate.SQL: debug                                    # 실행 SQL 쿼리문을 콘솔에 상세히 출력
+    org.hibernate.orm.jdbc.bind: trace                          # SQL에 바인딩되는 파라미터 값 추적 및 출력
