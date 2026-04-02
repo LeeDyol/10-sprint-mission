@@ -6,6 +6,11 @@ spring:
     name: discodeit                                       # 프로젝트 고유 이름
   profiles:
     active: dev
+  boot:
+    admin:
+      client:
+        instance:
+          name: discodeit
 
 ## 로깅 설정 값
 #logging:

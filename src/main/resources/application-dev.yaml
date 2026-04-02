@@ -4,6 +4,12 @@ server:
   port: 8080                                                    # 로컬 개발 시 사용할 서버 포트 번호
 
 spring:
+  application:
+    name: discodeit
+  boot:
+    admin:
+      client:
+        url: http://localhost:9090
   # 데이버테이스 설정
   datasource:
     url: jdbc:postgresql://localhost:5432/discodeit             # 로컬 PC 내 PostgreSQL 접속 주소

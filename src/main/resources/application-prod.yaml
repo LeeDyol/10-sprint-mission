@@ -4,6 +4,12 @@ server:
   port: ${PORT:8080}                                            # 배포 환경 포트 번호
 
 spring:
+  application:
+    name: discodeit
+  boot:
+    admin:
+      client:
+        url: ${SPRING_BOOT_ADMIN_CLIENT_URL}
   # 데이버테이스 설정
   datasource:
     url: ${DATABASE_URL}                                        # 실제 운영 DB 주소
