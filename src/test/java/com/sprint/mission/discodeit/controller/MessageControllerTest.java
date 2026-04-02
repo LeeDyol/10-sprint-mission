@@ -195,7 +195,7 @@ public class MessageControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").value("HATE ME HATE ME"));
+                .andExpect(jsonPath("$.content").value("KILL ME KILL ME"));
 
     }
 

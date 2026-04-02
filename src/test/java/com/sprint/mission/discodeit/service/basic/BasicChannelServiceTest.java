@@ -113,8 +113,7 @@ public class BasicChannelServiceTest {
                 "sakuya",
                 "sakuya@wish.com",
                 "sakuya1234");
-        given(userRepository.findById(firstUserId)).willReturn(Optional.of(firstMember));
-        given(userRepository.findById(secondUserId)).willReturn(Optional.of(secondMember));
+        given(userRepository.findAllById(participantIds)).willReturn(List.of(firstMember, secondMember));
 
         // 비공개 채널 저장
         given(channelRepository.save(any(ChannelEntity.class))).willReturn(newChannel);
@@ -151,12 +150,7 @@ public class BasicChannelServiceTest {
         given(channelMapper.toPrivateEntity()).willReturn(newChannel);
 
         // 참여자 유효성 검증
-        UserEntity firstMember = new UserEntity(
-                "yushi",
-                "yushi1@wish.com",
-                "yushi1234");
-        given(userRepository.findById(firstUserId)).willReturn(Optional.of(firstMember));
-        given(userRepository.findById(secondUserId)).willReturn(Optional.empty());
+        given(userRepository.findAllById(participantIds)).willReturn(List.of());
 
         // when
         UserNotFoundException exception = assertThrows(
