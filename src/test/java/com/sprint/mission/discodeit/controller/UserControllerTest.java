@@ -237,7 +237,7 @@ public class UserControllerTest {
 
     // [실패] HTTP 메서드 오류
     @Test
-    @DisplayName("사용자 삭제 실패: HTTP 메서드가 잘못된 경우, 400 Bad Request 반환")
+    @DisplayName("사용자 삭제 실패: HTTP 메서드가 잘못된 경우, 405 Method Not Allowed 반환")
     void delete_user_failure() throws Exception {
         // given
         UUID userId = UUID.randomUUID();

@@ -91,10 +91,14 @@ public class MessageControllerTest {
 
     // [실패] 메시지 내용 공백
     @Test
-    @DisplayName("메시지 생성 실패: 메시지 내용이 공백일 경우, 400 Bad Request 반환")
+    @DisplayName("메시지 생성 실패: 채널 ID가 누락된 경우, 400 Bad Request 반환")
     void create_message_failure() throws Exception {
         // given
-        MessageUpdateRequest request = new MessageUpdateRequest("");
+        MessageCreateRequest request = new MessageCreateRequest(
+                "LUV ME HATE ME",
+                UUID.randomUUID(),
+                null
+        );
         String json = objectMapper.writeValueAsString(request);
 
         // JSON 파일화
