@@ -38,7 +38,7 @@ public class ChannelRepositoryTest {
     // [성공]
     @Test
     @DisplayName("사용자 전체 채널 목록 조회 완료")
-    public void find_all_visible_channel_by_user_id_success() {
+    void find_all_visible_channel_by_user_id_success() {
         // given
 
         // 사용자
@@ -95,7 +95,7 @@ public class ChannelRepositoryTest {
     // [실패]
     @Test
     @DisplayName("사용자가 참여하고 있는 채널이 없을 경우, 빈 리스트 반환")
-    public void find_all_visible_channel_by_user_id_failure() {
+    void find_all_visible_channel_by_user_id_failure() {
         // given
 
         // 사용자

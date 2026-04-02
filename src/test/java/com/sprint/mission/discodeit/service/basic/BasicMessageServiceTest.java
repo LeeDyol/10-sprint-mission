@@ -61,7 +61,7 @@ public class BasicMessageServiceTest {
     // [성공]
     @Test
     @DisplayName("메시지 생성 완료")
-    public void create_message_success() {
+    void create_message_success() {
         // given
         UUID userId = UUID.randomUUID();
         UUID channelId = UUID.randomUUID();
@@ -114,7 +114,7 @@ public class BasicMessageServiceTest {
     // [실패] 작성자 미존재
     @Test
     @DisplayName("메시지 생성 실패: 작성자가 존재하지 않을 경우, UserNotFoundException 발생")
-    public void create_message_failure_user_not_found() {
+    void create_message_failure_user_not_found() {
         // given
         UUID userId = UUID.randomUUID();
         UUID channelId = UUID.randomUUID();
@@ -142,7 +142,7 @@ public class BasicMessageServiceTest {
     // [실패] 채널 미존재
     @Test
     @DisplayName("메시지 생성 실패: 채널이 존재하지 않을 경우, ChannelNotFoundException 발생")
-    public void create_message_failure_channel_not_found() {
+    void create_message_failure_channel_not_found() {
         // given
         UUID userId = UUID.randomUUID();
         UUID channelId = UUID.randomUUID();
@@ -174,7 +174,7 @@ public class BasicMessageServiceTest {
     // [실패] 첨부 파일 생성 실패
     @Test
     @DisplayName("메시지 생성 실패: 첨부 파일 생성에 실패한 경우, BinaryContentFileProcessingErrorException 발생")
-    public void create_message_failure_binary_content_file_processing() throws IOException {
+    void create_message_failure_binary_content_file_processing() throws IOException {
         // given
         UUID userId = UUID.randomUUID();
         UUID clientId = UUID.randomUUID();
@@ -235,7 +235,7 @@ public class BasicMessageServiceTest {
     // [성공]
     @Test
     @DisplayName("메시지 수정 완료")
-    public void update_message_success() {
+    void update_message_success() {
         // given
         UUID messageId = UUID.randomUUID();
         MessageUpdateRequest request = new MessageUpdateRequest(
@@ -277,7 +277,7 @@ public class BasicMessageServiceTest {
     // [실패] 기존 메시지 내용과 동일
     @Test
     @DisplayName("메시지 생성 실패: 기존 내용과 동일할 경우, DiscodeitException 발생")
-    public void update_message_failure_equals_current_content() {
+    void update_message_failure_equals_current_content() {
         // given
         UUID messageId = UUID.randomUUID();
         MessageUpdateRequest request = new MessageUpdateRequest(
@@ -316,7 +316,7 @@ public class BasicMessageServiceTest {
     // [성공]
     @Test
     @DisplayName("메시지 삭제 완료")
-    public void delete_message_success() {
+    void delete_message_success() {
         // given
         UUID messageId = UUID.randomUUID();
 
@@ -342,7 +342,7 @@ public class BasicMessageServiceTest {
     // [실패] 해당 메시지 미존재
     @Test
     @DisplayName("메시지 삭제 실패: 해당 메시지가 존재하지 않는 경우, MessageNotFoundException 발생")
-    public void delete_message_failure_message_not_found() {
+    void delete_message_failure_message_not_found() {
         // given
         UUID messageId = UUID.randomUUID();
 
@@ -367,7 +367,7 @@ public class BasicMessageServiceTest {
     // [성공] 첫 페이지
     @Test
     @DisplayName("특정 채널에서 발행된 메시지 목록 조회 성공")
-    public void find_all_messages_by_channel_id_success_first_page() {
+    void find_all_messages_by_channel_id_success_first_page() {
         // given
         UUID channelId = UUID.randomUUID();
 
@@ -437,7 +437,7 @@ public class BasicMessageServiceTest {
     // [성공] 두 번쨰 페이지 이후
     @Test
     @DisplayName("특정 채널에서 발행된 메시지 목록 조회 성공")
-    public void find_all_messages_by_channel_id_success_second_page() {
+    void find_all_messages_by_channel_id_success_second_page() {
         // given
         UUID channelId = UUID.randomUUID();
 
@@ -508,7 +508,7 @@ public class BasicMessageServiceTest {
     // [실패] 해당 채널 미존재
     @Test
     @DisplayName("특정 채널에서 발행된 메시지 목록 조회 실패: 해당 채널이 존재하지 않을 경우, ChannelNotFoundException 발생")
-    public void find_all_messages_by_channel_id_failure_not_found() {
+    void find_all_messages_by_channel_id_failure_not_found() {
         // given
         UUID channelId = UUID.randomUUID();
 

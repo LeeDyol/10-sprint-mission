@@ -25,7 +25,7 @@ public class UserRepositoryTest {
     // [성공]
     @Test
     @DisplayName("사용자 이름을 이용한 단건 조회 성공")
-    public void find_by_username_success() {
+    void find_by_username_success() {
         // given
         String username = "yushi";
 
@@ -49,7 +49,7 @@ public class UserRepositoryTest {
     // [실패] 사용자 이름 미존재
     @Test
     @DisplayName("사용자 이름 단건 조회 실패: 해당 사용자가 존재하지 않을 경우, Optional 반환")
-    public void find_by_username_failure_not_found() {
+    void find_by_username_failure_not_found() {
         // given
         String username = "yushi";
 
@@ -67,7 +67,7 @@ public class UserRepositoryTest {
     // [성공]
     @Test
     @DisplayName("다른 사용자의 이름과 중복될 경우, true 반환")
-    public void exists_by_username_success() {
+    void exists_by_username_success() {
         // given
         String username = "yushi";
 
@@ -89,7 +89,7 @@ public class UserRepositoryTest {
     // [실패] 이메일 중복
     @Test
     @DisplayName("존재하지 않는 이메일일 경우, false 반환")
-    public void exists_by_email_success() {
+    void exists_by_email_success() {
         // given
 
         // when

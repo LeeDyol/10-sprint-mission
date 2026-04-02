@@ -53,7 +53,7 @@ public class BasicUserServiceTest {
     // [성공]
     @Test
     @DisplayName("회원가입 성공")
-    public void create_user_success() throws IOException {
+    void create_user_success() throws IOException {
         // given | 테스트 준비
         UserCreateRequest request = new UserCreateRequest(
                 "yushi",
@@ -121,7 +121,7 @@ public class BasicUserServiceTest {
     // [실패] 사용자 이름 중복
     @Test
     @DisplayName("회원가입 실패 : 이미 존재하는 사용자 이름일 경우, DuplicateUsernameException 예외 발생")
-    public void create_user_failure_duplicate_username() {
+    void create_user_failure_duplicate_username() {
         // given
         UserCreateRequest request = new UserCreateRequest(
                 "yushi",
@@ -146,7 +146,7 @@ public class BasicUserServiceTest {
     // [실패] 이메일 중복
     @Test
     @DisplayName("회원가입 실패 : 이미 존재하는 이메일일 경우, DuplicateEmailException 발생")
-    public void create_user_failure_duplicate_email() {
+    void create_user_failure_duplicate_email() {
         // given
         UserCreateRequest request = new UserCreateRequest(
                 "yushi",
@@ -172,7 +172,7 @@ public class BasicUserServiceTest {
     // [실패] 프로필 이미지 생성 실패
     @Test
     @DisplayName("회원가입 실패: 프로필 파일 생성에 실패할 경우, BinaryContentFileProcessingErrorException 발생")
-    public void create_user_failure_profile_io_exception() throws IOException {
+    void create_user_failure_profile_io_exception() throws IOException {
         // given
         UserCreateRequest request = new UserCreateRequest(
                 "yushi",
@@ -223,7 +223,7 @@ public class BasicUserServiceTest {
     // [성공]
     @Test
     @DisplayName("사용자 정보 수정 성공")
-    public void update_user_success() throws IOException {
+    void update_user_success() throws IOException {
         // given
         UUID userId = UUID.randomUUID();
         UserUpdateRequest request = new UserUpdateRequest(
@@ -262,7 +262,7 @@ public class BasicUserServiceTest {
     // [실패] 기존 사용자 이름과 동일
     @Test
     @DisplayName("사용자 정보 수정 실패 : 기존 사용자 이름과 동일할 경우, DiscodeitException 발생")
-    public void update_user_failure_equals_current_username() {
+    void update_user_failure_equals_current_username() {
         // given
         UUID userId = UUID.randomUUID();
         UserUpdateRequest request = new UserUpdateRequest(
@@ -298,7 +298,7 @@ public class BasicUserServiceTest {
     // [실패] 다른 사용자의 이름과 중복
     @Test
     @DisplayName("사용자 정보 수정 오류: 다른 사용자 이름과 중복되면 DuplicateUsernameException 발생")
-    public void update_user_failure_duplicate_username() {
+    void update_user_failure_duplicate_username() {
         // given
         UUID userId = UUID.randomUUID();
         UserUpdateRequest request = new UserUpdateRequest(
@@ -333,7 +333,7 @@ public class BasicUserServiceTest {
     // [실패] 기존 이메일과 동일
     @Test
     @DisplayName("사용자 정보 수정 실패 : 기존 이메일과 동일할 경우, DiscodeitException 발생")
-    public void update_user_failure_equals_current_email() {
+    void update_user_failure_equals_current_email() {
         // given
         UUID userId = UUID.randomUUID();
         UserUpdateRequest request = new UserUpdateRequest(
@@ -369,7 +369,7 @@ public class BasicUserServiceTest {
     // [실패] 다른 사용자의 이메일과 중복
     @Test
     @DisplayName("사용자 정보 수정 실패: 다른 사용자 이메일과 중복될 경우, DuplicateEmailException 발생")
-    public void update_user_failure_duplicate_email() {
+    void update_user_failure_duplicate_email() {
         // given
         UUID userId = UUID.randomUUID();
         UserUpdateRequest request = new UserUpdateRequest(
@@ -405,7 +405,7 @@ public class BasicUserServiceTest {
     // [실패] 프로필 이미지 생성 실패
     @Test
     @DisplayName("사용자 정보 수정 실패: 새로운 이미지 생성에 실패할 경우, BinaryContentFileProcessingErrorException 발생")
-    public void update_user_failure_profile_io_exception() throws IOException {
+    void update_user_failure_profile_io_exception() throws IOException {
         // given
         UUID userId = UUID.randomUUID();
         UserUpdateRequest request = new UserUpdateRequest(
@@ -456,7 +456,7 @@ public class BasicUserServiceTest {
     // [성공]
     @Test
     @DisplayName("사용자 삭제 완료")
-    public void user_delete_success() {
+    void user_delete_success() {
         // given
         UUID userId = UUID.randomUUID();
 
@@ -486,7 +486,7 @@ public class BasicUserServiceTest {
     // [실패] 해당하는 사용자 미존재
     @Test
     @DisplayName("사용자 삭제 실패: 삭제하고자 하는 사용자가 존재하지 않을 경우, UserNotFoundException 발생")
-    public void user_delete_not_found() {
+    void user_delete_not_found() {
         // given
         UUID userId = UUID.randomUUID();
 

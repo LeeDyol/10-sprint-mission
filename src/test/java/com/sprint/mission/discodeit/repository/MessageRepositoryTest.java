@@ -39,7 +39,7 @@ public class MessageRepositoryTest {
     // [성공]
     @Test
     @DisplayName("단건 조회 완료")
-    public void find_with_details_success() {
+    void find_with_details_success() {
         // given
 
         // 사용자
@@ -80,7 +80,7 @@ public class MessageRepositoryTest {
     // [살퍄]
     @Test
     @DisplayName("다건 조회 실패: 메시지가 존재하지 않을 경우, 빈 리스트 반환")
-    public void find_all_with_details_failure() {
+    void find_all_with_details_failure() {
         // given
 
         // when
@@ -98,7 +98,7 @@ public class MessageRepositoryTest {
     // [성공]
     @Test
     @DisplayName("특정 채널에서 마지막으로 발행된 메시지 시간 조회 완료")
-    public void get_last_message_at_success() {
+    void get_last_message_at_success() {
         // given
 
         // 사용자
@@ -145,7 +145,7 @@ public class MessageRepositoryTest {
     // [실패] 메시지 미존재
     @Test
     @DisplayName("특정 챈러에서 마지막으로 발행한 메시지 시간 조히 실패: 메시지가 존재하지 않을 경우, null 반환")
-    public void get_last_message_at_failure() {
+    void get_last_message_at_failure() {
         // given
         UUID channelId = UUID.randomUUID();
 
@@ -162,7 +162,7 @@ public class MessageRepositoryTest {
     // [성공]
     @Test
     @DisplayName("사용자를 통한 다건 조회 완료")
-    public void find_all_with_details_by_author_success() {
+    void find_all_with_details_by_author_success() {
         // given
 
         // 사용자
@@ -205,7 +205,7 @@ public class MessageRepositoryTest {
     // [실패] 사용자 미존재
     @Test
     @DisplayName("사용자를 통한 다건 조회 실패: 메시지가 존재하지 않을 경우, 빈 리스트 반환")
-    public void find_all_with_details_by_author_failure() {
+    void find_all_with_details_by_author_failure() {
         // given
 
         // 사용자
@@ -226,7 +226,7 @@ public class MessageRepositoryTest {
     // [성공]
     @Test
     @DisplayName("채널을 통한 다건 조회 완료")
-    public void find_all_with_details_by_channel_success() {
+    void find_all_with_details_by_channel_success() {
         // given
 
         // 사용자
@@ -269,7 +269,7 @@ public class MessageRepositoryTest {
     // [실패] 채널 미존재
     @Test
     @DisplayName("채널을 통한 다건 조회 실패: 메시지가 존재하지 않을 경우, 빈 리스트 반환")
-    public void find_all_with_details_by_channel_failure() {
+    void find_all_with_details_by_channel_failure() {
         // given
 
         // 채널
@@ -293,7 +293,7 @@ public class MessageRepositoryTest {
     // [성공]
     @Test
     @DisplayName("첫번째 페이지 메시지 목록 조회 완료")
-    public void find_first_page_by_channel_id_success() {
+    void find_first_page_by_channel_id_success() {
         // given
 
         // 사용자
@@ -341,7 +341,7 @@ public class MessageRepositoryTest {
     // [실패] 메시지 미존재
     @Test
     @DisplayName("첫번쨰 페이지 메시지 목록 조회 실패: 메시지가 존재하지 않을 경우, 빈 리스트 반환")
-    public void find_first_page_by_channel_id_failure() {
+    void find_first_page_by_channel_id_failure() {
         // given
         UUID channelId = UUID.randomUUID();
 
@@ -358,7 +358,7 @@ public class MessageRepositoryTest {
     // [성공]
     @Test
     @DisplayName("다음 페이지 메시지 목록 조회 완료")
-    public void find_next_page_by_channel_id_success() {
+    void find_next_page_by_channel_id_success() {
         // given
 
         // 사용자
@@ -407,7 +407,7 @@ public class MessageRepositoryTest {
     // [실패]
     @Test
     @DisplayName("다음 페이지 메시지 목록 조회 실패: 오래된 커서롲 조회할 경우, 빈 리스트 반환")
-    public void find_next_page_by_channel_id_failure() {
+    void find_next_page_by_channel_id_failure() {
         // given
         UUID channelId = UUID.randomUUID();
 
@@ -428,7 +428,7 @@ public class MessageRepositoryTest {
     // [성공]
     @Test
     @DisplayName("특정 채널에서 발행된 전체 메시지 개수 조회 완료")
-    public void count_all_by_channel_id_success() {
+    void count_all_by_channel_id_success() {
         // given
 
         // 사용자
@@ -471,7 +471,7 @@ public class MessageRepositoryTest {
     // [실패]
     @Test
     @DisplayName("특정 채널에서 발행된 전체 메시지 개수 조회 실패: 메시지가 존재하지 않을 경우, 0 반환")
-    public void count_all_by_channel_id_failure() {
+    void count_all_by_channel_id_failure() {
         // given
         UUID channelId = UUID.randomUUID();
 

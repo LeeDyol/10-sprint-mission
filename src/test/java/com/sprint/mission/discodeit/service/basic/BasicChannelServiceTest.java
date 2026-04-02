@@ -51,7 +51,7 @@ public class BasicChannelServiceTest {
     // [성공] 공개 채널 생성
     @Test
     @DisplayName("공개 채널 생성 완료")
-    public void create_public_channel_success(){
+    void create_public_channel_success(){
         // given
         PublicChannelCreateRequest request = new PublicChannelCreateRequest(
                 "Meow World",
@@ -91,7 +91,7 @@ public class BasicChannelServiceTest {
     // [성공] 비공개 채널 생성
     @Test
     @DisplayName("비공개 채널 생성 완료")
-    public void create_private_channel_success(){
+    void create_private_channel_success(){
         // given
         UUID firstUserId = UUID.randomUUID();
         UUID secondUserId = UUID.randomUUID();
@@ -137,7 +137,7 @@ public class BasicChannelServiceTest {
     // [실패] 비공개 채널 참여자 미존재
     @Test
     @DisplayName("비공개 채널 생성 살패: 참여하고자 하는 멤버가 존재하지 않을 경우, UserNotFoundException 발생")
-    public void create_private_channel_failure_participant_not_found(){
+    void create_private_channel_failure_participant_not_found(){
         // given
         UUID firstUserId = UUID.randomUUID();
         UUID secondUserId = UUID.randomUUID();
@@ -176,7 +176,7 @@ public class BasicChannelServiceTest {
     // [성공]
     @Test
     @DisplayName("공개 채널 수정 완료")
-    public void update_public_channel_success(){
+    void update_public_channel_success(){
         // given
         UUID channelId = UUID.randomUUID();
         PublicChannelUpdateRequest request = new PublicChannelUpdateRequest(
@@ -205,7 +205,7 @@ public class BasicChannelServiceTest {
     // [실패] 비공개 채널 수정 시도
     @Test
     @DisplayName("공개 채널 수정 실패: 비공개 채널 정보를 수정할 경우, AccessDeniedPrivateChannelException 발생")
-    public void update_private_channel_failure_access_denied(){
+    void update_private_channel_failure_access_denied(){
         // given
         UUID channelId = UUID.randomUUID();
         PublicChannelUpdateRequest request = new PublicChannelUpdateRequest(
@@ -239,7 +239,7 @@ public class BasicChannelServiceTest {
     // [실패] 기존 이름과 같은 채널명
     @Test
     @DisplayName("공개 채널 수정 실패: 기존 채널명괃 동일한 경우, DiscodeitException 발생")
-    public void update_private_channel_failure_equals_current_name(){
+    void update_private_channel_failure_equals_current_name(){
         // given
         UUID channelId = UUID.randomUUID();
         PublicChannelUpdateRequest request = new PublicChannelUpdateRequest(
@@ -274,7 +274,7 @@ public class BasicChannelServiceTest {
     // [실패] 기존 설명과 같은 설명
     @Test
     @DisplayName("공개 채널 수정 실패: 기존 설명과 동일한 경우, DiscodeitException 발생")
-    public void update_private_channel_failure_equals_current_description(){
+    void update_private_channel_failure_equals_current_description(){
         // given
         UUID channelId = UUID.randomUUID();
         PublicChannelUpdateRequest request = new PublicChannelUpdateRequest(
@@ -312,7 +312,7 @@ public class BasicChannelServiceTest {
     // [성공]
     @Test
     @DisplayName("채널 삭제 완료")
-    public void delete_channel_success(){
+    void delete_channel_success(){
         // given
         UUID channelId = UUID.randomUUID();
         ChannelEntity targetChannel = new ChannelEntity(
@@ -334,7 +334,7 @@ public class BasicChannelServiceTest {
     // [실패] 해당 채널 미존재
     @Test
     @DisplayName("채널 삭제 실패: 해당 채널이 존재하지 않을 경우, ChannelNotFoundException 발생")
-    public void delete_channel_failure_not_found() {
+    void delete_channel_failure_not_found() {
         // given
         UUID channelId = UUID.randomUUID();
 
@@ -359,7 +359,7 @@ public class BasicChannelServiceTest {
     // [성공]
     @Test
     @DisplayName("특정 사용자가 포함된 채널 목록 조회 완료")
-    public void find_all_channels_by_user_id_success(){
+    void find_all_channels_by_user_id_success(){
         // given
         UUID userId = UUID.randomUUID();
 
@@ -400,7 +400,7 @@ public class BasicChannelServiceTest {
     // [실패] 해당 사용자 미존재
     @Test
     @DisplayName("특정 사용자가 포함된 채널 목록 조회 실패: 특정 사용자가 존재하지 않을 경우, UserNotFoundException 발생")
-    public void find_all_channels_by_user_id_failure_not_found(){
+    void find_all_channels_by_user_id_failure_not_found(){
         // given
         UUID userId = UUID.randomUUID();
 
