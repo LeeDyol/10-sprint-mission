@@ -5,8 +5,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -68,6 +70,46 @@ public class GlobalExceptionHandler {
                 error.code(),
                 error.message(),
                 error.details()
+        );
+        return ResponseEntity.status(error.status()).body(error);
+    }
+
+    // 필수 파라미터 누락 오류 (@RequestParam)
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+        ErrorCode errorCode = ErrorCode.MISSING_REQUEST_PARAMETER;
+
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(Instant.now())
+                .code(errorCode.name())
+                .message(errorCode.getMessage())
+                .exceptionType(e.getClass().getSimpleName())
+                .status(errorCode.getHttpStatus().value())
+                .build();
+
+        log.warn("[MISSING_PARAM_EXCEPTION] ERROR_CODE={}, Message={}",
+                error.code(),
+                error.message()
+        );
+        return ResponseEntity.status(error.status()).body(error);
+    }
+
+    // 파라미터 타입 불일치 (@PathVariable)
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
+        ErrorCode errorCode = ErrorCode.METHOD_ARGUMENT_TYPE_MISMATCH;
+
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(Instant.now())
+                .code(errorCode.name())
+                .message(errorCode.getMessage())
+                .exceptionType(e.getClass().getSimpleName())
+                .status(errorCode.getHttpStatus().value())
+                .build();
+
+        log.warn("[TYPE_MISMATCH_EXCEPTION] ERROR_CODE={}, Message={}",
+                error.code(),
+                error.message()
         );
         return ResponseEntity.status(error.status()).body(error);
     }
