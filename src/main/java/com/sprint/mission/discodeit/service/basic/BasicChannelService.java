@@ -62,9 +62,9 @@ public class BasicChannelService implements ChannelService {
         ChannelEntity newChannel = channelMapper.toPrivateEntity();
 
         // 각 멤버의 읽음 상태 생성
-        privateChannelCreateRequest.participantIds().forEach(participantId -> {
-            // 멤버 존재 여부 확인 -> 없으면 예외 발생
-            UserEntity member = getUserEntityOrThrow(participantId);
+        List<UserEntity> members = userRepository.findAllById(privateChannelCreateRequest.participantIds());
+
+        members.forEach(member -> {
             // 존재하는 멤버에 한해 읽음 상태 생성
             ReadStatusEntity memberReadStatus = new ReadStatusEntity(member, newChannel);
             newChannel.getReadStatuses().add(memberReadStatus);
