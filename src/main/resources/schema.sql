@@ -1,11 +1,3 @@
-DROP TABLE IF EXISTS message_attachments;
-DROP TABLE IF EXISTS messages CASCADE;
-DROP TABLE IF EXISTS binary_contents CASCADE;
-DROP TABLE IF EXISTS read_statuses;
-DROP TABLE IF EXISTS user_statuses;
-DROP TABLE IF EXISTS channels;
-DROP TABLE IF EXISTS users;
-
 CREATE TABLE binary_contents (
     id UUID PRIMARY KEY,
     message_id UUID,
