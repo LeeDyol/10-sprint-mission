@@ -46,7 +46,15 @@ spring:
 
 # 커스텀 설정 값
 discodeit:
-  storage:                                                      # 로컬 저장소 설정 값
-    type: local                                                 # 로컬 서버 저장
+  storage:                                                                  # 로컬 저장소 설정 값
+    type: ${STORAGE_TYPE:local}                                             # 저장소 타입 (S3 | local, 기본값 = local)
+
     local:
-      root-path: ./upload-files                                 # 실제 저장 경로
+      root-path: ${STORAGE_LOCAL_ROOT_PATH:.discodeit/storage}              # 실제 저장 경로
+
+    s3:
+      access-key: ${AWS_S3_ACCESS_KEY}
+      secret-key: ${AWS_S3_SECRET_KEY}
+      region: ${AWS_S3_REGION}
+      bucket: ${AWS_S3_BUCKET}
+      presigned-url-expiration: ${AWS_S3_PRESIGNED_URL_EXPIRATION:600}      # (기본값: 10분)
