@@ -46,3 +46,4 @@ logs
 
 ### 환경 변수 파일 ###
 .env
+discodeit.env
