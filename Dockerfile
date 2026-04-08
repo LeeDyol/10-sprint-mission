@@ -2,7 +2,8 @@
 # 도커 빌드 시 사용할 빌드/런타임 이미지 이름을 변수로 지정
 # ARG는 선언된 이후로부터만 유효하므로 반드시 FROM보다 위에 있어야 함
 ARG BUILDER_IMAGE=gradle:7.6.0-jdk17
-ARG RUNTIME_IMAGE=amazoncorretto:17
+#ARG RUNTIME_IMAGE=amazoncorretto:17
+ARG RUNTIME_IMAGE=amazoncorretto:17-alpine
 
 # ============ (1) Builder 스테이지 ============
 # 빌더 스테이지 시작: 지정한 Gradle + JDK 환경을 사용
