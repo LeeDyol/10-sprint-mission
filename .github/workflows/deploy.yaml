@@ -47,7 +47,7 @@ jobs:
       - name: 6. 기존 서비스 중단 (프리티어 절약 desired-count 0)
         run: |
           aws ecs update-service --cluster ${{ vars.ECS_CLUSTER }} --service ${{ vars.ECS_SERVICE }} --desired-count 0
-          echo "기존 서비스를 중단했습니다."
+          aws ecs wait services-stable --cluster ${{ vars.ECS_CLUSTER }} --services ${{ vars.ECS_SERVICE }}
 
       - name: 7. 새 태스크 정의 등록 및 서비스 재시작
         run: |
