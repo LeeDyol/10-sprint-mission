@@ -18,6 +18,7 @@ import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -43,6 +44,8 @@ public class BasicUserService implements UserService {
 
     private final BinaryContentStorage binaryContentStorage;
 
+    private final PasswordEncoder passwordEncoder;
+
     // 사용자 생성
     @Override
     @Transactional
@@ -52,6 +55,11 @@ public class BasicUserService implements UserService {
         isUsernameDuplicate(userCreateRequest.username());
 
         UserEntity newUser = userMapper.toEntity(userCreateRequest);
+
+        // 비밀번호 암호화
+        String encodedPassword = passwordEncoder.encode(userCreateRequest.password());
+        newUser.updatePassword(encodedPassword);
+
         userRepository.save(newUser);
 
         UserStatusEntity newUserStatus = new UserStatusEntity(newUser);
