@@ -27,6 +27,12 @@ public class SecurityConfig {
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         // 토큰 검증 주제 설정
                         .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
+                )
+                // 요청 권한 설정
+                .authorizeHttpRequests(auth -> auth
+                        // 해당 엔드포인트는 검문에서 제외
+                        .requestMatchers("/api/auth/csrf-token").permitAll()
+                        .anyRequest().authenticated()
                 );
 
         return http.build();
