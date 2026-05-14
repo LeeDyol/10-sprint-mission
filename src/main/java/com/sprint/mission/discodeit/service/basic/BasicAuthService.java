@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.exception.auth.WrongPasswordException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.User;
@@ -33,11 +34,9 @@ public class BasicAuthService implements AuthService, UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserEntity user = getUserEntityOrThrow(username);
 
-        return User.builder()
-                .username(user.getUsername())
-                .password(user.getPassword())       // 암호화 된 비밀번호 주입
-                .roles("USER")
-                .build();
+        UserDto userDto = userMapper.toDto(user);
+
+        return new DiscodeitUserDetails(userDto, user.getPassword());
     }
 
     // 로그인
