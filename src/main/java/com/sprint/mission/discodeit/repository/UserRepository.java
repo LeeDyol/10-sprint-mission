@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.repository;
 
+import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.UserEntity;
 import org.jspecify.annotations.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,6 +11,9 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<UserEntity, UUID> {
     // 단건 조회 (사용자 이름)
     Optional<UserEntity> findByUsername(String username);
+
+    // 유효성 검사 (ADMIN 권한 존재 여부)
+    boolean existsByRole(Role role);
 
     // 유효성 검사 (사용자 존재 여부)
     boolean existsById(@NonNull UUID userId);
