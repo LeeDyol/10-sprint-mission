@@ -25,6 +25,7 @@
 
     <springProfile name="dev">
         <logger name="com.sprint.mission.discodeit" level="debug" />
+        <logger name="org.springframework.security" level="trace" />
         <logger name="org.hibernate" level="warn" />
         <logger name="org.hibernate.SQL" level="debug" />
         <logger name="org.hibernate.orm.jdbc.bind" level="trace" />
