@@ -4,13 +4,11 @@ import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @Entity
 @Table(name = "user_statuses")
@@ -26,7 +24,7 @@ public class UserStatusEntity extends BaseUpdatableEntity {
         this.user = user;
         this.lastActiveAt = Instant.now();
 
-        user.setUserStatus(this);
+        user.updateUserStatus(this);
     }
 
     // 5분 전 사용자의 온라인 상태 여부

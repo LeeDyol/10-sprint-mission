@@ -5,10 +5,8 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @Entity
 @Table(name = "users")
@@ -46,6 +44,10 @@ public class UserEntity extends BaseUpdatableEntity {
 
     public void updateEmail(String newEmail) {
         this.email = newEmail;
+    }
+
+    public void updateUserStatus(UserStatusEntity newUserStatus) {
+        this.userStatus = newUserStatus;
     }
 
     public void updateProfile(BinaryContentEntity newProfile) {
