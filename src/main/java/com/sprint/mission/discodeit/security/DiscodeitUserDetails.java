@@ -24,7 +24,8 @@ public class DiscodeitUserDetails implements UserDetails {
     // 사용자 권한 (Role) 반환
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        String roleName = "ROLE_" + userDto.role().name();
+        return List.of(new SimpleGrantedAuthority(roleName));
     }
 
     // 비밀번호 반환
