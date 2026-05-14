@@ -52,21 +52,6 @@ public class SecurityConfig {
                         // 토큰 검증 주제 설정
                         .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
                 )
-                // 요청 권한 설정
-                .authorizeHttpRequests(auth -> auth
-                        // 해당 엔드포인트는 검문에서 제외
-                        .requestMatchers("/api/auth/csrf-token").permitAll()
-                        .anyRequest().authenticated()
-                )
-                // 로그아웃 설정
-                .logout(logout -> logout
-                        .logoutUrl("/api/auth/logout")
-                        // 로그아웃 시, 페이지 리다이렉션 대신 204 상태 코드 반환
-                        .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT))
-                        // 세선 및 쿠키 삭제
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID")
-                )
                 // 인가 (Authorization) 설정
                 .authorizeHttpRequests(auth -> auth
                         // 인증에서 제외되는 요청
@@ -85,6 +70,15 @@ public class SecurityConfig {
                         ).permitAll()
                         // 모든 요청에 대해 권한 검증
                         .anyRequest().authenticated()
+                )
+                // 로그아웃 설정
+                .logout(logout -> logout
+                        .logoutUrl("/api/auth/logout")
+                        // 로그아웃 시, 페이지 리다이렉션 대신 204 상태 코드 반환
+                        .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT))
+                        // 세선 및 쿠키 삭제
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
                 )
                 // 예외 처리 핸들러 설정
                 .exceptionHandling(ex -> ex
