@@ -167,28 +167,19 @@ public class BasicMessageService implements MessageService {
     // 사용자 반환
     private UserEntity getUserEntityOrThrow(UUID userId){
         return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(
-                        ErrorCode.USER_NOT_FOUND,
-                        Map.of("userId", userId)
-                ));
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     // 채널 반환
     private ChannelEntity getChannelEntityOrThrow(UUID channelId){
         return channelRepository.findById(channelId)
-                .orElseThrow(() -> new ChannelNotFoundException(
-                        ErrorCode.CHANNEL_NOT_FOUND,
-                        Map.of("channelId", channelId)
-                ));
+                .orElseThrow(() -> new ChannelNotFoundException(channelId));
     }
 
     // 메시지 반환
     private MessageEntity getMessageEntityOrThrow(UUID messageId){
         return messageRepository.findWithDetails(messageId)
-                .orElseThrow(() -> new MessageNotFoundException(
-                        ErrorCode.MESSAGE_NOT_FOUND,
-                        Map.of("messageId", messageId)
-                ));
+                .orElseThrow(() -> new MessageNotFoundException(messageId));
     }
 
     // 메시지와 함께 전송된 첨부 파일 생성 및 저장
@@ -211,13 +202,7 @@ public class BasicMessageService implements MessageService {
                 // BinaryContent - Message 간 연관 관계 설정
                 newMessage.addAttachment(newBinaryContent);
             } catch (Exception e) {
-                throw new BinaryContentFileProcessingErrorException(
-                        ErrorCode.BINARY_CONTENT_FILE_PROCESSING_ERROR,
-                        Map.of(
-                                "messageId", newMessage.getId(),
-                                "filename", file.getName()
-                        )
-                );
+                throw new BinaryContentFileProcessingErrorException(newMessage.getId(), file.getName());
             }
         }
     }

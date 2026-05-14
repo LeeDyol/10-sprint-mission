@@ -38,9 +38,6 @@ public class BasicAuthService implements UserDetailsService {
     // 사용자 반환
     private UserEntity getUserEntityOrThrow(String username){
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException(
-                        ErrorCode.USER_NOT_FOUND,
-                        Map.of("username", username)
-                ));
+                .orElseThrow(() -> new UserNotFoundException(username));
     }
 }

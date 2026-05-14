@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -85,37 +86,25 @@ public class BasicUserStatusService implements UserStatusService {
     // 사용자 반환
     private UserEntity getUserEntityOrThrow(UUID userId){
         return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(
-                        ErrorCode.USER_NOT_FOUND,
-                        Map.of("userId", userId)
-                ));
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     // 사용자 상태 변환 (userStatusId)
     private UserStatusEntity getUserStatusEntityOrThrow(UUID userStatusId){
         return userStatusRepository.findById(userStatusId)
-                .orElseThrow(() -> new UserStatusNotFoundException(
-                        ErrorCode.USER_STATUS_NOT_FOUND,
-                        Map.of("userStatusId", userStatusId)
-                ));
+                .orElseThrow(() -> new UserStatusNotFoundException(userStatusId));
     }
 
     // 사용자 상태 반환 (userId)
     private UserStatusEntity getUserStatusEntityByUserId(UUID userId){
         return userStatusRepository.findByUserId(userId)
-                .orElseThrow(() -> new UserStatusNotFoundException(
-                        ErrorCode.USER_STATUS_NOT_FOUND,
-                        Map.of("userId", userId)
-                ));
+                .orElseThrow(() -> new UserStatusNotFoundException(userId, "Using usrId"));
     }
 
     // 유효성 검증
-    private void existsUserStatusByUserId(UUID userId){
+    private void existsUserStatusByUserId(UUID userId) {
         if (userStatusRepository.existsByUserId(userId)) {
-            throw new DuplicateUserStatusException(
-                    ErrorCode.DUPLICATE_USER_STATUS,
-                    Map.of("userId", userId)
-            );
+            throw new DuplicateUserStatusException(userId);
         }
     }
 }

@@ -7,10 +7,7 @@ import com.sprint.mission.discodeit.dto.request.channel.PublicChannelCreateReque
 import com.sprint.mission.discodeit.dto.response.ChannelDto;
 import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.exception.ErrorCode;
-import com.sprint.mission.discodeit.exception.channel.AccessDeniedPrivateChannelException;
-import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
-import com.sprint.mission.discodeit.exception.channel.ChannelParticipantAlreadyExistsException;
-import com.sprint.mission.discodeit.exception.channel.ChannelParticipantNotFoundException;
+import com.sprint.mission.discodeit.exception.channel.*;
 import com.sprint.mission.discodeit.exception.readstatus.ReadStatusNotFoundException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
@@ -117,7 +114,7 @@ public class BasicChannelService implements ChannelService {
 
         // Private 채널 제외
         if (targetChannel.getType() == ChannelType.PRIVATE) {
-            throw new AccessDeniedPrivateChannelException(ErrorCode.ACCESS_DENIED_PRIVATE_CHANNEL);
+            throw new PrivateChannelNotUpdatableException();
         }
 
         // 채널 이름 변경
@@ -177,31 +174,19 @@ public class BasicChannelService implements ChannelService {
     // 사용자 반환
     private UserEntity getUserEntityOrThrow(UUID userId){
         return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(
-                        ErrorCode.USER_NOT_FOUND,
-                        Map.of("userId", userId)
-                ));
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     // 채널 엔티티 반환
     private ChannelEntity getChannelEntityOrThrow(UUID channelId) {
         return channelRepository.findById(channelId)
-                .orElseThrow(() -> new ChannelNotFoundException(
-                        ErrorCode.CHANNEL_NOT_FOUND,
-                        Map.of("channelId", channelId)
-                ));
+                .orElseThrow(() -> new ChannelNotFoundException(channelId));
     }
 
     // 읽음 상태 엔티티 반환
     private ReadStatusEntity getReadStatusEntityOrThrow(UUID userId, UUID channelId) {
         return readStatusRepository.findByUserIdAndChannelId(userId, channelId)
-                .orElseThrow(() -> new ReadStatusNotFoundException(
-                        ErrorCode.READ_STATUS_NOT_FOUND,
-                        Map.of(
-                                "userId", userId,
-                                "channelId", channelId
-                        )
-                ));
+                .orElseThrow(() -> new ReadStatusNotFoundException(userId, channelId));
     }
 
     // 유효성 검증 (읽음 상태 존재 여부)
@@ -212,26 +197,14 @@ public class BasicChannelService implements ChannelService {
     // 유효성 검증 (초대)
     private void validateMemberExists(UUID userId, UUID channelId) {
         if (existsReadStatusByUserIdAndChannelId(userId, channelId)) {
-            throw new ChannelParticipantAlreadyExistsException(
-                    ErrorCode.CHANNEL_PARTICIPANT_ALREADY_EXISTS,
-                    Map.of(
-                            "userId", userId,
-                            "channelId", channelId
-                    )
-            );
+            throw new ChannelParticipantAlreadyExistsException(userId, channelId);
         }
     }
 
     // 유효성 검증 (퇴장)
     private void validateUserNotInChannel(UUID userId, UUID channelId) {
         if (!existsReadStatusByUserIdAndChannelId(userId, channelId)) {
-            throw new ChannelParticipantNotFoundException(
-                    ErrorCode.CHANNEL_PARTICIPANT_NOT_FOUND,
-                    Map.of(
-                            "userId", userId,
-                            "channelId", channelId
-                    )
-            );
+            throw new ChannelParticipantNotFoundException(userId, channelId);
         }
     }
 

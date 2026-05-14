@@ -9,7 +9,10 @@ public class DuplicateUsernameException extends UserException {
         super(errorCode);
     }
 
-    public DuplicateUsernameException(ErrorCode errorCode, Map<String, Object> details) {
-        super(errorCode, details);
+    public DuplicateUsernameException(String newUsername) {
+        super(
+                ErrorCode.DUPLICATE_USERNAME,
+                Map.of("username", newUsername)
+        );
     }
 }

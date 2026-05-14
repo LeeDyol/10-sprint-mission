@@ -9,7 +9,7 @@ public class PrivateChannelNotUpdatableException extends ChannelException {
         super(errorCode);
     }
 
-    public PrivateChannelNotUpdatableException(ErrorCode errorCode, Map<String, Object> details) {
-        super(errorCode, details);
+    public PrivateChannelNotUpdatableException() {
+        super(ErrorCode.PRIVATE_CHANNEL_NOT_UPDATABLE);
     }
 }

@@ -9,7 +9,10 @@ public class DuplicateEmailException extends UserException {
         super(errorCode);
     }
 
-    public DuplicateEmailException(ErrorCode errorCode, Map<String, Object> details) {
-        super(errorCode, details);
+    public DuplicateEmailException(String newEmail) {
+        super(
+                ErrorCode.DUPLICATE_EMAIL,
+                Map.of("email", newEmail)
+        );
     }
 }

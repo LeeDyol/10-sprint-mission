@@ -102,13 +102,7 @@ public class BasicUserService implements UserService {
         // Private 채널은 채널 참여자만 조회 가능
         if (targetChannel.getType() == ChannelType.PRIVATE &&
                 !existsReadStatusByUserIdAndChannelId(memberFindRequestDTO.userId(), targetChannel.getId())) {
-            throw new AccessDeniedPrivateChannelException(
-                    ErrorCode.ACCESS_DENIED_PRIVATE_CHANNEL,
-                    Map.of(
-                            "userId", memberFindRequestDTO.userId(),
-                            "channelId", targetChannel.getId()
-                    )
-            );
+            throw new AccessDeniedPrivateChannelException(memberFindRequestDTO.userId(), targetChannel.getId());
         }
 
         return readStatusRepository.findAllByChannel(targetChannel).stream()
@@ -182,37 +176,25 @@ public class BasicUserService implements UserService {
     // 사용자 엔티티 반환
     private UserEntity getUserEntityOrThrow(UUID userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(
-                        ErrorCode.USER_NOT_FOUND,
-                        Map.of("userId", userId)
-                ));
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     // 채널 반환
     private ChannelEntity getChannelEntityOrThrow(UUID channelId){
         return channelRepository.findById(channelId)
-                .orElseThrow(() -> new ChannelNotFoundException(
-                        ErrorCode.CHANNEL_NOT_FOUND,
-                        Map.of("channelId", channelId)
-                ));
+                .orElseThrow(() -> new ChannelNotFoundException(channelId));
     }
 
     // 유효성 검사 (이메일 중복)
     private void isEmailDuplicate(String newEmail) {
         if (userRepository.existsByEmail(newEmail))
-            throw new DuplicateEmailException(
-                    ErrorCode.DUPLICATE_EMAIL,
-                    Map.of("email", newEmail)
-            );
+            throw new DuplicateEmailException(newEmail);
     }
 
     // 유효성 검사 (이름 중복)
     private void isUsernameDuplicate(String newUsername) {
         if (userRepository.existsByUsername(newUsername))
-            throw new DuplicateUsernameException(
-                    ErrorCode.DUPLICATE_USERNAME,
-                    Map.of("username", newUsername)
-            );
+            throw new DuplicateUsernameException(newUsername);
     }
 
     // 유효성 검사 (읽음 상태 존재 여부)
@@ -235,13 +217,7 @@ public class BasicUserService implements UserService {
                 binaryContentRepository.save(newProfile);
                 binaryContentStorage.put(newProfile.getId(), profile.getBytes());
             } catch (IOException e) {
-                throw new BinaryContentFileProcessingErrorException(
-                        ErrorCode.BINARY_CONTENT_FILE_PROCESSING_ERROR,
-                        Map.of(
-                                "username", targetUser.getUsername(),
-                                "filename", profile.getName()
-                        )
-                );
+                throw new BinaryContentFileProcessingErrorException(targetUser.getUsername(), profile.getName());
             }
         }
         return newProfile;

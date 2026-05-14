@@ -3,13 +3,17 @@ package com.sprint.mission.discodeit.exception.userstatus;
 import com.sprint.mission.discodeit.exception.ErrorCode;
 
 import java.util.Map;
+import java.util.UUID;
 
 public class DuplicateUserStatusException extends UserStatusException {
-    public DuplicateUserStatusException(ErrorCode errorCode, Map<String, Object> details) {
-        super(errorCode, details);
-    }
-
     public DuplicateUserStatusException(ErrorCode errorCode) {
         super(errorCode);
+    }
+
+    public DuplicateUserStatusException(UUID userId) {
+        super(
+                ErrorCode.DUPLICATE_USER_STATUS,
+                Map.of("userId", userId)
+        );
     }
 }

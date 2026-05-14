@@ -75,9 +75,6 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Override
     public BinaryContentEntity getBinaryContentEntityOrThrow(UUID binaryContentId) {
         return binaryContentRepository.findById(binaryContentId)
-                .orElseThrow(() -> new BinaryContentNotFoundException(
-                        ErrorCode.BINARY_CONTENT_NOT_FOUND,
-                        Map.of("binaryContentId", binaryContentId)
-                ));
+                .orElseThrow(() -> new BinaryContentNotFoundException(binaryContentId));
     }
 }

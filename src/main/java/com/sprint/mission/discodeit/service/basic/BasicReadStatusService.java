@@ -99,40 +99,25 @@ public class BasicReadStatusService implements ReadStatusService {
     // 사용자 반환
     private UserEntity getUserEntityOrThrow(UUID userId){
         return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(
-                        ErrorCode.USER_NOT_FOUND,
-                        Map.of("userId", userId)
-                ));
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     // 채널 반환
     private ChannelEntity getChannelEntityOrThrow(UUID channelId){
         return channelRepository.findById(channelId)
-                .orElseThrow(() -> new ChannelNotFoundException(
-                        ErrorCode.CHANNEL_NOT_FOUND,
-                        Map.of("channelId", channelId)
-                ));
+                .orElseThrow(() -> new ChannelNotFoundException(channelId));
     }
 
     // 읽음 상태 엔티티 반환
     private ReadStatusEntity getReadStatusEntity(UUID readStatusId){
         return readStatusRepository.findBysIdWithDetails(readStatusId)
-                .orElseThrow(() -> new ReadStatusNotFoundException(
-                        ErrorCode.READ_STATUS_NOT_FOUND,
-                        Map.of("readStatusId", readStatusId)
-                ));
+                .orElseThrow(() -> new ReadStatusNotFoundException(readStatusId));
     }
 
     // 유효성 검사 (중복 확인)
     private void existsByUserIdAndChannelId(UUID userId, UUID channelId) {
         if (readStatusRepository.existsByUserIdAndChannelId(userId, channelId)) {
-            throw new DuplicateReadStatusException(
-                    ErrorCode.DUPLICATE_READ_STATUS,
-                    Map.of(
-                            "userId", userId,
-                            "channelId", channelId
-                    )
-            );
+            throw new DuplicateReadStatusException(userId, channelId);
         }
     }
 }
