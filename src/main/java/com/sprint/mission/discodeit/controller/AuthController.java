@@ -1,11 +1,7 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.dto.request.auth.LoginRequest;
-import com.sprint.mission.discodeit.dto.response.UserDto;
-import com.sprint.mission.discodeit.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    private final AuthService authService;
 
     @Operation(summary = "토큰 발급", operationId = "token")
     @GetMapping("/csrf-token")
@@ -29,13 +24,5 @@ public class AuthController {
         log.debug("CSRF 토큰 요청: {}", tokenValue);
 
         return ResponseEntity.status(HttpStatus.NON_AUTHORITATIVE_INFORMATION).build();
-    }
-
-    @Operation(summary = "로그인", operationId = "login")
-    @PostMapping("/login")
-    public ResponseEntity<UserDto> login(@Valid @RequestBody LoginRequest loginRequest) {
-        UserDto response = authService.login(loginRequest);
-
-        return ResponseEntity.ok(response);
     }
 }

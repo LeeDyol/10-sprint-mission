@@ -1,17 +1,13 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.request.auth.LoginRequest;
 import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.entity.UserEntity;
 import com.sprint.mission.discodeit.exception.ErrorCode;
-import com.sprint.mission.discodeit.exception.auth.WrongPasswordException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
-import com.sprint.mission.discodeit.service.AuthService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -23,7 +19,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class BasicAuthService implements AuthService, UserDetailsService {
+public class BasicAuthService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
@@ -37,18 +33,6 @@ public class BasicAuthService implements AuthService, UserDetailsService {
         UserDto userDto = userMapper.toDto(user);
 
         return new DiscodeitUserDetails(userDto, user.getPassword());
-    }
-
-    // 로그인
-    @Override
-    public UserDto login(LoginRequest loginRequest) {
-        UserEntity targetUser = getUserEntityOrThrow(loginRequest.username());
-
-        if (!targetUser.getPassword().equals(loginRequest.password())) {
-            throw new WrongPasswordException(ErrorCode.WRONG_PASSWORD);
-        }
-
-        return userMapper.toDto(targetUser);
     }
 
     // 사용자 반환
