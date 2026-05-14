@@ -11,6 +11,7 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -41,6 +42,7 @@ public class BasicAuthService implements AuthService, UserDetailsService {
 
     // 사용자 권한 변경
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public UserDto updateUserRole(RoleUpdateRequest roleUpdateRequest) {
         UserEntity targetUser = getUserEntityOrThrow(roleUpdateRequest.userId());

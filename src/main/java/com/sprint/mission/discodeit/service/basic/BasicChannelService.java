@@ -18,6 +18,7 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +44,7 @@ public class BasicChannelService implements ChannelService {
 
     // 공개 채널 생성
     @Override
+    @PreAuthorize("hasRole('CHANNEL_MANAGER')")
     @Transactional
     public ChannelDto createPublicChannel(PublicChannelCreateRequest publicChannelCreateRequest) {
         ChannelEntity newChannel = channelMapper.toPublicEntity(publicChannelCreateRequest);
@@ -108,6 +110,7 @@ public class BasicChannelService implements ChannelService {
 
     // 채널 정보 수정
     @Override
+    @PreAuthorize("hasRole('CHANNEL_MANAGER')")
     @Transactional
     public ChannelDto update(UUID channelId, PublicChannelUpdateRequest publicChannelUpdateRequest) {
         ChannelEntity targetChannel = getChannelEntityOrThrow(channelId);
@@ -137,6 +140,7 @@ public class BasicChannelService implements ChannelService {
 
     // 채널 삭제
     @Override
+    @PreAuthorize("hasRole('CHANNEL_MANAGER')")
     @Transactional
     public void delete(UUID channelId) {
         ChannelEntity targetChannel = getChannelEntityOrThrow(channelId);
@@ -147,6 +151,7 @@ public class BasicChannelService implements ChannelService {
 
     // 채널 참가자 초대
     @Override
+    @PreAuthorize("hasRole('CHANNEL_MANAGER')")
     @Transactional
     public void inviteMember(ChannelMemberRequestDTO channelMemberRequestDTO) {
         UserEntity newUser = getUserEntityOrThrow(channelMemberRequestDTO.userId());
@@ -160,6 +165,7 @@ public class BasicChannelService implements ChannelService {
 
     // 채널 퇴장
     @Override
+    @PreAuthorize("hasRole('CHANNEL_MANAGER')")
     @Transactional
     public void leaveMember(ChannelMemberRequestDTO channelMemberRequestDTO) {
         UserEntity targetUser = getUserEntityOrThrow(channelMemberRequestDTO.userId());
