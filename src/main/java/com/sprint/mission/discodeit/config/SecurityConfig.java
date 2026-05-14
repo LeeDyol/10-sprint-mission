@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -23,6 +24,8 @@ public class SecurityConfig {
 
         // HTTP 보안 설정
         http
+                // 기본 로그인 폼 사용
+                .formLogin(Customizer.withDefaults())
                 // CSRF (크로스 사이트 요청 위조) 방어 설정
                 .csrf(csrf -> csrf
                         // 토큰을 쿠키에 저장하되, 프론트가 읽을 수 있도록 HttpOnly 방어막 해제
