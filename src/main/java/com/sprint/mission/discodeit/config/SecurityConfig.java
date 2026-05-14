@@ -6,7 +6,9 @@ import com.sprint.mission.discodeit.security.SpaCsrfTokenRequestHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,6 +24,7 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
  */
 @Configuration
 @EnableWebSecurity(debug = true)        // 필터 목록 콘솔에 출력
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final LoginSuccessHandler loginSuccessHandler;
@@ -58,6 +61,25 @@ public class SecurityConfig {
                         // 세선 및 쿠키 삭제
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
+                )
+                // 인가 (Authorization) 설정
+                .authorizeHttpRequests(auth -> auth
+                        // 인증에서 제외되는 요청
+                        .requestMatchers(
+                                HttpMethod.POST, "/api/users"   // 회원가입
+                        ).permitAll()
+                        .requestMatchers(
+                                "/api/auth/csrf-token",         // CSRF Token 발급
+                                "/api/auth/login",              // 로그인
+                                "/api/auth/logout",             // 로그아웃
+                                "/v3/api-docs/**",              // Swagger 문서 데이터
+                                "/swagger-ui/**",               // Swagger UI 화면
+                                "/swagger-ui.html",             // Swagger UI 기본 페이지
+                                "/actuator/**",                 // Actuator 서버 상태 체크
+                                "/error"                        // 기본 에러 페이지 처리
+                        ).permitAll()
+                        // 모든 요청에 대해 권한 검증
+                        .anyRequest().authenticated()
                 );
 
         return http.build();
