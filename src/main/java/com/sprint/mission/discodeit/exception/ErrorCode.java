@@ -14,6 +14,7 @@ public enum ErrorCode {
     METHOD_ARGUMENT_TYPE_MISMATCH(HttpStatus.BAD_REQUEST, "Method argument type mismatch"),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"),
     DUPLICATE_VALUE_NOT_UPDATE(HttpStatus.BAD_REQUEST, "The update value is the same as the current value"),
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "You do not have the required permissions to perform this action"),
 
     // Auth
     WRONG_PASSWORD(HttpStatus.BAD_REQUEST, "Wrong password"),

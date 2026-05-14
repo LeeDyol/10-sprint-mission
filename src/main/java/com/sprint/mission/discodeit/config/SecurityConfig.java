@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.config;
 import com.sprint.mission.discodeit.security.LoginFailureHandler;
 import com.sprint.mission.discodeit.security.LoginSuccessHandler;
 import com.sprint.mission.discodeit.security.SpaCsrfTokenRequestHandler;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -80,6 +81,21 @@ public class SecurityConfig {
                         ).permitAll()
                         // 모든 요청에 대해 권한 검증
                         .anyRequest().authenticated()
+                )
+                // 예외 처리 핸들러 설정
+                .exceptionHandling(ex -> ex
+                        // 비로그인 사용자의 요청 발생 시, 401 Unauthorized 반환
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write("{\"errorCode\": \"UNAUTHORIZED\", \"message\": \"로그인이 필요합니다.\"}");
+                        })
+                        // 요청자의 권한이 부적합한 경우, 403 Forbidden 반환
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write("{\"errorCode\": \"FORBIDDEN\", \"message\": \"접근 권한이 없습니다.\"}");
+                        })
                 );
 
         return http.build();

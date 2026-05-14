@@ -114,6 +114,27 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(error.status()).body(error);
     }
 
+    // 권한 부적합 (@PreAuthorize)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException e) {
+        ErrorCode errorCode = ErrorCode.ACCESS_DENIED;
+
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(Instant.now())
+                .code(errorCode.name())
+                .message(errorCode.getMessage())
+                .exceptionType(e.getClass().getSimpleName())
+                .status(errorCode.getHttpStatus().value())
+                .build();
+
+        log.warn("[ACCESS_DENIED_EXCEPTION] ERROR CODE={}, Message={}",
+                error.code(),
+                error.message()
+        );
+
+        return ResponseEntity.status(error.status()).body(error);
+    }
+
     // HTTP 메서드 오류
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
