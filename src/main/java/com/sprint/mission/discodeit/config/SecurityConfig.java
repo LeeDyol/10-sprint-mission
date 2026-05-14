@@ -6,11 +6,13 @@ import com.sprint.mission.discodeit.security.SpaCsrfTokenRequestHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 /*
@@ -47,6 +49,15 @@ public class SecurityConfig {
                         // 해당 엔드포인트는 검문에서 제외
                         .requestMatchers("/api/auth/csrf-token").permitAll()
                         .anyRequest().authenticated()
+                )
+                // 로그아웃 설정
+                .logout(logout -> logout
+                        .logoutUrl("/api/auth/logout")
+                        // 로그아웃 시, 페이지 리다이렉션 대신 204 상태 코드 반환
+                        .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT))
+                        // 세선 및 쿠키 삭제
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
                 );
 
         return http.build();
