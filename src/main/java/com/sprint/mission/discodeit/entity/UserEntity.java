@@ -27,6 +27,10 @@ public class UserEntity extends BaseUpdatableEntity {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, optional = false)
     private UserStatusEntity userStatus;                           // 상태
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.USER;                                 // 권한
+
     @Builder
     public UserEntity(String username, String email, String password) {
         this.username = username;
@@ -52,5 +56,9 @@ public class UserEntity extends BaseUpdatableEntity {
 
     public void updateProfile(BinaryContentEntity newProfile) {
         this.profile = newProfile;
+    }
+
+    public void updateRole(Role newRole) {
+        this.role = newRole;
     }
 }
