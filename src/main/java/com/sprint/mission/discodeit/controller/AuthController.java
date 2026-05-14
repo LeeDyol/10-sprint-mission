@@ -1,9 +1,12 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.dto.request.auth.RoleUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
+import com.sprint.mission.discodeit.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
+    private final AuthService authService;
 
     @Operation(summary = "CSRF 토큰 발급", operationId = "token")
     @GetMapping("/csrf-token")
@@ -39,5 +43,13 @@ public class AuthController {
         }
 
         return ResponseEntity.ok(discodeitUserDetails.getUserDto());
+    }
+
+    @Operation(summary = "사용자 권한 수정", operationId = "updateRole")
+    @PutMapping("/role")
+    public ResponseEntity<UserDto> updateUserRole(@Valid @RequestBody RoleUpdateRequest roleUpdateRequest) {
+        UserDto response = authService.updateUserRole(roleUpdateRequest);
+
+        return ResponseEntity.ok(response);
     }
 }
