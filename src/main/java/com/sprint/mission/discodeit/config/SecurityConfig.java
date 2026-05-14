@@ -21,11 +21,12 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
         // HTTP 보안 설정
         http
-                // 기본 로그인 폼 사용
-                .formLogin(Customizer.withDefaults())
+                // 폼 로그인 활성화 및 로그인 처리 주소 지정
+                .formLogin(login -> login
+                        .loginProcessingUrl("/api/auth/login")
+                )
                 // CSRF (크로스 사이트 요청 위조) 방어 설정
                 .csrf(csrf -> csrf
                         // 토큰을 쿠키에 저장하되, 프론트가 읽을 수 있도록 HttpOnly 방어막 해제
