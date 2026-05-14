@@ -29,7 +29,7 @@ public class BasicAuthService implements AuthService, UserDetailsService {
 
     private final UserMapper userMapper;
 
-    // 로그인 한 사용자 정보 조회
+    // 로그인
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserEntity user = getUserEntityOrThrow(username);

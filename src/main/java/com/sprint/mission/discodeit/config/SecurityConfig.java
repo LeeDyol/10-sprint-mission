@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.config;
 
+import com.sprint.mission.discodeit.security.LoginSuccessHandler;
 import com.sprint.mission.discodeit.security.SpaCsrfTokenRequestHandler;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,7 +19,9 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
  */
 @Configuration
 @EnableWebSecurity(debug = true)        // 필터 목록 콘솔에 출력
+@RequiredArgsConstructor
 public class SecurityConfig {
+    private final LoginSuccessHandler loginSuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -26,6 +30,7 @@ public class SecurityConfig {
                 // 폼 로그인 활성화 및 로그인 처리 주소 지정
                 .formLogin(login -> login
                         .loginProcessingUrl("/api/auth/login")
+                        .successHandler(loginSuccessHandler)
                 )
                 // CSRF (크로스 사이트 요청 위조) 방어 설정
                 .csrf(csrf -> csrf
