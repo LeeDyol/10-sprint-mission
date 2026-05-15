@@ -12,12 +12,15 @@ import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -27,16 +30,18 @@ import java.util.UUID;
 public class BasicAuthService implements AuthService, UserDetailsService {
 
     private final UserRepository userRepository;
+    private final SessionRegistry sessionRegistry;
 
     private final UserMapper userMapper;
 
-    // 로그인
+    // 로그인: Security가 DB로부터 사용자가 입력한 사용자 정보를 가져오는 메서드
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserEntity user = getUserEntityOrThrow(username);
 
         UserDto userDto = userMapper.toDto(user);
 
+        // 데이터베이스에 저장되어 있던 사용자의 정보 반환
         return new DiscodeitUserDetails(userDto, user.getPassword());
     }
 
@@ -49,7 +54,25 @@ public class BasicAuthService implements AuthService, UserDetailsService {
 
         targetUser.updateRole(roleUpdateRequest.newRole());
 
+        // 세션 무효화
+        expireUserSession(targetUser.getUsername());
+
         return userMapper.toDto(targetUser);
+    }
+
+    // 세션 무효화
+    private void expireUserSession(String username) {
+        sessionRegistry.getAllPrincipals().stream()
+                // 현재 접속한 사용자 중 인증된 사용자만 필터링
+                .filter(principal -> principal instanceof DiscodeitUserDetails)
+                // 로그인 한 사용자 객체를 인증된 사용자 객체로 형 변환
+                .map(principal -> (DiscodeitUserDetails) principal)
+                // 특정 사용자 객체만 필터링
+                .filter(userDetails -> userDetails.getUsername().equals(username))
+                // 특정 사용자의 모든 세션 정보
+                .flatMap(userDetails -> sessionRegistry.getAllSessions(userDetails, false).stream())
+                // 세션 무효화
+                .forEach(SessionInformation::expireNow);
     }
 
     // 사용자 반환 (userId)

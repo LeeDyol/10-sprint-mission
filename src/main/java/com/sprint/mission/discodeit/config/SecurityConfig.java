@@ -16,16 +16,19 @@ import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 /*
     SecurityConfig
     --------------
-    프로젝트 전체의 보안 통제 및 보안 필터 조
+    프로젝트 전체의 보안 통제 및 보안 필터 조립
  */
 @Configuration
 @EnableWebSecurity(debug = true)        // 필터 목록 콘솔에 출력
@@ -35,8 +38,9 @@ public class SecurityConfig {
     private final LoginSuccessHandler loginSuccessHandler;
     private final LoginFailureHandler loginFailureHandler;
 
+    // 메인 보안 필터 라인 조립 및 요청별 출입 통제 규칙 정의
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, SessionRegistry sessionRegistry) throws Exception {
         // HTTP 보안 설정
         http
                 // 폼 로그인 활성화 및 로그인 처리 주소 지정
@@ -69,6 +73,7 @@ public class SecurityConfig {
                                 .maximumSessions(1)
                                 // 새 기기에서 로그인 할 경우, 기존 기기 로그아웃
                                 .maxSessionsPreventsLogin(false)
+                                .sessionRegistry(sessionRegistry)
                         )
                 )
                 // 인가 (Authorization) 설정
@@ -111,12 +116,14 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // 비밀번호 암호화
     @Bean
     public PasswordEncoder passwordEncoder() {
         // 비밀번호(Password) 단방향 암호화
         return new BCryptPasswordEncoder();
     }
 
+    // 권한 상하관계 정의
     @Bean
     public RoleHierarchy roleHierarchy() {
         RoleHierarchyImpl roleHierarchy = new RoleHierarchyImpl();
@@ -129,6 +136,7 @@ public class SecurityConfig {
         return roleHierarchy;
     }
 
+    // 메서드에 권한 상하관계 적용
     @Bean
     static MethodSecurityExpressionHandler methodSecurityExpressionHandler(RoleHierarchy roleHierarchy) {
         // @PreAuthorize가 권한 상하관계를 인식하도록 핸들러 생성
@@ -138,4 +146,15 @@ public class SecurityConfig {
         return handler;
     }
 
+    // 세션 기록
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    // 세션 만료
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
+    }
 }
