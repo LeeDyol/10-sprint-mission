@@ -5,6 +5,11 @@ import com.sprint.mission.discodeit.exception.ErrorCode;
 
 import java.util.Map;
 
+/*
+    UserException
+    -------------
+    User 도메인 내 최상위 예외 클래스
+ */
 public class UserException extends DiscodeitException {
     public UserException(ErrorCode errorCode) {
         super(errorCode);

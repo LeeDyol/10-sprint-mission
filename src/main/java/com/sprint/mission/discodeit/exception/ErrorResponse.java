@@ -5,7 +5,11 @@ import lombok.Builder;
 import java.time.Instant;
 import java.util.Map;
 
-// 에러 응답 DTO
+/*
+    ErrorResponse
+    -------------
+    프로젝트 공통 에러 응답 구조
+ */
 @Builder
 public record ErrorResponse (
     Instant timestamp,                  // 에러 발생 시각

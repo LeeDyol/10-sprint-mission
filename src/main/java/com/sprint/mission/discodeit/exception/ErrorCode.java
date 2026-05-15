@@ -4,6 +4,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
+/*
+    ErrorCode
+    ---------
+    프로젝트 내 커스텀 예외의 HTTP 상태값 및 에러 메시지 정의
+ */
 @Getter
 @RequiredArgsConstructor
 public enum ErrorCode {

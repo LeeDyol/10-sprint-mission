@@ -5,6 +5,11 @@ import com.sprint.mission.discodeit.exception.ErrorCode;
 import java.util.Map;
 import java.util.UUID;
 
+/*
+    BinaryContentFileProcessingErrorException
+    -----------------------------------------
+    첨부파일 변환 (MultipartFile -> BinaryContent)이 실패했을 때 발생하는 예외 클래스
+ */
 public class BinaryContentFileProcessingErrorException extends BinaryContentException {
     public BinaryContentFileProcessingErrorException(ErrorCode errorCode) {
         super(errorCode);

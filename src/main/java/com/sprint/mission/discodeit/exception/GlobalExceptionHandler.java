@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.exception;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -10,11 +11,23 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import java.nio.file.AccessDeniedException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
+/*
+    GlobalExceptionHandler
+    ----------------------
+    프로젝트 전역에서 발생하는 모든 예외를 공통 에러 응답 규격으로 변환
+
+    - handleDiscodeitException: 프로젝트 비즈니스 내 커스텀 예외 처리
+    - handleMethodArgumentNotValidException: DTO 검증 에러 (@Valid) 처리
+    - handleMissingServletRequestParameterException: 필수 파라미터 누락 에러 (@RequestParam) 처리
+    - handleMethodArgumentTypeMismatchException: 파라미터 타입 불일치 에러 (@PathVariable) 처리
+    - handleValidationExceptions: 권한 부적합 에러 (@PreAuthorize) 처리
+    - handleHttpRequestMethodNotSupportedException: HTTP 메서드 에러 처리
+    - handleException: 그 외 서버 내부 에러 처리
+ */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
