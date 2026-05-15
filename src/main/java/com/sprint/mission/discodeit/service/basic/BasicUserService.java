@@ -13,10 +13,12 @@ import com.sprint.mission.discodeit.exception.user.DuplicateUsernameException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.*;
+import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +39,7 @@ public class BasicUserService implements UserService {
     private final MessageRepository messageRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final ReadStatusRepository readStatusRepository;
+    private final SessionRegistry sessionRegistry;
 
     private final UserMapper userMapper;
 
@@ -65,26 +68,30 @@ public class BasicUserService implements UserService {
         // 기존 프로필은 고아가 되어 자동 삭제
         newUser.updateProfile(newProfileImage);
 
+        // 사용자 접속 여부 조회
+        boolean isOnline = isUserOnline(newUser.getUsername());
+
         log.info("[USER_CREATE] 사용자 생성 완료: id={}, profileId={}",
                 newUser.getId(),
                 newUser.getProfile() != null ? newUser.getProfile().getId() : "NONE"
         );
-        return userMapper.toDto(newUser);
+        return userMapper.toDto(newUser, isOnline);
     }
 
     // 사용자 단건 조회
     @Override
     public UserDto findById(UUID userId) {
         UserEntity targetUser = getUserEntityOrThrow(userId);
+        boolean isOnline = isUserOnline(targetUser.getUsername());
 
-        return userMapper.toDto(targetUser);
+        return userMapper.toDto(targetUser, isOnline);
     }
 
     // 사용자 전체 조회
     @Override
     public List<UserDto> findAll() {
         return userRepository.findAll().stream()
-                .map(userMapper::toDto)
+                .map(user -> userMapper.toDto(user, isUserOnline(user.getUsername())))
                 .toList();
     }
 
@@ -101,7 +108,7 @@ public class BasicUserService implements UserService {
 
         return readStatusRepository.findAllByChannel(targetChannel).stream()
                 .map(ReadStatusEntity::getUser)
-                .map(userMapper::toDto)
+                .map(user -> userMapper.toDto(user, isUserOnline(user.getUsername())))
                 .toList();
     }
 
@@ -110,6 +117,7 @@ public class BasicUserService implements UserService {
     @Transactional
     public UserDto update(UUID userId, UserUpdateRequest userUpdateRequest, MultipartFile profile) {
         UserEntity targetUser = getUserEntityOrThrow(userId);
+        boolean isOnline = isUserOnline(targetUser.getUsername());
 
         // 닉네임 필드 변경
         Optional.ofNullable(userUpdateRequest.newUsername())
@@ -142,7 +150,7 @@ public class BasicUserService implements UserService {
                 });
 
         log.info("[USER_UPDATE] 사용자 정보 수정 완료: id={}", targetUser.getId());
-        return userMapper.toDto(targetUser);
+        return userMapper.toDto(targetUser, isOnline);
     }
 
     // 사용자 삭제
@@ -167,7 +175,7 @@ public class BasicUserService implements UserService {
         );
     }
 
-    // 사용자 엔티티 반환
+    // 사용자 반환
     private UserEntity getUserEntityOrThrow(UUID userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
@@ -177,6 +185,16 @@ public class BasicUserService implements UserService {
     private ChannelEntity getChannelEntityOrThrow(UUID channelId){
         return channelRepository.findById(channelId)
                 .orElseThrow(() -> new ChannelNotFoundException(channelId));
+    }
+
+    // 사용자 접속 여부 반환: 세션을 기반으로 사용자 접속 여부 반환
+    private boolean isUserOnline(String username) {
+        return sessionRegistry.getAllPrincipals().stream()
+                // 인증된 사용자만 필터링
+                .filter(principal -> principal instanceof DiscodeitUserDetails)
+                .map(principal -> (DiscodeitUserDetails) principal)
+                // 특정 사용자의 세션 정보 유무 확인
+                .anyMatch(userDetails -> userDetails.getUsername().equals(username));
     }
 
     // 유효성 검사 (이메일 중복)

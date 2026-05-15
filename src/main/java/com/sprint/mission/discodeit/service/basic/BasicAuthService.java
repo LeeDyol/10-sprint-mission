@@ -34,8 +34,9 @@ public class BasicAuthService implements AuthService, UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserEntity user = getUserEntityOrThrow(username);
+        boolean isOnline = isUserOnline(user.getUsername());
 
-        UserDto userDto = userMapper.toDto(user);
+        UserDto userDto = userMapper.toDto(user, isOnline);
 
         // 데이터베이스에 저장되어 있던 사용자의 정보 반환
         return new DiscodeitUserDetails(userDto, user.getPassword());
@@ -47,13 +48,14 @@ public class BasicAuthService implements AuthService, UserDetailsService {
     @Transactional
     public UserDto updateUserRole(RoleUpdateRequest roleUpdateRequest) {
         UserEntity targetUser = getUserEntityOrThrow(roleUpdateRequest.userId());
+        boolean isOnline = isUserOnline(targetUser.getUsername());
 
         targetUser.updateRole(roleUpdateRequest.newRole());
 
         // 세션 무효화
         expireUserSession(targetUser.getUsername());
 
-        return userMapper.toDto(targetUser);
+        return userMapper.toDto(targetUser, isOnline);
     }
 
     // 세션 무효화
@@ -81,5 +83,15 @@ public class BasicAuthService implements AuthService, UserDetailsService {
     private UserEntity getUserEntityOrThrow(String username){
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException(username));
+    }
+
+    // 사용자 접속 여부 반환: 세션을 기반으로 사용자 접속 여부 반환
+    private boolean isUserOnline(String username) {
+        return sessionRegistry.getAllPrincipals().stream()
+                // 인증된 사용자만 필터링
+                .filter(principal -> principal instanceof DiscodeitUserDetails)
+                .map(principal -> (DiscodeitUserDetails) principal)
+                // 특정 사용자의 세션 정보 유무 확인
+                .anyMatch(userDetails -> userDetails.getUsername().equals(username));
     }
 }
