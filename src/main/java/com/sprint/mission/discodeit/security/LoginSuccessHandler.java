@@ -31,7 +31,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         // JSON 형태로 200 OK와 함께 반환
         response.setStatus(HttpStatus.OK.value());
-        response.setContentType(MediaType.APPLICATION_GRAPHQL_RESPONSE_VALUE);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
         objectMapper.writeValue(response.getWriter(), userDetails.getUserDto());

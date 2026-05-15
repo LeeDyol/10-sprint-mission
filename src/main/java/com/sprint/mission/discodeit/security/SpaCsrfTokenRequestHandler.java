@@ -34,7 +34,7 @@ public class SpaCsrfTokenRequestHandler implements CsrfTokenRequestHandler {
         String headerValue = request.getHeader(csrfToken.getHeaderName());
 
         return (StringUtils.hasText(headerValue)
-                ? this.plain                                                // 헤더에 토큰이 있립 경우
+                ? this.plain                                                // 헤더에 토큰이 있을 경우
                 : this.xor).resolveCsrfTokenValue(request, csrfToken);      // 헤더에 토긑니 없을 경우
     }
 }

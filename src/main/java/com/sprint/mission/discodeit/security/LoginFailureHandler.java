@@ -32,9 +32,9 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
         log.error("[LOGIN_FAILED] 로그인 실패: {}", exception.getMessage());
 
-        // JSON 형태로 200 OK와 함께 반환
+        // JSON 형태로 401 Unauthorized과 함께 반환
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
-        response.setContentType(MediaType.APPLICATION_GRAPHQL_RESPONSE_VALUE);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
         // 에러 응답 생성
