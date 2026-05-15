@@ -3,6 +3,8 @@ package com.sprint.mission.discodeit.config;
 import com.sprint.mission.discodeit.security.LoginFailureHandler;
 import com.sprint.mission.discodeit.security.LoginSuccessHandler;
 import com.sprint.mission.discodeit.security.SpaCsrfTokenRequestHandler;
+import com.sprint.mission.discodeit.service.AuthService;
+import com.sprint.mission.discodeit.service.basic.BasicAuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -40,7 +42,10 @@ public class SecurityConfig {
 
     // 메인 보안 필터 라인 조립 및 요청별 출입 통제 규칙 정의
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, SessionRegistry sessionRegistry) throws Exception {
+    public SecurityFilterChain filterChain(
+            HttpSecurity http,
+            SessionRegistry sessionRegistry,
+            BasicAuthService basicAuthService) throws Exception {
         // HTTP 보안 설정
         http
                 // 폼 로그인 활성화 및 로그인 처리 주소 지정
@@ -75,6 +80,17 @@ public class SecurityConfig {
                                 .maxSessionsPreventsLogin(false)
                                 .sessionRegistry(sessionRegistry)
                         )
+                )
+                // 자동 로그인 설정
+                .rememberMe(
+                        rememberMe -> rememberMe
+                                // 확인할 키 이름
+                                .key("discodeit-secret-key")
+                                .rememberMeParameter("remember-me")
+                                // 쿠키 유효 기간 (1일)
+                                .tokenValiditySeconds(60 * 60 * 24)
+                                // 세션 소실 시, 사용자 정보를 조회할 담당 서비스 클래스
+                                .userDetailsService(basicAuthService)
                 )
                 // 인가 (Authorization) 설정
                 .authorizeHttpRequests(auth -> auth
