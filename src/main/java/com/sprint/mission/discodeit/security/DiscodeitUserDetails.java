@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /*
     DiscodeitUserDetails
@@ -62,5 +63,32 @@ public class DiscodeitUserDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;        // 활성화
+    }
+
+    // 객체 비교
+    @Override
+    public boolean equals(Object o) {
+        // 메모리 주소 비교
+        if (this == o) {
+            return true;
+        }
+
+        // 널이거나 클래스 타입이 다를 경우, 불일치 반환
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        // 형 변환
+        DiscodeitUserDetails that = (DiscodeitUserDetails) o;
+
+        // 사용자 닉네임이 동일한 경우, 같은 객체로 취급
+        return Objects.equals(this.getUsername(), that.getUsername());
+    }
+
+    // 해시값 생성
+    @Override
+    public int hashCode() {
+        // 사용자 닉네임을 기반으로 해시값 생성
+        return Objects.hash(this.getUsername());
     }
 }
