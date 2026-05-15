@@ -20,6 +20,7 @@ import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -114,6 +115,7 @@ public class BasicUserService implements UserService {
 
     // 사용자 정보 수정
     @Override
+    @PreAuthorize("#userId == principal.userDto.id")        // 파라미터 값과 현재 로그인 한 사용자의 ID 일치 여부 확인
     @Transactional
     public UserDto update(UUID userId, UserUpdateRequest userUpdateRequest, MultipartFile profile) {
         UserEntity targetUser = getUserEntityOrThrow(userId);
@@ -154,6 +156,7 @@ public class BasicUserService implements UserService {
 
     // 사용자 삭제
     @Override
+    @PreAuthorize("#userId == principal.userDto.id")
     @Transactional
     public void delete(UUID userId) {
         UserEntity targetUser = getUserEntityOrThrow(userId);

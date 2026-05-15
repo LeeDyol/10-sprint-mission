@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -140,6 +141,7 @@ public class BasicMessageService implements MessageService {
 
     // 메시지 수정
     @Override
+    @PreAuthorize("@authValidator.isMessageOwner(#messageId, authentication.name)")
     @Transactional
     public MessageDto update(UUID messageId, MessageUpdateRequest messageUpdateRequest) {
         MessageEntity targetMessage = getMessageEntityOrThrow(messageId);
@@ -153,6 +155,7 @@ public class BasicMessageService implements MessageService {
 
     // 메시지 삭제
     @Override
+    @PreAuthorize("@authValidator.isMessageOwner(#messageId, authentication.name)")
     @Transactional
     public void delete(UUID messageId) {
         MessageEntity targetMessage = getMessageEntityOrThrow(messageId);
