@@ -92,42 +92,38 @@ public class BasicMessageService implements MessageService {
     public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant cursor, int size) {
         getChannelEntityOrThrow(channelId);
 
-        // 다음 페이지 여부 확인을 위해 size + 1개 조회
-        Pageable limit = PageRequest.of(0, size + 1);
-        List<MessageEntity> messages;
+        // 페이지네이션에 포함할 메시지 목록 조회
+        List<MessageEntity> messages = fetchMessages(channelId, cursor, size);
 
-        // 커서 유무에 따른 메시지 목록 조회
-        if (cursor == null) {
-            messages = messageRepository.findFirstPageByChannelId(channelId, limit);
-        } else {
-            messages = messageRepository.findNextPageByChannelId(channelId, cursor, limit);
-        }
-
+        // 페이징 계산
         boolean hasNext = messages.size() > size;
         List<MessageEntity> pagedMessages = hasNext
                 ? messages.subList(0, size)         // 10개씩 자르기
                 : messages;
 
-        // 다음 페이지 시작점 (커서)
-        String nextCursor = (hasNext && !pagedMessages.isEmpty())
-                ? pagedMessages.get(pagedMessages.size() - 1).getCreatedAt().toString()
-                : null;
+        String nextCursor = calculateNextCursor(pagedMessages, hasNext);
 
-        long totalElements = messageRepository.countByChannelId(channelId);
+        // 페이징 전용 응답 DTO 조립 및 반환
+        return buildPageResponse(channelId, pagedMessages, nextCursor, hasNext);
+    }
 
-        // 메시지 엔티티 -> 응답 DTO 변환
-        List<MessageDto> messageDtoList = pagedMessages.stream()
-                .map(messageMapper::toDto)
-                .toList();
+    // 페이지네이션에 포함될 메시지 목록 조회
+    private List<MessageEntity> fetchMessages(UUID channelId, Instant cursor, int size) {
+        // 다음 페이지 여부 확인을 위해 size + 1개 조회
+        Pageable limit = PageRequest.of(0, size + 1);
 
-        // 응답 DTO -> 페이지 전용 DTO 변환
-        return pageResponseMapper.fromCursor(
-                messageDtoList,
-                nextCursor,
-                messageDtoList.size(),
-                hasNext,
-                totalElements
-        );
+        // 커서 유무에 따른 메시지 목록 조회
+        return cursor == null
+                ? messageRepository.findFirstPageByChannelId(channelId, limit)
+                : messageRepository.findNextPageByChannelId(channelId, cursor, limit);
+    }
+
+    // 다음 페이지 시작점 (커서) 계산
+    private String calculateNextCursor(List<MessageEntity> pagedMessages, boolean hasNext) {
+        if (!hasNext || pagedMessages.isEmpty()) {
+            return null;
+        }
+        return pagedMessages.get(pagedMessages.size() - 1).getCreatedAt().toString();
     }
 
     // 특정 사용자가 발행한 전체 메시지 목록 조회
@@ -138,6 +134,23 @@ public class BasicMessageService implements MessageService {
         return messageRepository.findByAuthor(targetUser).stream()
                 .map(messageMapper::toDto)
                 .toList();
+    }
+
+    // 페이징 전용 응답 객체 조립
+    private PageResponse<MessageDto> buildPageResponse(UUID channelId, List<MessageEntity> pagedMessages, String nextCursor, boolean hasNext) {
+        long totalElements = messageRepository.countByChannelId(channelId);
+
+        List<MessageDto> messageDtoList = pagedMessages.stream()
+                .map(messageMapper::toDto)
+                .toList();
+
+        return pageResponseMapper.fromCursor(
+                messageDtoList,
+                nextCursor,
+                messageDtoList.size(),
+                hasNext,
+                totalElements
+        );
     }
 
     // 메시지 수정
