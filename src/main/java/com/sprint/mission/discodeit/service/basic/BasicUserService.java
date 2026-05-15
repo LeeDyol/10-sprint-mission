@@ -5,7 +5,6 @@ import com.sprint.mission.discodeit.dto.request.user.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.entity.*;
-import com.sprint.mission.discodeit.exception.ErrorCode;
 import com.sprint.mission.discodeit.exception.binarycontent.BinaryContentFileProcessingErrorException;
 import com.sprint.mission.discodeit.exception.channel.AccessDeniedPrivateChannelException;
 import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
@@ -37,7 +36,6 @@ public class BasicUserService implements UserService {
     private final ChannelRepository channelRepository;
     private final MessageRepository messageRepository;
     private final BinaryContentRepository binaryContentRepository;
-    private final UserStatusRepository userStatusRepository;
     private final ReadStatusRepository readStatusRepository;
 
     private final UserMapper userMapper;
@@ -62,17 +60,13 @@ public class BasicUserService implements UserService {
 
         userRepository.save(newUser);
 
-        UserStatusEntity newUserStatus = new UserStatusEntity(newUser);
-        userStatusRepository.save(newUserStatus);
-
         // 선택적 프로필 이미지 생성
         BinaryContentEntity newProfileImage = createProfile(newUser, profile);
         // 기존 프로필은 고아가 되어 자동 삭제
         newUser.updateProfile(newProfileImage);
 
-        log.info("[USER_CREATE] 사용자 생성 완료: id={}, userStatusId={}, profileId={}",
+        log.info("[USER_CREATE] 사용자 생성 완료: id={}, profileId={}",
                 newUser.getId(),
-                newUser.getUserStatus().getId(),
                 newUser.getProfile() != null ? newUser.getProfile().getId() : "NONE"
         );
         return userMapper.toDto(newUser);

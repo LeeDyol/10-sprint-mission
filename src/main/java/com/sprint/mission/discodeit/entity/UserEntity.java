@@ -24,9 +24,6 @@ public class UserEntity extends BaseUpdatableEntity {
     @JoinColumn(unique = true)
     private BinaryContentEntity profile;                           // 프로필 이미지
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, optional = false)
-    private UserStatusEntity userStatus;                           // 상태
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role = Role.USER;                                 // 권한 (기본 권한 = 사용자)
@@ -48,10 +45,6 @@ public class UserEntity extends BaseUpdatableEntity {
 
     public void updateEmail(String newEmail) {
         this.email = newEmail;
-    }
-
-    public void updateUserStatus(UserStatusEntity newUserStatus) {
-        this.userStatus = newUserStatus;
     }
 
     public void updateProfile(BinaryContentEntity newProfile) {

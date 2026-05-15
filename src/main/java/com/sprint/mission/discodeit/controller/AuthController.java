@@ -15,6 +15,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
+/*
+    TODO: Swagger API 명세서 세부 작업
+ */
 @Slf4j
 @Tag(name = "Auth", description = "인증 API")
 @RestController

@@ -2,11 +2,8 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.request.user.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.user.UserUpdateRequest;
-import com.sprint.mission.discodeit.dto.request.userstatus.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.UserDto;
-import com.sprint.mission.discodeit.dto.response.UserStatusDto;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.UserStatusService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -26,7 +23,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
-    private final UserStatusService userStatusService;
 
     @Operation(summary = "전체 User 목록 조회", operationId = "findAll")
     @GetMapping
@@ -61,14 +57,5 @@ public class UserController {
         userService.delete(userId);
 
         return ResponseEntity.noContent().build();
-    }
-
-    @Operation(summary = "User 온라인 상태 업데이트", operationId = "updateUserStatusByUserId")
-    @PatchMapping("/{userId}/userStatus")
-    public ResponseEntity<UserStatusDto> updateByUserId (@PathVariable UUID userId,
-                                                         @Valid @RequestBody UserStatusUpdateRequest userStatusUpdateRequest){
-        UserStatusDto updatedUserStatus = userStatusService.updateByUserId(userId, userStatusUpdateRequest);
-
-        return ResponseEntity.ok(updatedUserStatus);
     }
 }

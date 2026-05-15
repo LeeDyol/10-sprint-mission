@@ -43,10 +43,6 @@ public enum ErrorCode {
     READ_STATUS_NOT_FOUND(HttpStatus.NOT_FOUND, "ReadStatus with id not found"),
     DUPLICATE_READ_STATUS(HttpStatus.BAD_REQUEST, "ReadStatus with userId and channelId already exists"),
 
-    // UserStatus
-    USER_STATUS_NOT_FOUND(HttpStatus.NOT_FOUND, "UserStatus with id not found"),
-    DUPLICATE_USER_STATUS(HttpStatus.BAD_REQUEST, "UserStatus with userId already exists"),
-
     // BinaryContent
     BINARY_CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "Binary content with id not found"),
     BINARY_CONTENT_FILE_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Error occurred while processing file");

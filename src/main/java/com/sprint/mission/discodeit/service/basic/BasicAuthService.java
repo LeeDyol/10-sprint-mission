@@ -3,9 +3,7 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.request.auth.RoleUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.entity.UserEntity;
-import com.sprint.mission.discodeit.exception.ErrorCode;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
-import com.sprint.mission.discodeit.exception.userstatus.UserStatusNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
@@ -20,8 +18,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -78,7 +74,7 @@ public class BasicAuthService implements AuthService, UserDetailsService {
     // 사용자 반환 (userId)
     private UserEntity getUserEntityOrThrow(UUID userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new UserStatusNotFoundException(userId));
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     // 사용자 반환 (username)

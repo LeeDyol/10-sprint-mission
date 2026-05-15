@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
+/*
+    TODO: Swagger API 명세서 세부 작업
+ */
 public record RoleUpdateRequest (
         @NotNull
         UUID userId,
