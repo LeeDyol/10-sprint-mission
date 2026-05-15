@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @RequiredArgsConstructor
 class AdminInitializer implements ApplicationRunner {
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 

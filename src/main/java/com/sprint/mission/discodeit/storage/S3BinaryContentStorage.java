@@ -25,6 +25,7 @@ import java.util.UUID;
 @Component
 @ConditionalOnProperty(name = "discodeit.storage.type", havingValue = "s3")
 public class S3BinaryContentStorage implements BinaryContentStorage {
+
     private final String accessKey;
     private final String secretKey;
     private final String region;

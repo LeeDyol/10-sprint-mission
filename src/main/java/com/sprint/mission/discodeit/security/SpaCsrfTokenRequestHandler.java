@@ -16,6 +16,7 @@ import java.util.function.Supplier;
     기본 CSRF 검문소 대체
  */
 public class SpaCsrfTokenRequestHandler implements CsrfTokenRequestHandler {
+
     private final CsrfTokenRequestHandler plain = new CsrfTokenRequestAttributeHandler();           // 기본 토큰 처리
     private final CsrfTokenRequestHandler xor = new XorCsrfTokenRequestAttributeHandler();          // 마스크(XOR) 토큰 처리
 
@@ -35,6 +36,6 @@ public class SpaCsrfTokenRequestHandler implements CsrfTokenRequestHandler {
 
         return (StringUtils.hasText(headerValue)
                 ? this.plain                                                // 헤더에 토큰이 있을 경우
-                : this.xor).resolveCsrfTokenValue(request, csrfToken);      // 헤더에 토긑니 없을 경우
+                : this.xor).resolveCsrfTokenValue(request, csrfToken);      // 헤더에 토큰이 없을 경우
     }
 }

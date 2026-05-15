@@ -63,10 +63,6 @@ public interface MessageRepository extends JpaRepository<MessageEntity, UUID> {
     List<MessageEntity> findByChannel(@Param("channel") ChannelEntity channel);
 
     // 다건 조회 (특정 사용자가 발행한 메시지 목록)
-//    @Query("SELECT m FROM MessageEntity m JOIN FETCH m.author LEFT JOIN FETCH m.attachments WHERE m.channel.id = :channelId")
-//    Slice<MessageEntity> findByChannelId(@Param("channelId") UUID channelId, Pageable pageable);
-
-    // 다건 조회 (특정 사용자가 발행한 메시지 목록)
     // 커서가 없는 경우
     @Query("""
         SELECT message FROM MessageEntity message

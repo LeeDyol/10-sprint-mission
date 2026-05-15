@@ -22,6 +22,7 @@ import java.util.UUID;
 @Component
 @ConditionalOnProperty(name = "discodeit.storage.type", havingValue = "local")
 public class LocalBinaryContentStorage implements BinaryContentStorage {
+
     private final Path root;
 
     LocalBinaryContentStorage(@Value("${discodeit.storage.local.root-path}") Path rootPath) {

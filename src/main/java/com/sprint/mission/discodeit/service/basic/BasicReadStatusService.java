@@ -28,6 +28,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class BasicReadStatusService implements ReadStatusService {
+
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
     private final ReadStatusRepository readStatusRepository;
@@ -41,6 +42,7 @@ public class BasicReadStatusService implements ReadStatusService {
         UserEntity targetUser = getUserEntityOrThrow(readStatusCreateRequest.userId());
         ChannelEntity targetChannel = getChannelEntityOrThrow(readStatusCreateRequest.channelId());
 
+        // 유효성 검증 (중복 확인)
         existsByUserIdAndChannelId(targetUser.getId(), targetChannel.getId());
 
         ReadStatusEntity newReadStatus = new ReadStatusEntity(targetUser, targetChannel, readStatusCreateRequest.lastReadAt());

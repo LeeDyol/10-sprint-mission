@@ -19,6 +19,7 @@ import java.util.Objects;
 @Getter
 @RequiredArgsConstructor
 public class DiscodeitUserDetails implements UserDetails {
+
     private final UserDto userDto;
     private final String password;
 

@@ -32,6 +32,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class BasicChannelService implements ChannelService {
+
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
     private final MessageRepository messageRepository;
@@ -57,7 +58,7 @@ public class BasicChannelService implements ChannelService {
     public ChannelDto createPrivateChannel(PrivateChannelCreateRequest privateChannelCreateRequest) {
         ChannelEntity newChannel = channelMapper.toPrivateEntity();
 
-        // 각 멤버의 읽음 상태 생성
+        // 비공개 채널에 초대하고자 하는 사용자 조회
         List<UserEntity> members = userRepository.findAllById(privateChannelCreateRequest.participantIds());
 
         if (members.size() != privateChannelCreateRequest.participantIds().size()) {
@@ -67,7 +68,7 @@ public class BasicChannelService implements ChannelService {
         }
 
         members.forEach(member -> {
-            // 존재하는 멤버에 한해 읽음 상태 생성
+            // 각 멤버의 읽음 상태 생성
             ReadStatusEntity memberReadStatus = new ReadStatusEntity(member, newChannel);
             newChannel.getReadStatuses().add(memberReadStatus);
         });
