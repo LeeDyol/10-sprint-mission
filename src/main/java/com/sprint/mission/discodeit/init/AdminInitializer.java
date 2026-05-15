@@ -33,6 +33,7 @@ class AdminInitializer implements ApplicationRunner {
         if (!adminExists) {
             UserEntity admin = UserEntity.builder()
                     .username("admin")
+                    .email("admin@codeit.com")
                     .password(passwordEncoder.encode("admin1234!"))
                     .build();
 
