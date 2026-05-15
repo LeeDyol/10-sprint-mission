@@ -80,19 +80,22 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 인증에서 제외되는 요청
                         .requestMatchers(
-                                HttpMethod.POST, "/api/users"   // 회원가입
+                                HttpMethod.POST, "/api/users"           // 회원가입
                         ).permitAll()
                         .requestMatchers(
-                                "/api/auth/csrf-token",         // CSRF Token 발급
-                                "/api/auth/login",              // 로그인
-                                "/api/auth/logout",             // 로그아웃
-                                "/docs",                        // Swagger UI 접속 주소
-                                "/api-docs",                    // API 명세서 경로
-                                "/api-docs/**",                 // Swagger 문서 데이터
-                                "/swagger-ui/**",               // Swagger UI 정적 파일 (CSS, JS) 경로
-                                "/swagger-ui.html",             // Swagger UI 기본 페이지 (리다이렉트 대비용)
-                                "/actuator/**",                 // Actuator 서버 상태 체크
-                                "/error"                        // 기본 에러 페이지 처리
+                                "/", "/index.html",                   // 명시적 접근
+                                "/static/**", "/assets/**",           // 기본 정적 폴더
+                                "/favicon.ico","/css/**", "/js/**", // 기타 자원
+                                "/api/auth/csrf-token",                 // CSRF Token 발급
+                                "/api/auth/login",                      // 로그인
+                                "/api/auth/logout",                     // 로그아웃
+                                "/docs",                                // Swagger UI 접속 주소
+                                "/api-docs",                            // API 명세서 경로
+                                "/api-docs/**",                         // Swagger 문서 데이터
+                                "/swagger-ui/**",                       // Swagger UI 정적 파일 (CSS, JS) 경로
+                                "/swagger-ui.html",                     // Swagger UI 기본 페이지 (리다이렉트 대비용)
+                                "/actuator/**",                         // Actuator 서버 상태 체크
+                                "/error"                                // 기본 에러 페이지 처리
                         ).permitAll()
                         // 모든 요청에 대해 권한 검증
                         .anyRequest().authenticated()
