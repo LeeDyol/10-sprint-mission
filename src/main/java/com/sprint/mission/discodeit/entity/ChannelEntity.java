@@ -25,10 +25,10 @@ public class ChannelEntity extends BaseUpdatableEntity {
 
     @BatchSize(size = 100)
     @OneToMany(mappedBy = "channel", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ReadStatusEntity> readStatuses = new ArrayList<>();
+    private List<ReadStatusEntity> readStatuses = new ArrayList<>();        // 채널 내 존재하는 읽음 상태 목록
 
     @OneToMany(mappedBy = "channel", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MessageEntity> messages = new ArrayList<>();
+    private List<MessageEntity> messages = new ArrayList<>();               // 채널에서 발행된 메시지 목록
 
     @Builder
     public ChannelEntity(String name, String description, ChannelType type) {

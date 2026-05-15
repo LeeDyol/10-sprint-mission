@@ -29,7 +29,7 @@ public class UserEntity extends BaseUpdatableEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role = Role.USER;                                 // 권한
+    private Role role = Role.USER;                                 // 권한 (기본 권한 = 사용자)
 
     @Builder
     public UserEntity(String username, String email, String password) {
