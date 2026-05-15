@@ -106,7 +106,7 @@ public class BasicUserServiceTest {
                 .profile(expectedBinaryContentDto)
                 .online(true)
                 .build();
-        given(userMapper.toDto(any(UserEntity.class))).willReturn(expectedDto);
+        given(userMapper.toDto(any(UserEntity.class), )).willReturn(expectedDto);
 
         // when | 테스트 실행
         UserDto result = basicUserService.create(request, profile);

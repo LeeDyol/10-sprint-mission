@@ -119,19 +119,12 @@ public class BasicUserService implements UserService {
         UserEntity targetUser = getUserEntityOrThrow(userId);
         boolean isOnline = isUserOnline(targetUser.getUsername());
 
-        // 닉네임 필드 변경
+        // 닉네임 필드 변경: 필드 값이 변경되지 않았을 경우, 프론트엔드에서 null 전송
         Optional.ofNullable(userUpdateRequest.newUsername())
                 .ifPresent(newUsername -> {
                     isUsernameDuplicate(newUsername);                                   // 다른 사용자와의 중복 확인
                     validateDuplicateValue(targetUser.getUsername(), newUsername);      // 변경 전 필드와의 중복 확인
                     targetUser.updateUsername(newUsername);
-                });
-
-        // 비밀번호 필드 변경
-        Optional.ofNullable(userUpdateRequest.newPassword())
-                .ifPresent(newPassword -> {
-                    validateDuplicateValue(targetUser.getPassword(), newPassword);
-                    targetUser.updatePassword(newPassword);
                 });
 
         // 이메일 필드 변경
@@ -140,6 +133,13 @@ public class BasicUserService implements UserService {
                     isEmailDuplicate(newEmail);
                     validateDuplicateValue(targetUser.getEmail(), newEmail);
                     targetUser.updateEmail(newEmail);
+                });
+
+        // 비밀번호 필드 변경
+        Optional.ofNullable(userUpdateRequest.newPassword())
+                .ifPresent(newPassword -> {
+                    validateDuplicateValue(targetUser.getPassword(), newPassword);
+                    targetUser.updatePassword(newPassword);
                 });
 
         // 프로필 이미지 변경

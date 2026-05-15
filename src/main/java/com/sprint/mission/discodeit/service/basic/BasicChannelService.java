@@ -24,11 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
-import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateDuplicateValue;
 
 @Slf4j
 @Service
@@ -120,19 +117,9 @@ public class BasicChannelService implements ChannelService {
             throw new PrivateChannelNotUpdatableException();
         }
 
-        // 채널 이름 변경
-        Optional.ofNullable(publicChannelUpdateRequest.newName())
-                .ifPresent(newChannelName -> {
-                    validateDuplicateValue(targetChannel.getName(), newChannelName);
-                    targetChannel.updateChannelName(publicChannelUpdateRequest.newName());
-                });
-
-        // 채널 설명 변경
-        Optional.ofNullable(publicChannelUpdateRequest.newDescription())
-                .ifPresent(newChannelDescription -> {
-                    validateDuplicateValue(targetChannel.getDescription(), newChannelDescription);
-                    targetChannel.updateChannelDescription(publicChannelUpdateRequest.newDescription());
-                });
+        // 채널 이름 및 설명 덮어쓰기
+        targetChannel.updateChannelName(publicChannelUpdateRequest.newName());
+        targetChannel.updateChannelDescription(publicChannelUpdateRequest.newDescription());
 
         log.info("[PUBLIC_CHANNEL_UPDATE] 공개 채널 수정 완료: id={}", targetChannel.getId());
         return toChannelDto(targetChannel);

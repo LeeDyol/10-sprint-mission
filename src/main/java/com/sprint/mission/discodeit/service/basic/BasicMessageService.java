@@ -8,7 +8,6 @@ import com.sprint.mission.discodeit.entity.BinaryContentEntity;
 import com.sprint.mission.discodeit.entity.ChannelEntity;
 import com.sprint.mission.discodeit.entity.MessageEntity;
 import com.sprint.mission.discodeit.entity.UserEntity;
-import com.sprint.mission.discodeit.exception.ErrorCode;
 import com.sprint.mission.discodeit.exception.binarycontent.BinaryContentFileProcessingErrorException;
 import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
 import com.sprint.mission.discodeit.exception.message.MessageNotFoundException;
@@ -32,10 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-
-import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateDuplicateValue;
 
 @Slf4j
 @Service
@@ -63,6 +59,7 @@ public class BasicMessageService implements MessageService {
         createAttachments(newMessage, attachments);
 
         messageRepository.save(newMessage);
+
         log.info("[MESSAGE_CREATE] 메시지 생성 완료: id={}, authorId={}, channelId={}, attachments= 총 {}개",
                 newMessage.getId(),
                 newMessage.getAuthor().getId(),
@@ -147,7 +144,7 @@ public class BasicMessageService implements MessageService {
     public MessageDto update(UUID messageId, MessageUpdateRequest messageUpdateRequest) {
         MessageEntity targetMessage = getMessageEntityOrThrow(messageId);
 
-        validateDuplicateValue(targetMessage.getContent(), messageUpdateRequest.newContent());
+        // 메시지 덮어쓰기
         targetMessage.updateMessage(messageUpdateRequest.newContent());
 
         log.info("[MESSAGE_UPDATE] 메시지 수정 완료: id={}",targetMessage.getId());
