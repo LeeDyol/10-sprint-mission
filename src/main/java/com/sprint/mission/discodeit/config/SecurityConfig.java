@@ -62,9 +62,11 @@ public class SecurityConfig {
                                 "/api/auth/csrf-token",         // CSRF Token 발급
                                 "/api/auth/login",              // 로그인
                                 "/api/auth/logout",             // 로그아웃
-                                "/v3/api-docs/**",              // Swagger 문서 데이터
-                                "/swagger-ui/**",               // Swagger UI 화면
-                                "/swagger-ui.html",             // Swagger UI 기본 페이지
+                                "/docs",                        // Swagger UI 접속 주소
+                                "/api-docs",                    // API 명세서 경로
+                                "/api-docs/**",                 // Swagger 문서 데이터
+                                "/swagger-ui/**",               // Swagger UI 정적 파일 (CSS, JS) 경로
+                                "/swagger-ui.html",             // Swagger UI 기본 페이지 (리다이렉트 대비용)
                                 "/actuator/**",                 // Actuator 서버 상태 체크
                                 "/error"                        // 기본 에러 페이지 처리
                         ).permitAll()
