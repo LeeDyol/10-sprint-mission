@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.nio.file.AccessDeniedException;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -115,8 +116,8 @@ public class GlobalExceptionHandler {
     }
 
     // 권한 부적합 (@PreAuthorize)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException e) {
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(AccessDeniedException e) {
         ErrorCode errorCode = ErrorCode.ACCESS_DENIED;
 
         ErrorResponse error = ErrorResponse.builder()
