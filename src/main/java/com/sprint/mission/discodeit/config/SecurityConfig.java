@@ -135,13 +135,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 비밀번호 암호화
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        // 비밀번호(Password) 단방향 암호화
-        return new BCryptPasswordEncoder();
-    }
-
     // 권한 상하관계 정의
     @Bean
     public RoleHierarchy roleHierarchy() {
