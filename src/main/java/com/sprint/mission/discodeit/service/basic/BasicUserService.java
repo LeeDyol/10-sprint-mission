@@ -5,6 +5,8 @@ import com.sprint.mission.discodeit.dto.request.user.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.exception.DiscodeitException;
+import com.sprint.mission.discodeit.exception.ErrorCode;
 import com.sprint.mission.discodeit.exception.binarycontent.BinaryContentFileProcessingErrorException;
 import com.sprint.mission.discodeit.exception.channel.AccessDeniedPrivateChannelException;
 import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
@@ -26,8 +28,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.*;
-
-import static com.sprint.mission.discodeit.service.util.ValidationUtil.validateDuplicateValue;
 
 @Slf4j
 @Service
@@ -123,7 +123,6 @@ public class BasicUserService implements UserService {
         Optional.ofNullable(userUpdateRequest.newUsername())
                 .ifPresent(newUsername -> {
                     isUsernameDuplicate(newUsername);                                   // 다른 사용자와의 중복 확인
-                    validateDuplicateValue(targetUser.getUsername(), newUsername);      // 변경 전 필드와의 중복 확인
                     targetUser.updateUsername(newUsername);
                 });
 
@@ -131,15 +130,15 @@ public class BasicUserService implements UserService {
         Optional.ofNullable(userUpdateRequest.newEmail())
                 .ifPresent(newEmail -> {
                     isEmailDuplicate(newEmail);
-                    validateDuplicateValue(targetUser.getEmail(), newEmail);
                     targetUser.updateEmail(newEmail);
                 });
 
         // 비밀번호 필드 변경
         Optional.ofNullable(userUpdateRequest.newPassword())
                 .ifPresent(newPassword -> {
-                    validateDuplicateValue(targetUser.getPassword(), newPassword);
-                    targetUser.updatePassword(newPassword);
+                    validateDuplicatePassword(targetUser.getPassword(), newPassword);
+                    String encodedPassword = passwordEncoder.encode(userUpdateRequest.newPassword());
+                    targetUser.updatePassword(encodedPassword);
                 });
 
         // 프로필 이미지 변경
@@ -212,6 +211,13 @@ public class BasicUserService implements UserService {
     // 유효성 검사 (읽음 상태 존재 여부)
     private boolean existsReadStatusByUserIdAndChannelId(UUID userId, UUID channelId) {
         return readStatusRepository.existsByUserIdAndChannelId(userId, channelId);
+    }
+
+    // 유효성 검사 (비밀번호 변경 시, 이전 값과 동일 여부)
+    private void validateDuplicatePassword(String newPassword, String currentEncodedPassword) {
+        if (passwordEncoder.matches(newPassword, currentEncodedPassword)) {
+            throw new DiscodeitException(ErrorCode.DUPLICATE_VALUE_NOT_UPDATE);
+        }
     }
 
     // 프로필 이미지 생성 및 저장
