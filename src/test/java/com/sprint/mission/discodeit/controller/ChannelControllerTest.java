@@ -23,6 +23,8 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -66,6 +68,7 @@ public class ChannelControllerTest {
 
         // when & then
         mockMvc.perform(get("/api/channels")
+                        .with(user("yushi").roles("USER"))
                         .param("userId", userId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -80,7 +83,8 @@ public class ChannelControllerTest {
         // given
 
         // when & then
-        mockMvc.perform(get("/api/channels"))
+        mockMvc.perform(get("/api/channels")
+                        .with(user("yushi").roles("USER")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.exceptionType").value("MissingServletRequestParameterException"));
     }
@@ -111,6 +115,8 @@ public class ChannelControllerTest {
 
         // when & then
         mockMvc.perform(post("/api/channels/public")
+                        .with(csrf())
+                        .with(user("yushi").roles("CHANNER_MANAGER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -132,6 +138,8 @@ public class ChannelControllerTest {
 
         // When & Then
         mockMvc.perform(post("/api/channels/public")
+                        .with(csrf())
+                        .with(user("yushi").roles("CHANNER MANAGER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isBadRequest())
@@ -160,6 +168,8 @@ public class ChannelControllerTest {
 
         // when & then
         mockMvc.perform(post("/api/channels/private")
+                        .with(csrf())
+                        .with(user("yushi").roles("CHANNER MANAGER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -177,6 +187,8 @@ public class ChannelControllerTest {
 
         // When & Then
         mockMvc.perform(post("/api/channels/private")
+                        .with(csrf())
+                        .with(user("yushi").roles("CHANNER MANAGER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -209,6 +221,8 @@ public class ChannelControllerTest {
 
         // when & then
         mockMvc.perform(patch("/api/channels/{channelId}", channelId)
+                        .with(csrf())
+                        .with(user("yushi").roles("CHANNER MANAGER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -228,6 +242,8 @@ public class ChannelControllerTest {
 
         // when & then
         mockMvc.perform(patch("/api/channels/{channelId}", channelId)
+                        .with(csrf())
+                        .with(user("yushi").roles("CHANNER MANAGER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -245,7 +261,9 @@ public class ChannelControllerTest {
         UUID channelId = UUID.randomUUID();
 
         // when & then
-        mockMvc.perform(delete("/api/channels/{channelId}", channelId))
+        mockMvc.perform(delete("/api/channels/{channelId}", channelId)
+                        .with(csrf())
+                        .with(user("yushi").roles("CHANNER MANAGER")))
                 .andExpect(status().isNoContent());
     }
 
@@ -257,7 +275,9 @@ public class ChannelControllerTest {
         UUID channelId = UUID.randomUUID();
 
         // when & then
-        mockMvc.perform(post("/api/channels/{channelId}", channelId))
+        mockMvc.perform(post("/api/channels/{channelId}", channelId)
+                        .with(csrf())
+                        .with(user("yushi").roles("CHANNER MANAGER")))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("$.exceptionType").value("HttpRequestMethodNotSupportedException"));
     }

@@ -22,6 +22,8 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -83,7 +85,9 @@ public class MessageControllerTest {
                     .file(requestPart)
                     .file(attachmentPart)
                     .contentType(MediaType.MULTIPART_FORM_DATA)
-                    .accept(MediaType.APPLICATION_JSON))
+                    .accept(MediaType.APPLICATION_JSON)
+                    .with(csrf())
+                    .with(user("yushi").roles("USER")))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(messageId.toString()))
                 .andExpect(jsonPath("$.content").value("LUV ME HATE ME"));
@@ -113,7 +117,9 @@ public class MessageControllerTest {
         mockMvc.perform(multipart("/api/messages")
                         .file(requestPart)
                         .contentType(MediaType.MULTIPART_FORM_DATA)
-                        .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .with(user("yushi").roles("USER")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.exceptionType").value("MethodArgumentNotValidException"));
     }
@@ -147,7 +153,9 @@ public class MessageControllerTest {
 
         // when & then
         mockMvc.perform(get("/api/messages")
-                    .param("channelId", channelId.toString()))
+                    .param("channelId", channelId.toString())
+                    .with(csrf())
+                    .with(user("yushi").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
                 .andExpect(jsonPath("$.content.length()").value(2))
@@ -163,7 +171,9 @@ public class MessageControllerTest {
         // given
 
         // when & then
-        mockMvc.perform(get("/api/messages"))
+        mockMvc.perform(get("/api/messages")
+                        .with(csrf())
+                        .with(user("yushi").roles("USER")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.exceptionType").value("MissingServletRequestParameterException"));
     }
@@ -192,8 +202,10 @@ public class MessageControllerTest {
 
         // when & then
         mockMvc.perform(patch("/api/messages/{messageId}", messageId)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(csrf())
+                        .with(user("yushi").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").value("KILL ME KILL ME"));
 
@@ -210,7 +222,9 @@ public class MessageControllerTest {
         // when & then
         mockMvc.perform(patch("/api/messages/{messageId}", messageId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(csrf())
+                        .with(user("yushi").roles("USER")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.exceptionType").value("MethodArgumentTypeMismatchException"));
     }
@@ -226,7 +240,9 @@ public class MessageControllerTest {
         UUID messageId = UUID.randomUUID();
 
         // when & then
-        mockMvc.perform(delete("/api/messages/{messageId}", messageId))
+        mockMvc.perform(delete("/api/messages/{messageId}", messageId)
+                        .with(csrf())
+                        .with(user("yushi").roles("USER")))
                 .andExpect(status().isNoContent());
     }
 
@@ -238,7 +254,9 @@ public class MessageControllerTest {
         UUID messageId = UUID.randomUUID();
 
         // when & then
-        mockMvc.perform(post("/api/messages/{messageId}", messageId))
+        mockMvc.perform(post("/api/messages/{messageId}", messageId)
+                        .with(csrf())
+                        .with(user("yushi").roles("USER")))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("$.exceptionType").value("HttpRequestMethodNotSupportedException"));
     }
