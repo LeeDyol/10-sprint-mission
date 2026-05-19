@@ -219,8 +219,10 @@ public class BasicUserService implements UserService {
                 // 인증된 사용자만 필터링
                 .filter(principal -> principal instanceof DiscodeitUserDetails)
                 .map(principal -> (DiscodeitUserDetails) principal)
-                // 특정 사용자의 세션 정보 유무 확인
-                .anyMatch(userDetails -> userDetails.getUsername().equals(username));
+                // 특정 사용자의 세션 정보 필터링
+                .filter(userDetails -> userDetails.getUsername().equals(username))
+                // 특정 사용자의 만료되지 않은 세션 유무 확인
+                .anyMatch(userDetails -> sessionRegistry.getAllSessions(userDetails, false).isEmpty());
     }
 
     // 유효성 검사 (이메일 중복)
