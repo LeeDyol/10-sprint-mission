@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.security.LoginFailureHandler;
 import com.sprint.mission.discodeit.security.LoginSuccessHandler;
 import com.sprint.mission.discodeit.security.SpaCsrfTokenRequestHandler;
 import com.sprint.mission.discodeit.service.basic.BasicAuthService;
+import com.sprint.mission.discodeit.service.basic.DiscodeitUserDetailsService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -37,7 +38,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(
             HttpSecurity http,
             SessionRegistry sessionRegistry,
-            BasicAuthService basicAuthService) throws Exception {
+            DiscodeitUserDetailsService discodeitUserDetailsService) throws Exception {
         // HTTP 보안 설정
         http
                 // 폼 로그인 활성화 및 로그인 처리 주소 지정
@@ -82,7 +83,7 @@ public class SecurityConfig {
                                 // 쿠키 유효 기간 (1일)
                                 .tokenValiditySeconds(60 * 60 * 24)
                                 // 세션 소실 시, 사용자 정보를 조회할 담당 서비스 클래스
-                                .userDetailsService(basicAuthService)
+                                .userDetailsService(discodeitUserDetailsService)
                 )
                 // 인가 (Authorization) 설정
                 .authorizeHttpRequests(auth -> auth
