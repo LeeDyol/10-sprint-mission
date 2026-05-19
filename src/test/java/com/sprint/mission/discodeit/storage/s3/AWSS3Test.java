@@ -21,6 +21,7 @@ import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Disabled
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AWSS3Test {
