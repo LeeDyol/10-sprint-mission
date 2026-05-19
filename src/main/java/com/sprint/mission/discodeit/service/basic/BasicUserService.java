@@ -80,6 +80,27 @@ public class BasicUserService implements UserService {
         return userMapper.toDto(newUser, isOnline);
     }
 
+    // 프로필 이미지 생성 및 저장
+    private BinaryContentEntity createProfile (UserEntity targetUser, MultipartFile profile) {
+        BinaryContentEntity newProfile = null;
+
+        if (profile != null && !profile.isEmpty()){
+            try {
+                newProfile = new BinaryContentEntity(
+                        profile.getOriginalFilename(),
+                        profile.getSize(),
+                        profile.getContentType()
+                );
+
+                binaryContentRepository.save(newProfile);
+                binaryContentStorage.put(newProfile.getId(), profile.getBytes());
+            } catch (IOException e) {
+                throw new BinaryContentFileProcessingErrorException(targetUser.getUsername(), profile.getName());
+            }
+        }
+        return newProfile;
+    }
+
     // 사용자 단건 조회
     @Override
     public UserDto findById(UUID userId) {
@@ -125,7 +146,7 @@ public class BasicUserService implements UserService {
         // 닉네임 필드 변경: 필드 값이 변경되지 않았을 경우, 프론트엔드에서 null 전송
         Optional.ofNullable(userUpdateRequest.newUsername())
                 .ifPresent(newUsername -> {
-                    isUsernameDuplicate(newUsername);                                   // 다른 사용자와의 중복 확인
+                    isUsernameDuplicate(newUsername);                    // 다른 사용자와의 중복 확인
                     targetUser.updateUsername(newUsername);
                 });
 
@@ -140,6 +161,8 @@ public class BasicUserService implements UserService {
         Optional.ofNullable(userUpdateRequest.newPassword())
                 .ifPresent(newPassword -> {
                     validateDuplicatePassword(targetUser.getPassword(), newPassword);
+
+                    // 비밀번호 암호화
                     String encodedPassword = passwordEncoder.encode(userUpdateRequest.newPassword());
                     targetUser.updatePassword(encodedPassword);
                 });
@@ -222,26 +245,5 @@ public class BasicUserService implements UserService {
         if (passwordEncoder.matches(newPassword, currentEncodedPassword)) {
             throw new DiscodeitException(ErrorCode.DUPLICATE_VALUE_NOT_UPDATE);
         }
-    }
-
-    // 프로필 이미지 생성 및 저장
-    private BinaryContentEntity createProfile (UserEntity targetUser, MultipartFile profile) {
-        BinaryContentEntity newProfile = null;
-
-        if (profile != null && !profile.isEmpty()){
-            try {
-                newProfile = new BinaryContentEntity(
-                        profile.getOriginalFilename(),
-                        profile.getSize(),
-                        profile.getContentType()
-                );
-
-                binaryContentRepository.save(newProfile);
-                binaryContentStorage.put(newProfile.getId(), profile.getBytes());
-            } catch (IOException e) {
-                throw new BinaryContentFileProcessingErrorException(targetUser.getUsername(), profile.getName());
-            }
-        }
-        return newProfile;
     }
 }

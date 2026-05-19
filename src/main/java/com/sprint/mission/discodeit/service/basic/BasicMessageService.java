@@ -71,6 +71,31 @@ public class BasicMessageService implements MessageService {
         return messageMapper.toDto(newMessage);
     }
 
+    // 메시지와 함께 전송된 첨부 파일 생성 및 저장
+    private void createAttachments (MessageEntity newMessage, List<MultipartFile> attachments) {
+        // 메시지와 함께 전송된 첨부 파일이 Null 일 경우, 빈 리스트 반환
+        List<MultipartFile> attachmentsOfUser = (attachments == null)
+                ? List.of()
+                : attachments;
+
+        for (MultipartFile file : attachmentsOfUser) {
+            try {
+                BinaryContentEntity newBinaryContent = new BinaryContentEntity(
+                        file.getOriginalFilename(),
+                        file.getSize(),
+                        file.getContentType());
+
+                binaryContentRepository.save(newBinaryContent);
+                binaryContentStorage.put(newBinaryContent.getId(), file.getBytes());
+
+                // BinaryContent - Message 간 연관 관계 설정
+                newMessage.addAttachment(newBinaryContent);
+            } catch (Exception e) {
+                throw new BinaryContentFileProcessingErrorException(newMessage.getId(), file.getName());
+            }
+        }
+    }
+
     // 메시지 단건 조회
     @Override
     public MessageDto findById(UUID messageId) {
@@ -123,7 +148,27 @@ public class BasicMessageService implements MessageService {
         if (!hasNext || pagedMessages.isEmpty()) {
             return null;
         }
+
         return pagedMessages.get(pagedMessages.size() - 1).getCreatedAt().toString();
+    }
+
+    // 페이징 전용 응답 객체 조립
+    private PageResponse<MessageDto> buildPageResponse(UUID channelId, List<MessageEntity> pagedMessages, String nextCursor, boolean hasNext) {
+        long totalElements = messageRepository.countByChannelId(channelId);
+
+        // 엔티티 -> 기본 응답 DTO
+        List<MessageDto> messageDtoList = pagedMessages.stream()
+                .map(messageMapper::toDto)
+                .toList();
+
+        // 기본 응답 DTO -> 페이징 전용 DTO
+        return pageResponseMapper.fromCursor(
+                messageDtoList,
+                nextCursor,
+                messageDtoList.size(),
+                hasNext,
+                totalElements
+        );
     }
 
     // 특정 사용자가 발행한 전체 메시지 목록 조회
@@ -134,23 +179,6 @@ public class BasicMessageService implements MessageService {
         return messageRepository.findByAuthor(targetUser).stream()
                 .map(messageMapper::toDto)
                 .toList();
-    }
-
-    // 페이징 전용 응답 객체 조립
-    private PageResponse<MessageDto> buildPageResponse(UUID channelId, List<MessageEntity> pagedMessages, String nextCursor, boolean hasNext) {
-        long totalElements = messageRepository.countByChannelId(channelId);
-
-        List<MessageDto> messageDtoList = pagedMessages.stream()
-                .map(messageMapper::toDto)
-                .toList();
-
-        return pageResponseMapper.fromCursor(
-                messageDtoList,
-                nextCursor,
-                messageDtoList.size(),
-                hasNext,
-                totalElements
-        );
     }
 
     // 메시지 수정
@@ -194,30 +222,5 @@ public class BasicMessageService implements MessageService {
     private MessageEntity getMessageEntityOrThrow(UUID messageId){
         return messageRepository.findWithDetails(messageId)
                 .orElseThrow(() -> new MessageNotFoundException(messageId));
-    }
-
-    // 메시지와 함께 전송된 첨부 파일 생성 및 저장
-    private void createAttachments (MessageEntity newMessage, List<MultipartFile> attachments) {
-        // 메시지와 함께 전송된 첨부 파일이 Null 일 경우, 빈 리스트 반환
-        List<MultipartFile> attachmentsOfUser = (attachments == null)
-                ? List.of()
-                : attachments;
-
-        for (MultipartFile file : attachmentsOfUser) {
-            try {
-                BinaryContentEntity newBinaryContent = new BinaryContentEntity(
-                        file.getOriginalFilename(),
-                        file.getSize(),
-                        file.getContentType());
-
-                binaryContentRepository.save(newBinaryContent);
-                binaryContentStorage.put(newBinaryContent.getId(), file.getBytes());
-
-                // BinaryContent - Message 간 연관 관계 설정
-                newMessage.addAttachment(newBinaryContent);
-            } catch (Exception e) {
-                throw new BinaryContentFileProcessingErrorException(newMessage.getId(), file.getName());
-            }
-        }
     }
 }

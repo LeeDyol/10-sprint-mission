@@ -62,9 +62,7 @@ public class BasicChannelService implements ChannelService {
         List<UserEntity> members = userRepository.findAllById(privateChannelCreateRequest.participantIds());
 
         if (members.size() != privateChannelCreateRequest.participantIds().size()) {
-            throw new UserNotFoundException(
-                    ErrorCode.USER_NOT_FOUND
-            );
+            throw new UserNotFoundException(ErrorCode.USER_NOT_FOUND);
         }
 
         members.forEach(member -> {
@@ -171,13 +169,13 @@ public class BasicChannelService implements ChannelService {
                 .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
-    // 채널 엔티티 반환
+    // 채널 반환
     private ChannelEntity getChannelEntityOrThrow(UUID channelId) {
         return channelRepository.findById(channelId)
                 .orElseThrow(() -> new ChannelNotFoundException(channelId));
     }
 
-    // 읽음 상태 엔티티 반환
+    // 읽음 상태 반환
     private ReadStatusEntity getReadStatusEntityOrThrow(UUID userId, UUID channelId) {
         return readStatusRepository.findByUserIdAndChannelId(userId, channelId)
                 .orElseThrow(() -> new ReadStatusNotFoundException(userId, channelId));

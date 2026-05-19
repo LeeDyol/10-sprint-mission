@@ -109,7 +109,7 @@ public class BasicReadStatusService implements ReadStatusService {
                 .orElseThrow(() -> new ChannelNotFoundException(channelId));
     }
 
-    // 읽음 상태 엔티티 반환
+    // 읽음 상태 반환
     private ReadStatusEntity getReadStatusEntity(UUID readStatusId){
         return readStatusRepository.findBysIdWithDetails(readStatusId)
                 .orElseThrow(() -> new ReadStatusNotFoundException(readStatusId));
