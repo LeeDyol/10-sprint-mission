@@ -241,8 +241,8 @@ public class BasicUserService implements UserService {
     }
 
     // 유효성 검사 (비밀번호 변경 시, 이전 값과 동일 여부)
-    private void validateDuplicatePassword(String newPassword, String currentEncodedPassword) {
-        if (passwordEncoder.matches(newPassword, currentEncodedPassword)) {
+    private void validateDuplicatePassword(String newPassword, String encodedExistingPassword) {
+        if (passwordEncoder.matches(newPassword, encodedExistingPassword)) {
             throw new DiscodeitException(ErrorCode.DUPLICATE_VALUE_NOT_UPDATE);
         }
     }
