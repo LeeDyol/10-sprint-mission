@@ -23,6 +23,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,8 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -40,6 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 @ActiveProfiles("test")
+@WithMockUser(username = "yushi", roles = "CHANNEL_MANAGER")        // 통합 테스트 내 채널 생성 로직 존재
 public class MessageIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
@@ -61,6 +65,7 @@ public class MessageIntegrationTest {
 
     @Autowired
     private ChannelRepository channelRepository;
+
     @Autowired
     private MessageRepository messageRepository;
 
@@ -103,7 +108,9 @@ public class MessageIntegrationTest {
         // when
         mockMvc.perform(multipart("/api/messages")
                         .file(requestPart)
-                        .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .with(user("yushi").roles("CHANNEL_MANAGER")))
                 .andExpect(status().isCreated());
 
         // then
@@ -141,7 +148,9 @@ public class MessageIntegrationTest {
         // when & then
         mockMvc.perform(multipart("/api/messages")
                         .file(requestPart)
-                        .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .with(user("yushi").roles("USER")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.exceptionType").value("MethodArgumentNotValidException"));
     }
@@ -183,8 +192,10 @@ public class MessageIntegrationTest {
 
         // when
         mockMvc.perform(patch("/api/messages/{messageId}", savedMessage.id())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(messageUpdateRequest)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(messageUpdateRequest))
+                        .with(csrf())
+                        .with(user("yushi").roles("CHANNEL_MANAGER")))
                 .andExpect(status().isOk());
 
         // then
@@ -207,7 +218,9 @@ public class MessageIntegrationTest {
         // when & then
         mockMvc.perform(patch("/api/messages/{messageId}", messageId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(messageUpdateRequest)))
+                        .content(objectMapper.writeValueAsString(messageUpdateRequest))
+                        .with(csrf())
+                        .with(user("yushi").roles("USER")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.exceptionType").value("MethodArgumentTypeMismatchException"));
     }
@@ -243,7 +256,9 @@ public class MessageIntegrationTest {
         MessageDto savedMessage = messageService.create(messageCreateRequest, null);
 
         // when
-        mockMvc.perform(delete("/api/messages/{messageId}", savedMessage.id()))
+        mockMvc.perform(delete("/api/messages/{messageId}", savedMessage.id())
+                        .with(csrf())
+                        .with(user("yushi").roles("CHANNEL_MANAGER")))
                 .andExpect(status().isNoContent());
 
         // then
@@ -259,7 +274,9 @@ public class MessageIntegrationTest {
         UUID messageId = UUID.randomUUID();
 
         // when & then
-        mockMvc.perform(post("/api/messages/{messageId}", messageId))
+        mockMvc.perform(post("/api/messages/{messageId}", messageId)
+                        .with(csrf())
+                        .with(user("yushi").roles("USER")))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("$.exceptionType").value("HttpRequestMethodNotSupportedException"));
     }
@@ -305,7 +322,9 @@ public class MessageIntegrationTest {
         mockMvc.perform(get("/api/messages")
                         .param("channelId", channel.id().toString())
                         .param("size", "1")
-                        .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .with(user("yushi").roles("CHANNEL_MANAGER")))
                 .andExpect(status().isOk())
 
                 .andExpect(jsonPath("$.content").isArray())
@@ -323,7 +342,9 @@ public class MessageIntegrationTest {
         // given
 
         // when
-        mockMvc.perform(get("/api/messages"))
+        mockMvc.perform(get("/api/messages")
+                        .with(csrf())
+                        .with(user("yushi").roles("USER")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.exceptionType").value("MissingServletRequestParameterException"));
     }

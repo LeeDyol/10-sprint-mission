@@ -5,8 +5,11 @@ import com.sprint.mission.discodeit.dto.request.user.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.entity.UserEntity;
+import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.service.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +17,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +30,7 @@ import java.util.UUID;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -44,6 +51,14 @@ public class UserIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    // 사용자 인증 정보 강제 주입
+    private Authentication getCustomAuth(UserDto userDto) {
+        DiscodeitUserDetails principal = new DiscodeitUserDetails(userDto, "dummyPassword123!");
+
+        // 사용자 정보 및 권한을 담은 인증 토큰 반환
+        return new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
+    }
 
     /*
         사용자 생성
@@ -72,12 +87,14 @@ public class UserIntegrationTest {
         // when
         mockMvc.perform(multipart("/api/users")
                         .file(requestPart)
-                        .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .with(user("yushi").roles("USER")))
                 .andExpect(status().isCreated());
 
         // then
         List<UserEntity> users = userRepository.findAll();
-        assertEquals(createRequest.username(), users.get(0).getUsername());
+        assertEquals(createRequest.username(), users.get(1).getUsername());
     }
 
     // [실패] 이메일 형식 오류
@@ -104,7 +121,9 @@ public class UserIntegrationTest {
         // when & then
         mockMvc.perform(multipart("/api/users")
                         .file(requestPart)
-                        .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .with(user("yushi").roles("USER")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.exceptionType").value("MethodArgumentNotValidException"));
     }
@@ -148,7 +167,9 @@ public class UserIntegrationTest {
                             request.setMethod("PATCH");
                             return request;
                         })
-                        .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .with(authentication(getCustomAuth(savedUser))))
                 .andExpect(status().isOk());
 
         // then
@@ -185,7 +206,9 @@ public class UserIntegrationTest {
                             req.setMethod("PATCH");
                             return req;
                         })
-                        .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .with(csrf())
+                        .with(user("yushi").roles("USER")))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.exceptionType").value("MethodArgumentTypeMismatchException"));
     }
@@ -208,7 +231,9 @@ public class UserIntegrationTest {
         UserDto savedUser = userService.create(createRequest, null);
 
         // when
-        mockMvc.perform(delete(("/api/users/{userId}"), savedUser.id()))
+        mockMvc.perform(delete(("/api/users/{userId}"), savedUser.id())
+                        .with(csrf())
+                        .with(authentication(getCustomAuth(savedUser))))
                 .andExpect(status().isNoContent());
 
         // then
@@ -224,7 +249,9 @@ public class UserIntegrationTest {
         UUID userId = UUID.randomUUID();
 
         // when & then
-        mockMvc.perform(post("/api/users/{userId}", userId))
+        mockMvc.perform(post("/api/users/{userId}", userId)
+                        .with(csrf())
+                        .with(user("yushi").roles("USER")))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("$.exceptionType").value("HttpRequestMethodNotSupportedException"));
     }
@@ -250,7 +277,9 @@ public class UserIntegrationTest {
         );
         userService.create(secondCreateRequest, null);
 
-        mockMvc.perform(get("/api/users"))
+        mockMvc.perform(get("/api/users")
+                        .with(csrf())
+                        .with(user("yushi").roles("USER")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(org.hamcrest.Matchers.greaterThanOrEqualTo(2)));

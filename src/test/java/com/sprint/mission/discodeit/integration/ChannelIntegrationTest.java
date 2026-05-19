@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -33,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 @ActiveProfiles("test")
+@WithMockUser(username = "yushi", roles = "CHANNEL_MANAGER")
 public class ChannelIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
@@ -66,6 +70,8 @@ public class ChannelIntegrationTest {
 
         // when
         mockMvc.perform(post("/api/channels/public")
+                        .with(csrf())
+                        .with(user("yushi").roles("CHANNEL_MANAGER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isCreated());
@@ -103,8 +109,10 @@ public class ChannelIntegrationTest {
 
         // when
         mockMvc.perform(post("/api/channels/private")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(createRequest)))
+                        .with(csrf())
+                        .with(user("yushi").roles("CHANNEL_MANAGER"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isCreated());
 
         // then
@@ -126,6 +134,8 @@ public class ChannelIntegrationTest {
 
         // when & then
         mockMvc.perform(post("/api/channels/public")
+                        .with(csrf())
+                        .with(user("yushi").roles("CHANNEL_MANAGER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isBadRequest())
@@ -156,6 +166,8 @@ public class ChannelIntegrationTest {
 
         // when
         mockMvc.perform(patch("/api/channels/{channelId}", savedChannel.id())
+                        .with(csrf())
+                        .with(user("yushi").roles("CHANNEL_MANAGER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk());
@@ -180,6 +192,8 @@ public class ChannelIntegrationTest {
 
         // when & then
         mockMvc.perform(patch("/api/channels/{channelId}", channelId)
+                        .with(csrf())
+                        .with(user("yushi").roles("CHANNEL_MANAGER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isBadRequest())
@@ -203,7 +217,9 @@ public class ChannelIntegrationTest {
         ChannelDto savedChannel = channelService.createPublicChannel(createRequest);
 
         // when
-        mockMvc.perform(delete("/api/channels/{channelId}", savedChannel.id()))
+        mockMvc.perform(delete("/api/channels/{channelId}", savedChannel.id())
+                        .with(csrf())
+                        .with(user("yushi").roles("CHANNEL_MANAGER")))
                 .andExpect(status().isNoContent());
 
         // then
@@ -219,7 +235,9 @@ public class ChannelIntegrationTest {
         UUID channelId = UUID.randomUUID();
 
         // when & then
-        mockMvc.perform(post("/api/channels/{channelId}", channelId))
+        mockMvc.perform(post("/api/channels/{channelId}", channelId)
+                        .with(csrf())
+                        .with(user("yushi").roles("CHANNEL_MANAGER")))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("$.exceptionType").value("HttpRequestMethodNotSupportedException"));
     }
