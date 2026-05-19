@@ -116,7 +116,7 @@ public class ChannelControllerTest {
         // when & then
         mockMvc.perform(post("/api/channels/public")
                         .with(csrf())
-                        .with(user("yushi").roles("CHANNER_MANAGER"))
+                        .with(user("yushi").roles("CHANNEL_MANAGER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -139,7 +139,7 @@ public class ChannelControllerTest {
         // When & Then
         mockMvc.perform(post("/api/channels/public")
                         .with(csrf())
-                        .with(user("yushi").roles("CHANNER MANAGER"))
+                        .with(user("yushi").roles("CHANNEL_MANAGER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isBadRequest())
@@ -169,7 +169,7 @@ public class ChannelControllerTest {
         // when & then
         mockMvc.perform(post("/api/channels/private")
                         .with(csrf())
-                        .with(user("yushi").roles("CHANNER MANAGER"))
+                        .with(user("yushi").roles("CHANNEL_MANAGER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -188,7 +188,7 @@ public class ChannelControllerTest {
         // When & Then
         mockMvc.perform(post("/api/channels/private")
                         .with(csrf())
-                        .with(user("yushi").roles("CHANNER MANAGER"))
+                        .with(user("yushi").roles("CHANNEL_MANAGER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -222,7 +222,7 @@ public class ChannelControllerTest {
         // when & then
         mockMvc.perform(patch("/api/channels/{channelId}", channelId)
                         .with(csrf())
-                        .with(user("yushi").roles("CHANNER MANAGER"))
+                        .with(user("yushi").roles("CHANNEL_MANAGER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -243,7 +243,7 @@ public class ChannelControllerTest {
         // when & then
         mockMvc.perform(patch("/api/channels/{channelId}", channelId)
                         .with(csrf())
-                        .with(user("yushi").roles("CHANNER MANAGER"))
+                        .with(user("yushi").roles("CHANNEL_MANAGER"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -263,7 +263,7 @@ public class ChannelControllerTest {
         // when & then
         mockMvc.perform(delete("/api/channels/{channelId}", channelId)
                         .with(csrf())
-                        .with(user("yushi").roles("CHANNER MANAGER")))
+                        .with(user("yushi").roles("CHANNEL_MANAGER")))
                 .andExpect(status().isNoContent());
     }
 
@@ -277,7 +277,7 @@ public class ChannelControllerTest {
         // when & then
         mockMvc.perform(post("/api/channels/{channelId}", channelId)
                         .with(csrf())
-                        .with(user("yushi").roles("CHANNER MANAGER")))
+                        .with(user("yushi").roles("CHANNEL_MANAGER")))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("$.exceptionType").value("HttpRequestMethodNotSupportedException"));
     }
