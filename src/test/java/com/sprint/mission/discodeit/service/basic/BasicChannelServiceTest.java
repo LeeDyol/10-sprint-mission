@@ -11,6 +11,7 @@ import com.sprint.mission.discodeit.exception.DiscodeitException;
 import com.sprint.mission.discodeit.exception.ErrorCode;
 import com.sprint.mission.discodeit.exception.channel.AccessDeniedPrivateChannelException;
 import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
+import com.sprint.mission.discodeit.exception.channel.PrivateChannelNotUpdatableException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
@@ -218,85 +219,15 @@ public class BasicChannelServiceTest {
         given(channelRepository.findById(channelId)).willReturn(Optional.of(targetChannel));
 
         // when
-        AccessDeniedPrivateChannelException exception = assertThrows(
-                AccessDeniedPrivateChannelException.class, () -> {
+        PrivateChannelNotUpdatableException exception = assertThrows(
+                PrivateChannelNotUpdatableException.class, () -> {
                     basicChannelService.update(channelId, request);
                 }
         );
 
         // then
-        assertEquals(ErrorCode.ACCESS_DENIED_PRIVATE_CHANNEL, exception.getErrorCode());
+        assertEquals(ErrorCode.PRIVATE_CHANNEL_NOT_UPDATABLE, exception.getErrorCode());
         assertEquals("Meow World", targetChannel.getName());
-        verify(channelRepository, never()).save(any(ChannelEntity.class));
-    }
-
-    // [실패] 기존 이름과 같은 채널명
-    @Test
-    @DisplayName("공개 채널 수정 실패: 기존 채널명괃 동일한 경우, DiscodeitException 발생")
-    void update_private_channel_failure_equals_current_name(){
-        // given
-        UUID channelId = UUID.randomUUID();
-        PublicChannelUpdateRequest request = new PublicChannelUpdateRequest(
-                "Alien",
-                null
-        );
-
-        // 가짜 객체 | 기존 채널 정보
-        ChannelEntity targetChannel = new ChannelEntity(
-                "Alien",
-                "To be Alien together",
-                ChannelType.PUBLIC
-        );
-
-        // 유효성 검증
-        given(channelRepository.findById(channelId)).willReturn(Optional.of(targetChannel));
-
-        // when
-        DiscodeitException exception = assertThrows(
-                DiscodeitException.class, () -> {
-                    basicChannelService.update(channelId, request);
-                }
-        );
-
-        // then
-        assertEquals(ErrorCode.DUPLICATE_VALUE_NOT_UPDATE, exception.getErrorCode());
-        assertEquals("Alien", exception.getDetails().get("currentValue"));
-        assertEquals("Alien", exception.getDetails().get("updateValue"));
-        verify(channelRepository, never()).save(any(ChannelEntity.class));
-    }
-
-    // [실패] 기존 설명과 같은 설명
-    @Test
-    @DisplayName("공개 채널 수정 실패: 기존 설명과 동일한 경우, DiscodeitException 발생")
-    void update_private_channel_failure_equals_current_description(){
-        // given
-        UUID channelId = UUID.randomUUID();
-        PublicChannelUpdateRequest request = new PublicChannelUpdateRequest(
-                null,
-                "To be Alien together"
-        );
-
-        // 가짜 객체 | 기존 채널 정보
-        ChannelEntity targetChannel = new ChannelEntity(
-                "Alien",
-                "To be Alien together",
-                ChannelType.PUBLIC
-        );
-
-        // 유효성 검증
-        given(channelRepository.findById(channelId)).willReturn(Optional.of(targetChannel));
-
-        // when
-        DiscodeitException exception = assertThrows(
-                DiscodeitException.class, () -> {
-                    basicChannelService.update(channelId, request);
-                }
-        );
-
-        // then
-        assertEquals(ErrorCode.DUPLICATE_VALUE_NOT_UPDATE, exception.getErrorCode());
-        assertEquals("To be Alien together", exception.getDetails().get("currentValue"));
-        assertEquals("To be Alien together", exception.getDetails().get("updateValue"));
         verify(channelRepository, never()).save(any(ChannelEntity.class));
     }
 

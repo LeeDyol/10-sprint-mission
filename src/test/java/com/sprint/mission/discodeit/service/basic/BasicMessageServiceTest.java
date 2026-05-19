@@ -274,42 +274,6 @@ public class BasicMessageServiceTest {
         assertEquals(request.newContent(), targetMessage.getContent());
     }
 
-    // [실패] 기존 메시지 내용과 동일
-    @Test
-    @DisplayName("메시지 생성 실패: 기존 내용과 동일할 경우, DiscodeitException 발생")
-    void update_message_failure_equals_current_content() {
-        // given
-        UUID messageId = UUID.randomUUID();
-        MessageUpdateRequest request = new MessageUpdateRequest(
-                "LUV ME HATE ME"
-        );
-
-        // 가짜 객체 | 기존 메시지 정보
-        UserEntity author = new UserEntity();
-        ChannelEntity channel = new ChannelEntity();
-        MessageEntity targetMessage = new MessageEntity(
-                "LUV ME HATE ME",
-                author,
-                channel
-        );
-
-        // 유효성 검증
-        given(messageRepository.findWithDetails(messageId)).willReturn(Optional.of(targetMessage));
-
-        // when
-        DiscodeitException exception = assertThrows(
-                DiscodeitException.class, () -> {
-                    basicMessageService.update(messageId, request);
-                }
-        );
-
-        // then
-        assertEquals(ErrorCode.DUPLICATE_VALUE_NOT_UPDATE, exception.getErrorCode());
-        assertEquals("LUV ME HATE ME", exception.getDetails().get("currentValue"));
-        assertEquals("LUV ME HATE ME", exception.getDetails().get("updateValue"));
-        verify(messageRepository, never()).save(any(MessageEntity.class));
-    }
-
     /*
         메시지 삭제
      */

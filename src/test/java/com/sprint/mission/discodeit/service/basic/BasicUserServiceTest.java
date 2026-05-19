@@ -21,9 +21,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,12 +39,26 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class BasicUserServiceTest {
 
-    @Mock private UserRepository userRepository;
-    @Mock private MessageRepository messageRepository;
-    @Mock private UserStatusRepository userStatusRepository;
-    @Mock private BinaryContentRepository binaryContentRepository;
-    @Mock private ReadStatusRepository readStatusRepository;
-    @Mock private BinaryContentStorage binaryContentStorage;
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private MessageRepository messageRepository;
+
+    @Mock
+    private BinaryContentRepository binaryContentRepository;
+
+    @Mock
+    private ReadStatusRepository readStatusRepository;
+
+    @Mock
+    private BinaryContentStorage binaryContentStorage;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private SessionRegistry sessionRegistry;
 
     @Mock private UserMapper userMapper;
 
@@ -71,10 +88,10 @@ public class BasicUserServiceTest {
                 request.email(),
                 request.password()
         );
-        UserStatusEntity userStatusEntity = new UserStatusEntity(newUser);
 
         // User 생성 및 저장
         given(userMapper.toEntity(any(UserCreateRequest.class))).willReturn(newUser);
+        given(passwordEncoder.encode(any())).willReturn("encodedPassword");
         given(userRepository.save(any(UserEntity.class))).willReturn(newUser);
 
         // 가짜 객체 | 생성할 사용자 이미지 생성 및 저장
@@ -106,7 +123,8 @@ public class BasicUserServiceTest {
                 .profile(expectedBinaryContentDto)
                 .online(true)
                 .build();
-        given(userMapper.toDto(any(UserEntity.class), )).willReturn(expectedDto);
+        given(sessionRegistry.getAllPrincipals()).willReturn(Collections.emptyList());
+        given(userMapper.toDto(any(UserEntity.class), anyBoolean())).willReturn(expectedDto);
 
         // when | 테스트 실행
         UserDto result = basicUserService.create(request, profile);
@@ -115,7 +133,6 @@ public class BasicUserServiceTest {
         assertEquals(request.username(), result.username());
         assertEquals(request.email(), result.email());
         assertEquals(profile.getOriginalFilename(), newUser.getProfile().getFileName());
-        assertEquals(newUser, userStatusEntity.getUser());
     }
 
     // [실패] 사용자 이름 중복
@@ -259,42 +276,6 @@ public class BasicUserServiceTest {
         assertNotNull(targetUser.getProfile());                             // 미존재 -> 등록
     }
 
-    // [실패] 기존 사용자 이름과 동일
-    @Test
-    @DisplayName("사용자 정보 수정 실패 : 기존 사용자 이름과 동일할 경우, DiscodeitException 발생")
-    void update_user_failure_equals_current_username() {
-        // given
-        UUID userId = UUID.randomUUID();
-        UserUpdateRequest request = new UserUpdateRequest(
-                "yushi",
-                null,
-                null
-        );
-
-        // 가짜 객체 | 기존 사용자 정보
-        UserEntity targetUser = new UserEntity(
-                "yushi",
-                "yushi@wish.com",
-                "yushi1234"
-        );
-
-        // 유효성 검증 및 중복 검사
-        given(userRepository.findById(userId)).willReturn(Optional.of(targetUser));
-        given(userRepository.existsByUsername(request.newUsername())).willReturn(false);
-
-        // when
-        DiscodeitException exception = assertThrows(
-                DiscodeitException.class, () -> {
-                    basicUserService.update(userId, request, null);
-                }
-        );
-
-        // then
-        assertEquals(ErrorCode.DUPLICATE_VALUE_NOT_UPDATE, exception.getErrorCode());
-        assertEquals("yushi", exception.getDetails().get("currentValue"));
-        assertEquals("yushi", exception.getDetails().get("updateValue"));
-    }
-
     // [실패] 다른 사용자의 이름과 중복
     @Test
     @DisplayName("사용자 정보 수정 오류: 다른 사용자 이름과 중복되면 DuplicateUsernameException 발생")
@@ -328,42 +309,6 @@ public class BasicUserServiceTest {
         // then
         assertEquals(ErrorCode.DUPLICATE_USERNAME, exception.getErrorCode());
         verify(binaryContentStorage, never()).put(any(), any());
-    }
-
-    // [실패] 기존 이메일과 동일
-    @Test
-    @DisplayName("사용자 정보 수정 실패 : 기존 이메일과 동일할 경우, DiscodeitException 발생")
-    void update_user_failure_equals_current_email() {
-        // given
-        UUID userId = UUID.randomUUID();
-        UserUpdateRequest request = new UserUpdateRequest(
-                null,
-                "yushi@wish.com",
-                null
-        );
-
-        // 가짜 객체 | 기존 사용자 정보
-        UserEntity targetUser = new UserEntity(
-                "yushi",
-                "yushi@wish.com",
-                "yushi1234"
-        );
-
-        // 유효성 검증 및 중복 검사
-        given(userRepository.findById(userId)).willReturn(Optional.of(targetUser));
-        given(userRepository.existsByEmail(request.newEmail())).willReturn(false);
-
-        // when
-        DiscodeitException exception = assertThrows(
-                DiscodeitException.class, () -> {
-                    basicUserService.update(userId, request, null);
-                }
-        );
-
-        // then
-        assertEquals(ErrorCode.DUPLICATE_VALUE_NOT_UPDATE, exception.getErrorCode());
-        assertEquals("yushi@wish.com", exception.getDetails().get("currentValue"));
-        assertEquals("yushi@wish.com", exception.getDetails().get("updateValue"));
     }
 
     // [실패] 다른 사용자의 이메일과 중복
