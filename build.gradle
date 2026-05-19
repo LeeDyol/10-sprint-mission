@@ -47,9 +47,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
 	// Database
-	// PostgreSQL
 	implementation 'org.postgresql:postgresql:42.7.3'
-	// H2 In-Memory
 	testImplementation 'com.h2database:h2'
 
 	// Documentation & Utilities
@@ -61,9 +59,10 @@ dependencies {
 	runtimeOnly 'com.h2database:h2'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-	// Test 내 Lombok 사용
+	// Test 내 Lombok 및 Security ㅛㅏ용
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.security:spring-security-test'
 }
 
 tasks.named('test') {
