@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.config;
 
+import com.sprint.mission.discodeit.jwt.JwtAuthenticationFilter;
 import com.sprint.mission.discodeit.jwt.JwtLoginSuccessHandler;
 import com.sprint.mission.discodeit.security.LoginFailureHandler;
 import com.sprint.mission.discodeit.security.SpaCsrfTokenRequestHandler;
@@ -16,6 +17,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
@@ -32,6 +34,8 @@ public class SecurityConfig {
 
     private final JwtLoginSuccessHandler jwtLoginSuccessHandler;
     private final LoginFailureHandler loginFailureHandler;
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     // 메인 보안 필터 라인 조립 및 요청별 출입 통제 규칙 정의
     @Bean
@@ -117,7 +121,9 @@ public class SecurityConfig {
                             response.setContentType("application/json;charset=UTF-8");
                             response.getWriter().write("{\"errorCode\": \"FORBIDDEN\", \"message\": \"접근 권한이 없습니다.\"}");
                         })
-                );
+                )
+                // JWT 필터 우선 실행
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

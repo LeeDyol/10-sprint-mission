@@ -112,7 +112,7 @@ public class JwtTokenProvider {
 
             // 사용자 정보 객체 생성
             UserDetails principal = new User(claims.getSubject(), "", authorities);
-            return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+            return new UsernamePasswordAuthenticationToken(principal, null, authorities);
         } catch (ParseException e) {
             throw new RuntimeException("Failed JWT Parsing", e);
         }
