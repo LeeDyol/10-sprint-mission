@@ -1,9 +1,9 @@
 package com.sprint.mission.discodeit.config;
 
-import com.sprint.mission.discodeit.jwt.JwtAuthenticationFilter;
-import com.sprint.mission.discodeit.jwt.JwtLoginSuccessHandler;
-import com.sprint.mission.discodeit.security.LoginFailureHandler;
-import com.sprint.mission.discodeit.security.SpaCsrfTokenRequestHandler;
+import com.sprint.mission.discodeit.security.auth.filter.JwtAuthenticationFilter;
+import com.sprint.mission.discodeit.security.auth.handler.JwtLoginSuccessHandler;
+import com.sprint.mission.discodeit.security.common.handler.LoginFailureHandler;
+import com.sprint.mission.discodeit.security.common.handler.SpaCsrfTokenRequestHandler;
 import com.sprint.mission.discodeit.service.basic.DiscodeitUserDetailsService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
