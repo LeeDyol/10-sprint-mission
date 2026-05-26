@@ -60,16 +60,6 @@ public class AuthController {
         return ResponseEntity.ok(tokenDto.jwtDto());
     }
 
-    @Operation(summary = "현재 로그인 한 사용자 정보 조회", operationId = "getCurrentUser")
-    @GetMapping("/me")
-    public ResponseEntity<UserDto> getAuthenticatedUser(@AuthenticationPrincipal DiscodeitUserDetails discodeitUserDetails) {
-        // 데이터베이스에서 사용자 정보 조회
-        UUID userId = discodeitUserDetails.getUserDto().id();
-        UserDto currentUser = userService.findById(userId);
-
-        return ResponseEntity.ok(currentUser);
-    }
-
     @Operation(summary = "사용자 권한 수정", operationId = "updateRole")
     @PutMapping("/role")
     public ResponseEntity<UserDto> updateUserRole(@Valid @RequestBody RoleUpdateRequest roleUpdateRequest) {
