@@ -1,9 +1,8 @@
 package com.sprint.mission.discodeit.config;
 
+import com.sprint.mission.discodeit.jwt.JwtLoginSuccessHandler;
 import com.sprint.mission.discodeit.security.LoginFailureHandler;
-import com.sprint.mission.discodeit.security.LoginSuccessHandler;
 import com.sprint.mission.discodeit.security.SpaCsrfTokenRequestHandler;
-import com.sprint.mission.discodeit.service.basic.BasicAuthService;
 import com.sprint.mission.discodeit.service.basic.DiscodeitUserDetailsService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
@@ -30,7 +30,7 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final LoginSuccessHandler loginSuccessHandler;
+    private final JwtLoginSuccessHandler jwtLoginSuccessHandler;
     private final LoginFailureHandler loginFailureHandler;
 
     // 메인 보안 필터 라인 조립 및 요청별 출입 통제 규칙 정의
@@ -44,7 +44,7 @@ public class SecurityConfig {
                 // 폼 로그인 활성화 및 로그인 처리 주소 지정
                 .formLogin(login -> login
                         .loginProcessingUrl("/api/auth/login")
-                        .successHandler(loginSuccessHandler)
+                        .successHandler(jwtLoginSuccessHandler)
                         .failureHandler(loginFailureHandler)
                 )
                 // CSRF (크로스 사이트 요청 위조) 방어 설정
@@ -64,15 +64,9 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID")
                 )
                 // 세션 (Session) 설정
-                .sessionManagement(management -> management
-                        // 동시 로그인 설정
-                        .sessionConcurrency(concurrency -> concurrency
-                                // 최대 한 명으로 지정
-                                .maximumSessions(1)
-                                // 새 기기에서 로그인 할 경우, 기존 기기 로그아웃
-                                .maxSessionsPreventsLogin(false)
-                                .sessionRegistry(sessionRegistry)
-                        )
+                .sessionManagement(session -> session
+                        // 세션을 생성하지 않고, SecurityContext를 유지하지 않음
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 // 자동 로그인 설정
                 .rememberMe(
