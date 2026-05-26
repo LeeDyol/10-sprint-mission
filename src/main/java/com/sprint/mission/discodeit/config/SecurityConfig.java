@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.config;
 
 import com.sprint.mission.discodeit.security.auth.filter.JwtAuthenticationFilter;
 import com.sprint.mission.discodeit.security.auth.handler.JwtLoginSuccessHandler;
+import com.sprint.mission.discodeit.security.auth.handler.JwtLogoutHandler;
 import com.sprint.mission.discodeit.security.common.handler.LoginFailureHandler;
 import com.sprint.mission.discodeit.security.common.handler.SpaCsrfTokenRequestHandler;
 import com.sprint.mission.discodeit.service.basic.DiscodeitUserDetailsService;
@@ -34,6 +35,7 @@ public class SecurityConfig {
 
     private final JwtLoginSuccessHandler jwtLoginSuccessHandler;
     private final LoginFailureHandler loginFailureHandler;
+    private final JwtLogoutHandler jwtLogoutHandler;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -61,6 +63,8 @@ public class SecurityConfig {
                 // 로그아웃 설정
                 .logout(logout -> logout
                         .logoutUrl("/api/auth/logout")
+                        // 로그아웃 시, JWT 핸들러 실행
+                        .addLogoutHandler(jwtLogoutHandler)
                         // 로그아웃 시, 페이지 리다이렉션 대신 204 상태 코드 반환
                         .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.NO_CONTENT))
                         // 세선 및 쿠키 삭제
