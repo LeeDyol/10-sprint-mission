@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'com.sprint.mission'
-version = '2.0-M9'
+version = '2.0-M10'
 description = 'Demo project for Spring Boot'
 
 java {
@@ -49,6 +49,9 @@ dependencies {
 	// Database
 	implementation 'org.postgresql:postgresql:42.7.3'
 	testImplementation 'com.h2database:h2'
+
+	// JWT
+	implementation 'com.nimbusds:nimbus-jose-jwt:10.3'
 
 	// Documentation & Utilities
 	implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15"
