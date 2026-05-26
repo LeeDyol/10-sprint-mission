@@ -96,6 +96,7 @@ public class SecurityConfig {
                                 "/api/auth/csrf-token",                 // CSRF Token 발급
                                 "/api/auth/login",                      // 로그인
                                 "/api/auth/logout",                     // 로그아웃
+                                "/api/auth/refresh",                    // refresh token 재발급
                                 "/docs",                                // Swagger UI 접속 주소
                                 "/api-docs",                            // API 명세서 경로
                                 "/api-docs/**",                         // Swagger 문서 데이터
