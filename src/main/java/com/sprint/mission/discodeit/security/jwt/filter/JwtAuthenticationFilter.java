@@ -1,6 +1,6 @@
-package com.sprint.mission.discodeit.security.auth.filter;
+package com.sprint.mission.discodeit.security.jwt.filter;
 
-import com.sprint.mission.discodeit.security.auth.jwt.JwtTokenProvider;
+import com.sprint.mission.discodeit.security.jwt.provider.JwtTokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

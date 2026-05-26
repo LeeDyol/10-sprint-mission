@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.security.common;
+package com.sprint.mission.discodeit.security.auth;
 
 import com.sprint.mission.discodeit.entity.MessageEntity;
 import com.sprint.mission.discodeit.exception.message.MessageNotFoundException;

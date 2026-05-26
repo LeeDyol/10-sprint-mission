@@ -1,9 +1,9 @@
-package com.sprint.mission.discodeit.security.auth.handler;
+package com.sprint.mission.discodeit.security.jwt.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sprint.mission.discodeit.dto.response.auth.JwtDto;
-import com.sprint.mission.discodeit.security.common.DiscodeitUserDetails;
-import com.sprint.mission.discodeit.security.auth.jwt.JwtTokenProvider;
+import com.sprint.mission.discodeit.security.auth.DiscodeitUserDetails;
+import com.sprint.mission.discodeit.security.jwt.provider.JwtTokenProvider;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;

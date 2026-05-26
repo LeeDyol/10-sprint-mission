@@ -1,7 +1,7 @@
-package com.sprint.mission.discodeit.security.auth.registry;
+package com.sprint.mission.discodeit.security.jwt.registry;
 
-import com.sprint.mission.discodeit.security.auth.JwtInformation;
-import com.sprint.mission.discodeit.security.auth.jwt.JwtTokenProvider;
+import com.sprint.mission.discodeit.security.jwt.JwtInformation;
+import com.sprint.mission.discodeit.security.jwt.provider.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

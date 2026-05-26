@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.security.common.handler;
+package com.sprint.mission.discodeit.security.session.handler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

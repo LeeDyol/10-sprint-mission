@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.security.auth.handler;
+package com.sprint.mission.discodeit.security.jwt.handler;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
