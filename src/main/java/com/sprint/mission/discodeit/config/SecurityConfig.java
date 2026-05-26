@@ -72,17 +72,6 @@ public class SecurityConfig {
                         // 세션을 생성하지 않고, SecurityContext를 유지하지 않음
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                // 자동 로그인 설정
-                .rememberMe(
-                        rememberMe -> rememberMe
-                                // 확인할 키 이름
-                                .key("discodeit-secret-key")
-                                .rememberMeParameter("remember-me")
-                                // 쿠키 유효 기간 (1일)
-                                .tokenValiditySeconds(60 * 60 * 24)
-                                // 세션 소실 시, 사용자 정보를 조회할 담당 서비스 클래스
-                                .userDetailsService(discodeitUserDetailsService)
-                )
                 // 인가 (Authorization) 설정
                 .authorizeHttpRequests(auth -> auth
                         // 인증에서 제외되는 요청
