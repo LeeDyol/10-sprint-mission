@@ -43,7 +43,7 @@ public class BasicAuthService implements AuthService {
     public TokenDto reissueRefreshToken(String refreshToken) {
         // JWT 토큰 검증
         if (!StringUtils.hasText(refreshToken) || !jwtTokenProvider.validateToken(refreshToken)) {
-            throw new JwtTokenUnauthorizedException(ErrorCode.JWT_TOKEN_UNAUTHORIZED);
+            throw new JwtTokenUnauthorizedException();
         }
 
         // 토큰 재발급
