@@ -5,7 +5,6 @@ import com.sprint.mission.discodeit.dto.response.auth.JwtDto;
 import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.dto.response.auth.TokenDto;
 import com.sprint.mission.discodeit.entity.UserEntity;
-import com.sprint.mission.discodeit.exception.ErrorCode;
 import com.sprint.mission.discodeit.exception.auth.JwtTokenUnauthorizedException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.AuthMapper;
@@ -17,8 +16,9 @@ import com.sprint.mission.discodeit.security.jwt.registry.JwtRegistry;
 import com.sprint.mission.discodeit.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -38,6 +38,8 @@ public class BasicAuthService implements AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtRegistry jwtRegistry;
 
+    private final UserDetailsService userDetailsService;
+
     // refreshToken 재발급
     @Override
     public TokenDto reissueRefreshToken(String refreshToken) {
@@ -46,13 +48,17 @@ public class BasicAuthService implements AuthService {
             throw new JwtTokenUnauthorizedException();
         }
 
-        // 토큰 재발급
+        // 토큰을 재발급 받는 사용자 정보 조회
         Authentication authentication = jwtTokenProvider.getAuthentication(refreshToken);
-        String newAccessToken = jwtTokenProvider.generateAccessToken(authentication);
-        String newRefreshToken = jwtTokenProvider.generateRefreshToken(authentication);
+        String userIdStr = jwtTokenProvider.getUserId(refreshToken);
+        DiscodeitUserDetails userDetails =
+                (DiscodeitUserDetails) ((DiscodeitUserDetailsService) userDetailsService).loadUserById(userIdStr);
 
-        // 인증 정보 추출
-        DiscodeitUserDetails userDetails = (DiscodeitUserDetails) authentication.getPrincipal();
+        // 토큰 재발급
+        Authentication newAuthentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        String newAccessToken = jwtTokenProvider.generateAccessToken(newAuthentication);
+        String newRefreshToken = jwtTokenProvider.generateRefreshToken(newAuthentication);
+
         JwtDto jwtDto = authMapper.toJwtDto(newAccessToken, userDetails.getUserDto());
 
         return authMapper.toTokenDto(jwtDto, newRefreshToken);

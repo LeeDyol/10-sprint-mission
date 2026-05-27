@@ -14,6 +14,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -34,6 +36,21 @@ public class DiscodeitUserDetailsService implements UserDetailsService {
 
         // 데이터베이스에 저장되어 있던 사용자의 정보 반환
         return new DiscodeitUserDetails(userDto, user.getPassword());
+    }
+
+    // 사용자 정보 조회
+    public UserDetails loadUserById(String userId) {
+        UserEntity user = getUserEntityOrThrow(UUID.fromString(userId));
+        boolean isOnline = jwtRegistry.hasActiveJwtInformationByUserId(user.getId());
+
+        UserDto userDto = userMapper.toDto(user, isOnline);
+        return new DiscodeitUserDetails(userDto, user.getPassword());
+    }
+
+    // 사용자 반환 (userId)
+    private UserEntity getUserEntityOrThrow(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     // 사용자 반환 (username)

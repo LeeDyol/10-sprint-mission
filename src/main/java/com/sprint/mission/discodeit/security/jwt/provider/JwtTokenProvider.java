@@ -5,6 +5,7 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.sprint.mission.discodeit.security.auth.DiscodeitUserDetails;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -53,21 +54,30 @@ public class JwtTokenProvider {
 
     // 액세스 토큰 발급
     public String generateAccessToken(Authentication authentication) {
+        // 사용자 정보 조회
+        DiscodeitUserDetails userDetails = (DiscodeitUserDetails) authentication.getPrincipal();
+        String username = userDetails.getUsername();
+        String userId = userDetails.getUserDto().id().toString();
+
         // 인증 정보 내 권한 추출
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
-        return createToken(authentication.getName(), authorities, accessTokenExpirationMinutes);
+        return createToken(username, userId, authorities, accessTokenExpirationMinutes);
     }
 
     // 리프레시 토큰 발급
     public String generateRefreshToken(Authentication authentication) {
-        return createToken(authentication.getName(), null, refreshTokenExpirationMinutes);
+        DiscodeitUserDetails userDetails = (DiscodeitUserDetails) authentication.getPrincipal();
+        String username = userDetails.getUsername();
+        String userId = userDetails.getUserDto().id().toString();
+
+        return createToken(username, userId, null, refreshTokenExpirationMinutes);
     }
 
     // 토큰 생성
-    private String createToken(String subject, String authorities, int expirationMinutes) {
+    private String createToken(String subject, String userId, String authorities, int expirationMinutes) {
         try {
             // 현재 시간 및 만료 시간 계산
             Date now = new Date();
@@ -76,6 +86,7 @@ public class JwtTokenProvider {
             // JWT 페이로드 구성
             JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
                     .subject(subject)                // 사용자 인증 정보
+                    .claim("userId", userId)   // 사용자 ID
                     .issueTime(now)                  // 발급 시각
                     .expirationTime(expiration)      // 만료 시각
                     .issuer("discodeit");            // 발급자
@@ -94,6 +105,16 @@ public class JwtTokenProvider {
             return signedJWT.serialize();
         } catch (JOSEException e) {
             throw new RuntimeException("Failed generate JWT Token", e);
+        }
+    }
+
+    // 토큰에서 식별자 (UUID) 추출
+    public String getUserId(String token) {
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(token);
+            return signedJWT.getJWTClaimsSet().getStringClaim("userId");
+        } catch (ParseException e) {
+            throw new RuntimeException("Failed JWT Parsing", e);
         }
     }
 
