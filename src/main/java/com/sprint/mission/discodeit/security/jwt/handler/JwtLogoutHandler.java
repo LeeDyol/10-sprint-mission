@@ -25,7 +25,7 @@ public class JwtLogoutHandler implements LogoutHandler {
 
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-        if (request.getCookies() != null) {
+        if (request.getCookies() != null && authentication != null) {
             // 로그아웃을 요청한 사용자 인증 정보 조회
             DiscodeitUserDetails userDetails = (DiscodeitUserDetails) authentication.getPrincipal();
 
