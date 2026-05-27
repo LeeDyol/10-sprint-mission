@@ -137,7 +137,7 @@ public class BasicUserService implements UserService {
 
     // 사용자 정보 수정
     @Override
-    @PreAuthorize("#userId == principal.userDto.id")        // 파라미터 값과 현재 로그인 한 사용자의 ID 일치 여부 확인
+    @PreAuthorize("@authValidator.isSelf(#userId, authentication.name)")        // 파라미터 값과 현재 로그인 한 사용자의 ID 일치 여부 확인
     @Transactional
     public UserDto update(UUID userId, UserUpdateRequest userUpdateRequest, MultipartFile profile) {
         UserEntity targetUser = getUserEntityOrThrow(userId);
@@ -180,7 +180,7 @@ public class BasicUserService implements UserService {
 
     // 사용자 삭제
     @Override
-    @PreAuthorize("#userId == principal.userDto.id")
+    @PreAuthorize("@authValidator.isSelf(#userId, authentication.name)")
     @Transactional
     public void delete(UUID userId) {
         UserEntity targetUser = getUserEntityOrThrow(userId);
