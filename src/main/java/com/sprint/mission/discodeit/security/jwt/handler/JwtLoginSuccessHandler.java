@@ -3,7 +3,9 @@ package com.sprint.mission.discodeit.security.jwt.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sprint.mission.discodeit.dto.response.auth.JwtDto;
 import com.sprint.mission.discodeit.security.auth.DiscodeitUserDetails;
+import com.sprint.mission.discodeit.security.jwt.JwtInformation;
 import com.sprint.mission.discodeit.security.jwt.provider.JwtTokenProvider;
+import com.sprint.mission.discodeit.security.jwt.registry.JwtRegistry;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,13 +28,22 @@ import java.io.IOException;
 public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final JwtRegistry jwtRegistry;
+
     private final ObjectMapper objectMapper;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+        // 로그인을 요청한 사용자의 인증 정보 조회
+        DiscodeitUserDetails userDetails = (DiscodeitUserDetails) authentication.getPrincipal();
+
         // 토큰 발급
         String accessToken = jwtTokenProvider.generateAccessToken(authentication);
         String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
+
+        // 사용자의 로그인 정보 (JWT 데이터 객체) 등록
+        JwtInformation jwtInformation = new JwtInformation(userDetails.getUserDto(), accessToken, refreshToken);
+        jwtRegistry.registerJwtInformation(jwtInformation);
 
         // 리프레시 토큰을 저장할 쿠키 객체
         Cookie refreshTokenCookie = new Cookie("REFRESH_TOKEN", refreshToken);
@@ -42,7 +53,6 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
         response.addCookie(refreshTokenCookie);             // 응답 헤더 내 포함
 
         // JWT 응답 객체 생성
-        DiscodeitUserDetails userDetails = (DiscodeitUserDetails) authentication.getPrincipal();
         JwtDto jwtDto = JwtDto.builder()
                 .userDto(userDetails.getUserDto())
                 .accessToken(accessToken)
