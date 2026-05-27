@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.security.jwt.filter;
 
 import com.sprint.mission.discodeit.security.jwt.provider.JwtTokenProvider;
+import com.sprint.mission.discodeit.security.jwt.registry.JwtRegistry;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,6 +25,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final JwtRegistry jwtRegistry;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -32,11 +34,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // JWT 토큰 검증
         if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
-            // 토큰으로부터 인증 정보 추출
-            Authentication authentication = jwtTokenProvider.getAuthentication(token);
+            // 해당 토큰이 사용자가 가장 최근에 발급받은 액세스 토큰인지 확인
+            if (jwtRegistry.hasActiveJwtInformationByAccessToken(token)) {
+                // 토큰으로부터 인증 정보 추출
+                Authentication authentication = jwtTokenProvider.getAuthentication(token);
 
-            // 시큐리티 컨텍스트(SecurityContextHolder)에 인증된 사용자 정보 저장
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                // 시큐리티 컨텍스트(SecurityContextHolder)에 인증된 사용자 정보 저장
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                // 토큰 만료 시간은 유효하지만, 해당 토큰을 현재 사용자가 사용하지 않는 경우
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalidated");
+
+                return;
+            }
         }
 
         filterChain.doFilter(request, response);
