@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.stream.Collectors;
 
@@ -106,9 +107,12 @@ public class JwtTokenProvider {
             // 권한 정보 추출
             String authoritiesStr = claims.getStringClaim(AUTHORITIES_KEY);
             Collection<? extends GrantedAuthority> authorities =
-                    Arrays.stream(authoritiesStr.split(","))
-                            .map(SimpleGrantedAuthority::new)
-                            .collect(Collectors.toList());
+                    (authoritiesStr != null && !authoritiesStr.isBlank())
+                            ? Arrays.stream(authoritiesStr.split(","))
+                                    .map(SimpleGrantedAuthority::new)
+                                    .collect(Collectors.toList())
+                            // 권한이 없는 경우, 빈 리스트 반환
+                            : Collections.emptyList();
 
             // 사용자 정보 객체 생성
             UserDetails principal = new User(claims.getSubject(), "", authorities);
