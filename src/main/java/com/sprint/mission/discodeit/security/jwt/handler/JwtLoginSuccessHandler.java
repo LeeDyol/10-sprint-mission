@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.security.jwt.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sprint.mission.discodeit.dto.response.auth.JwtDto;
+import com.sprint.mission.discodeit.mapper.AuthMapper;
 import com.sprint.mission.discodeit.security.auth.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.security.jwt.JwtInformation;
 import com.sprint.mission.discodeit.security.jwt.provider.JwtTokenProvider;
@@ -31,6 +32,7 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
     private final JwtRegistry jwtRegistry;
 
     private final ObjectMapper objectMapper;
+    private final AuthMapper authMapper;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -53,10 +55,7 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
         response.addCookie(refreshTokenCookie);             // 응답 헤더 내 포함
 
         // JWT 응답 객체 생성
-        JwtDto jwtDto = JwtDto.builder()
-                .userDto(userDetails.getUserDto())
-                .accessToken(accessToken)
-                .build();
+        JwtDto jwtDto = authMapper.toJwtDto(accessToken, userDetails.getUserDto());
 
         // JSON 형태로 200 OK와 함께 반환
         response.setStatus(HttpServletResponse.SC_OK);
