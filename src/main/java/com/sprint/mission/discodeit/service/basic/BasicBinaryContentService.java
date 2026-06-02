@@ -2,13 +2,13 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.response.BinaryContentDto;
 import com.sprint.mission.discodeit.entity.BinaryContentEntity;
-import com.sprint.mission.discodeit.exception.ErrorCode;
+import com.sprint.mission.discodeit.event.BinaryContentCreatedEvent;
 import com.sprint.mission.discodeit.exception.binarycontent.BinaryContentNotFoundException;
 import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
-import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +25,7 @@ public class BasicBinaryContentService implements BinaryContentService {
 
     private final BinaryContentMapper binaryContentMapper;
 
-    private final BinaryContentStorage localBinaryContentStorage;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     // 첨부 파일 생성
     @Override
@@ -34,7 +34,10 @@ public class BasicBinaryContentService implements BinaryContentService {
         BinaryContentEntity newBinaryContent = new BinaryContentEntity(fileName, bytes.length, contentType);
 
         binaryContentRepository.save(newBinaryContent);
-        localBinaryContentStorage.put(newBinaryContent.getId(), bytes);
+        applicationEventPublisher.publishEvent(new BinaryContentCreatedEvent(
+                newBinaryContent.getId(),
+                bytes
+        ));
 
         return binaryContentMapper.toDto(newBinaryContent);
     }

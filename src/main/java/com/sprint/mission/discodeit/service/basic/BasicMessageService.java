@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.entity.BinaryContentEntity;
 import com.sprint.mission.discodeit.entity.ChannelEntity;
 import com.sprint.mission.discodeit.entity.MessageEntity;
 import com.sprint.mission.discodeit.entity.UserEntity;
+import com.sprint.mission.discodeit.event.BinaryContentCreatedEvent;
 import com.sprint.mission.discodeit.exception.binarycontent.BinaryContentFileProcessingErrorException;
 import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
 import com.sprint.mission.discodeit.exception.message.MessageNotFoundException;
@@ -19,10 +20,10 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,7 +49,7 @@ public class BasicMessageService implements MessageService {
     private final MessageMapper messageMapper;
     private final PageResponseMapper pageResponseMapper;
 
-    private final BinaryContentStorage binaryContentStorage;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     // 메시지 생성
     @Override
@@ -86,7 +87,10 @@ public class BasicMessageService implements MessageService {
                         file.getContentType());
 
                 binaryContentRepository.save(newBinaryContent);
-                binaryContentStorage.put(newBinaryContent.getId(), file.getBytes());
+                applicationEventPublisher.publishEvent(new BinaryContentCreatedEvent(
+                        newBinaryContent.getId(),
+                        file.getBytes()
+                ));
 
                 // BinaryContent - Message 간 연관 관계 설정
                 newMessage.addAttachment(newBinaryContent);

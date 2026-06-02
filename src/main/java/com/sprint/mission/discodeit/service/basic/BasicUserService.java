@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.dto.request.user.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.event.BinaryContentCreatedEvent;
 import com.sprint.mission.discodeit.exception.DiscodeitException;
 import com.sprint.mission.discodeit.exception.ErrorCode;
 import com.sprint.mission.discodeit.exception.binarycontent.BinaryContentFileProcessingErrorException;
@@ -17,9 +18,9 @@ import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.security.jwt.registry.JwtRegistry;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,7 @@ public class BasicUserService implements UserService {
 
     private final UserMapper userMapper;
 
-    private final BinaryContentStorage binaryContentStorage;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -93,7 +94,10 @@ public class BasicUserService implements UserService {
                 );
 
                 binaryContentRepository.save(newProfile);
-                binaryContentStorage.put(newProfile.getId(), profile.getBytes());
+                applicationEventPublisher.publishEvent(new BinaryContentCreatedEvent(
+                        newProfile.getId(),
+                        profile.getBytes()
+                ));
             } catch (IOException e) {
                 throw new BinaryContentFileProcessingErrorException(targetUser.getUsername(), profile.getName());
             }
