@@ -9,6 +9,7 @@ import com.sprint.mission.discodeit.entity.ChannelEntity;
 import com.sprint.mission.discodeit.entity.MessageEntity;
 import com.sprint.mission.discodeit.entity.UserEntity;
 import com.sprint.mission.discodeit.event.BinaryContentCreatedEvent;
+import com.sprint.mission.discodeit.event.MessageCreatedEvent;
 import com.sprint.mission.discodeit.exception.binarycontent.BinaryContentFileProcessingErrorException;
 import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
 import com.sprint.mission.discodeit.exception.message.MessageNotFoundException;
@@ -62,6 +63,14 @@ public class BasicMessageService implements MessageService {
         createAttachments(newMessage, attachments);
 
         messageRepository.save(newMessage);
+
+        // 알림 이벤트 생성
+        applicationEventPublisher.publishEvent(new MessageCreatedEvent(
+                newMessage.getId(),
+                targetChannel.getId(),
+                targetUser.getId(),
+                newMessage.getContent()
+        ));
 
         log.info("[MESSAGE_CREATE] 메시지 생성 완료: id={}, authorId={}, channelId={}, attachments= 총 {}개",
                 newMessage.getId(),
