@@ -2,9 +2,11 @@ CREATE TABLE binary_contents (
     id UUID PRIMARY KEY,
     message_id UUID,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE,
     file_name VARCHAR(255) NOT NULL,
     size BIGINT NOT NULL,
-    content_type VARCHAR(100)
+    content_type VARCHAR(100) NOT NULL,
+    status varchar(100) NOT NULL
 );
 
 CREATE TABLE users (
