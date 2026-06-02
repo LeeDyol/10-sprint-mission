@@ -32,7 +32,7 @@ public class BinaryContentEventListener {
 
             log.info("[EVENT] 첨부파일 데이터 저장 완료: id={}", binaryContentCreatedEvent.binaryContentId());
         }  catch (Exception e) {
-            binaryContentService.updateStatus(binaryContentCreatedEvent.binaryContentId(), BinaryContentStatus.FAILED);
+            binaryContentService.updateStatus(binaryContentCreatedEvent.binaryContentId(), BinaryContentStatus.FAIL);
 
             log.error("[EVENT] 첨부파일 데이터 저장 실패: id={}", binaryContentCreatedEvent.binaryContentId(), e);
         }
