@@ -20,7 +20,7 @@ public class BinaryContentEntity extends BaseUpdatableEntity {
     private String contentType;                          // 파일 종류
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false)                            // 첨부파일 상태
     private BinaryContentStatus status = BinaryContentStatus.PROCESSING;
 
     public BinaryContentEntity(String originalFilename, long size, String contentType) {

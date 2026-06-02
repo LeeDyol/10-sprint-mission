@@ -23,6 +23,9 @@ public class ReadStatusEntity extends BaseUpdatableEntity {
     @Column(nullable = false)
     private Instant lastReadAt;                          // 해당 채널에서 마지막으로 메시지를 읽은 시간
 
+    @Column(name = "notification_enabled", nullable = false)
+    private boolean notificationEnabled;                 // 채널 알림 활성화 여부
+
     public ReadStatusEntity(UserEntity user, ChannelEntity channel, Instant lastReadAt) {
         this.user = user;
         this.channel = channel;
@@ -37,5 +40,9 @@ public class ReadStatusEntity extends BaseUpdatableEntity {
 
     public void updateLastReadTime(Instant newLastReadAt) {
         this.lastReadAt = newLastReadAt;
+    }
+
+    public void updateNotificationEnabled(boolean newNotificationEnabled) {
+        this.notificationEnabled = newNotificationEnabled;
     }
 }

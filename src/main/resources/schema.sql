@@ -38,6 +38,7 @@ CREATE TABLE read_statuses (
     user_id UUID NOT NULL,
     channel_id UUID NOT NULL,
     last_read_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    notification_enabled boolean NOT NULL,
 
     CONSTRAINT uk_user_channel UNIQUE (user_id, channel_id),
     CONSTRAINT fk_read_statuses_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
