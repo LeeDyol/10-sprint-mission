@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.response.BinaryContentDto;
 import com.sprint.mission.discodeit.entity.BinaryContentEntity;
+import com.sprint.mission.discodeit.entity.BinaryContentStatus;
 import com.sprint.mission.discodeit.event.BinaryContentCreatedEvent;
 import com.sprint.mission.discodeit.exception.binarycontent.BinaryContentNotFoundException;
 import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
@@ -10,6 +11,7 @@ import com.sprint.mission.discodeit.service.BinaryContentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -64,6 +66,17 @@ public class BasicBinaryContentService implements BinaryContentService {
         return binaryContentRepository.findAll().stream()
                 .map(binaryContentMapper::toDto)
                 .toList();
+    }
+
+    // 첨부 파일 업로드 상태 수정
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public BinaryContentDto updateStatus(UUID binaryContentId, BinaryContentStatus status) {
+        BinaryContentEntity targetBinaryContent = getBinaryContentEntityOrThrow(binaryContentId);
+
+        targetBinaryContent.updateStatus(status);
+
+        return binaryContentMapper.toDto(targetBinaryContent);
     }
 
     // 첨부 파일 삭제
