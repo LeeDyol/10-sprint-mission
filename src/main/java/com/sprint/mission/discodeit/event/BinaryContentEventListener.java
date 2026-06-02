@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.event;
 
+import com.sprint.mission.discodeit.entity.BinaryContentStatus;
+import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,11 +21,20 @@ public class BinaryContentEventListener {
 
     private final BinaryContentStorage binaryContentStorage;
 
+    private final BinaryContentService binaryContentService;
+
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleBinaryContentCreatedEvent(BinaryContentCreatedEvent binaryContentCreatedEvent) {
-        // 실제 스토리지에 데이터 저장
-        binaryContentStorage.put(binaryContentCreatedEvent.binaryContentId(), binaryContentCreatedEvent.rawData());
+        try {
+            // 실제 스토리지에 데이터 저장
+            binaryContentStorage.put(binaryContentCreatedEvent.binaryContentId(), binaryContentCreatedEvent.rawData());
+            binaryContentService.updateStatus(binaryContentCreatedEvent.binaryContentId(), BinaryContentStatus.SUCCESS);
 
-        log.info("[EVENT] 첨부파일 데이터 저장 완료: id={}", binaryContentCreatedEvent.binaryContentId());
+            log.info("[EVENT] 첨부파일 데이터 저장 완료: id={}", binaryContentCreatedEvent.binaryContentId());
+        }  catch (Exception e) {
+            binaryContentService.updateStatus(binaryContentCreatedEvent.binaryContentId(), BinaryContentStatus.FAILED);
+
+            log.error("[EVENT] 첨부파일 데이터 저장 실패: id={}", binaryContentCreatedEvent.binaryContentId(), e);
+        }
     }
 }
