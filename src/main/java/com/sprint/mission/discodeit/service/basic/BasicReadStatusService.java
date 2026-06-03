@@ -1,12 +1,16 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.request.readStatus.ReadStatusCreateRequest;
-import com.sprint.mission.discodeit.dto.request.readStatus.ReadStatusUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.readstatus.ReadStatusCreateRequest;
+import com.sprint.mission.discodeit.dto.request.readstatus.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.ReadStatusDto;
 import com.sprint.mission.discodeit.entity.ChannelEntity;
 import com.sprint.mission.discodeit.entity.ReadStatusEntity;
 import com.sprint.mission.discodeit.entity.UserEntity;
-import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
+import com.sprint.mission.discodeit.exception.ErrorCode;
+import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
+import com.sprint.mission.discodeit.exception.readstatus.DuplicateReadStatusException;
+import com.sprint.mission.discodeit.exception.readstatus.ReadStatusNotFoundException;
+import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.ReadStatusMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
@@ -17,12 +21,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class BasicReadStatusService implements ReadStatusService {
+
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
     private final ReadStatusRepository readStatusRepository;
@@ -36,6 +42,7 @@ public class BasicReadStatusService implements ReadStatusService {
         UserEntity targetUser = getUserEntityOrThrow(readStatusCreateRequest.userId());
         ChannelEntity targetChannel = getChannelEntityOrThrow(readStatusCreateRequest.channelId());
 
+        // 유효성 검증 (중복 확인)
         existsByUserIdAndChannelId(targetUser.getId(), targetChannel.getId());
 
         ReadStatusEntity newReadStatus = new ReadStatusEntity(targetUser, targetChannel, readStatusCreateRequest.lastReadAt());
@@ -77,7 +84,6 @@ public class BasicReadStatusService implements ReadStatusService {
         ReadStatusEntity targetReadStatus = getReadStatusEntity(readStatusId);
 
         targetReadStatus.updateLastReadTime(readStatusUpdateRequest.newLastReadAt());
-        readStatusRepository.save(targetReadStatus);
 
         return readStatusMapper.toDto(targetReadStatus);
     }
@@ -92,27 +98,27 @@ public class BasicReadStatusService implements ReadStatusService {
     }
 
     // 사용자 반환
-    public UserEntity getUserEntityOrThrow(UUID userId){
+    private UserEntity getUserEntityOrThrow(UUID userId){
         return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User with id {" + userId + "} not found"));
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     // 채널 반환
-    public ChannelEntity getChannelEntityOrThrow(UUID channelId){
+    private ChannelEntity getChannelEntityOrThrow(UUID channelId){
         return channelRepository.findById(channelId)
-                .orElseThrow(() -> new ResourceNotFoundException("Channel with id {" + channelId + "} not found"));
+                .orElseThrow(() -> new ChannelNotFoundException(channelId));
     }
 
-    // 읽음 상태 엔티티 반환
-    public ReadStatusEntity getReadStatusEntity(UUID readStatusId){
+    // 읽음 상태 반환
+    private ReadStatusEntity getReadStatusEntity(UUID readStatusId){
         return readStatusRepository.findBysIdWithDetails(readStatusId)
-                .orElseThrow(() -> new ResourceNotFoundException("ReadStatus with id {" + readStatusId + "} not found"));
+                .orElseThrow(() -> new ReadStatusNotFoundException(readStatusId));
     }
 
     // 유효성 검사 (중복 확인)
-    public void existsByUserIdAndChannelId(UUID userId, UUID channelId) {
+    private void existsByUserIdAndChannelId(UUID userId, UUID channelId) {
         if (readStatusRepository.existsByUserIdAndChannelId(userId, channelId)) {
-            throw new IllegalArgumentException("ReadStatus with userId {" + userId + "} and channelId {" + channelId + "} already exists");
+            throw new DuplicateReadStatusException(userId, channelId);
         }
     }
 }

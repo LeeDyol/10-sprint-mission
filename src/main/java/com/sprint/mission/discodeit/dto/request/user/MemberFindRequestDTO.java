@@ -7,10 +7,10 @@ import java.util.UUID;
 
 @Builder
 public record MemberFindRequestDTO (
-    @NotNull
-    UUID requesterId,
+    @NotNull(message = "사용자 ID는 필수입니다.")
+    UUID userId,
 
-    @NotNull
+    @NotNull(message = "채널 ID는 필수입니다.")
     UUID channelId
 ) {
 

@@ -4,12 +4,10 @@ import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.Instant;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @Entity
 @Table(name = "read_statuses")

@@ -3,10 +3,11 @@ plugins {
 	id 'org.springframework.boot' version '3.5.10'
 	id 'io.spring.dependency-management' version '1.1.7'
     id 'org.jetbrains.kotlin.jvm'
+	id 'jacoco'
 }
 
 group = 'com.sprint.mission'
-version = '0.0.1-SNAPSHOT'
+version = '2.0-M9'
 description = 'Demo project for Spring Boot'
 
 java {
@@ -26,29 +27,53 @@ repositories {
 }
 
 dependencies {
+	// Spring Boot
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'software.amazon.awssdk:s3:2.31.7'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
 
-	// 1. Lombok 설정
+	// Lombok 설정
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
-
-	// Lombok-MapStruct 바인딩
-	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
 	// MapStruct 설정
 	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
 	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 
-	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-	implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15"
-	implementation 'org.postgresql:postgresql:42.7.3'
+	// Lombok-MapStruct 바인딩
+	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
+	// Database
+	implementation 'org.postgresql:postgresql:42.7.3'
+	testImplementation 'com.h2database:h2'
+
+	// Documentation & Utilities
+	implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15"
+	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+	// Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	runtimeOnly 'com.h2database:h2'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// Test 내 Lombok 및 Security ㅛㅏ용
+	testCompileOnly 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.security:spring-security-test'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = true
+	}
 }

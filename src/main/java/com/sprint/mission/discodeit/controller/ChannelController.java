@@ -50,8 +50,7 @@ public class ChannelController {
     @Operation(summary = "Channel 정보 수정", operationId = "update_3")
     @PatchMapping("/{channelId}")
     public ResponseEntity<ChannelDto> update(@PathVariable UUID channelId,
-                                             @RequestBody PublicChannelUpdateRequest publicChannelUpdateRequest) {
-
+                                             @Valid @RequestBody PublicChannelUpdateRequest publicChannelUpdateRequest) {
         ChannelDto updateChannel = channelService.update(channelId, publicChannelUpdateRequest);
 
         return ResponseEntity.ok(updateChannel);

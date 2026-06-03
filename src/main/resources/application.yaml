@@ -1,57 +1,72 @@
+# 공통 환경 설정 파일
+
+# 프로젝트 기본 설정
 spring:
-  application:                                            # 프로젝트 고유 이름
-    name: discodeit
+  application:
+    name: discodeit                                       # 프로젝트 고유 이름
+  profiles:
+    active: dev
+  boot:
+    admin:
+      client:
+        instance:
+          name: discodeit
 
-  datasource:                                             # 데이터베이스 연결 설정 값
-    url: jdbc:postgresql://localhost:5432/discodeit
-    username: discodeit_user
-    password: ${DB_PASSWORD}
-    driver-class-name: org.postgresql.Driver              # PostgreSQL 전용 드라이버
+## 로깅 설정 값
+#logging:
+#  level:
+#    root: info                                            # 프로젝트 전체에서 로그를 핵심 정보 위주로 출력하도록 설정
 
-  jpa:
-    hibernate:                                            # 엔티티 - DB 테이블이 일치 여부 확인
-      ddl-auto: update
-
-    show-sql: true                                        # 실행되는 SQL 문을 콘솔에 출력
-
-    properties:                                           # SQL 로그 설정 값
-      hibernate:
-        format_sql: true
-        highlight_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-
-    open-in-view: false                                   # 트랜잭션 밖에서 지연 로딩 방지
-
-  sql:                                                    # 애플리케이션 실행 시, schema.sql 항상 실행
-    init:
-      mode: always
-
-logging:                                                  # 로깅 설정 값
-  level:
-    org.hibernate.SQL: debug
-    org.hibernate.orm.jdbc.bind: trace
-    org.hibernate.orm.jdbc.extract: trace
-
-discodeit:                                                # 커스텀 설정 값
-  repository:                                             # 데이터 저장소 타입
-    type: jpa
-    file-directory: .discodeit
-
-  storage:                                                # 로컬 저장소 설정 값
-    type: local
-    local:
-      root-path: ./upload-files
-
-springdoc:                                                # Swagger 설정 값
+# Swagger 설정 값
+springdoc:
   api-docs:
-    enabled: true                                         # API 명세서 자동 생성
-    path: /api-docs                                       # OpenAPI Spec 추출 경로
+    enabled: true                                         # API 명세서 자동 생성 활성화
+    path: /api-docs                                       # 생성된 API 명세서의 저장 경로
 
   swagger-ui:
-    enabled: true                                         # 웹 브라우저 UI 활성화
-    path: /docs
-    groups-order: DESC                                    # 그룹 정렬 순서
-    operations-sorter: method                             # GET, POST 순서 정렬
+    enabled: true                                         # 웹 브라우저 내 Swagger UI 활성화
+    path: /docs                                           # Swagger UI 접속 주소
+    groups-order: DESC                                    # API 그룹 내림차순 정렬
+    operations-sorter: method                             # HTTP 메서드 순서대로 API 정렬
 
-  default-consumes-media-type: application/json           # 기본 요청 / 응답 형식 = JSON
-  default-produces-media-type: application/json
+  default-consumes-media-type: application/json           # 기본 요청 형식 = JSON
+  default-produces-media-type: application/json           # 기본 응답 형식 = JSON
+
+# Actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:                                           # 웹에 노출시킬 Endpoint 지정
+        include: "health, info, metrics, loggers"         # 건강 상태, 앱 정보, 성능 수치, 로그 설정
+
+  endpoint:
+    health:
+      show-details: always                                # 항상 상세한 health 결과 표시
+
+  info:
+    env:
+      enabled: true
+
+# 애플리케이션 상세 정보
+info:
+  app:
+    name: "Discodeit"                                     # 애플리케이션 이름
+    version: "1.7.0"                                      # 애플리케이션 버전
+    java-version: "17"                                    # 자바 버전
+    spring-boot-version: "3.4.0"                          # 스프링 부트 버전
+  # 주요 설정 정보
+  major-config:
+    datasource:
+      url: "${spring.datasource.url}"
+      driver-class-name: "${spring.datasource.driver-class-name}"
+
+    jpa:
+      ddl-auto: "${spring.jpa.hibernate.ddl-auto}"
+
+    storage:
+      type: "LOCAL"
+      path: "./uploads"
+
+    multipart:
+      max-file-size: "10MB"
+      max-request-size: "10MB"

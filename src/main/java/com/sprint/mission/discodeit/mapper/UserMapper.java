@@ -11,8 +11,8 @@ import org.mapstruct.MappingConstants;
         uses = {BinaryContentMapper.class})
 public interface UserMapper {
     // 엔티티 -> 응답 DTO 변환
-    @Mapping(target = "online", source = "userStatus.online")
-    UserDto toDto(UserEntity user);
+    @Mapping(target = "online", source = "isOnline")
+    UserDto toDto(UserEntity user, boolean isOnline);
 
     // 생성 요청 DTO -> 엔티티 변환
     UserEntity toEntity(UserCreateRequest userCreateRequest);
