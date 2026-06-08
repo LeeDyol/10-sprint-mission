@@ -24,7 +24,7 @@ public class NotificationController {
     @Operation(summary = "Notification 조회", operationId = "find_1")
     @GetMapping
     public ResponseEntity<List<NotificationDto>> findAll(@AuthenticationPrincipal DiscodeitUserDetails discodeitUserDetails) {
-        List<NotificationDto> response = notificationService.findAll();
+        List<NotificationDto> response = notificationService.findAll(discodeitUserDetails.getUserDto().id());
 
         return ResponseEntity.ok(response);
     }
