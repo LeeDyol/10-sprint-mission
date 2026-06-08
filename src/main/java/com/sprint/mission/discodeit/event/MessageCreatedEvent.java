@@ -11,6 +11,8 @@ public record MessageCreatedEvent(
         UUID messageId,
         UUID channelId,
         UUID senderId,
+        String senderName,
+        String channelName,
         String content
 ) {
 }
