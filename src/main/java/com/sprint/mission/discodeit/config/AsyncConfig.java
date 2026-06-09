@@ -4,6 +4,7 @@ import org.slf4j.MDC;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskDecorator;
+import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.context.SecurityContext;
@@ -19,6 +20,7 @@ import java.util.concurrent.Executor;
  */
 @Configuration
 @EnableAsync
+@EnableRetry
 public class AsyncConfig {
     // 비동기 작업 처리를 위한 스레드 풀 빈 정의
     @Bean(name = "eventTaskExecutor")
