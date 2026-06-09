@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.entity.ReadStatusEntity;
 import com.sprint.mission.discodeit.entity.UserEntity;
 import com.sprint.mission.discodeit.event.MessageCreatedEvent;
 import com.sprint.mission.discodeit.event.RoleUpdatedEvent;
+import com.sprint.mission.discodeit.event.S3UploadFailedEvent;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.repository.NotificationRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
@@ -57,6 +58,19 @@ public class NotificationEventListener {
                 targetUser,
                 "권한이 변경되었습니다.",
                 String.format("%s -> %s", roleUpdatedEvent.oldRole(), roleUpdatedEvent.newRole())
+        );
+
+        notificationRepository.save(notification);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void on(S3UploadFailedEvent s3UploadFailedEvent) {
+        UserEntity targetUser = getUserEntityOrThrow(UUID.fromString(s3UploadFailedEvent.requestId()));
+
+        NotificationEntity notification = new NotificationEntity(
+                targetUser,
+                "S3 파일 업로드 실패",
+                String.format("RequestId:\n%s", s3UploadFailedEvent.requestId())
         );
 
         notificationRepository.save(notification);
