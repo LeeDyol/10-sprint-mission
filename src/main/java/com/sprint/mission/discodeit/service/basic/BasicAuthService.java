@@ -80,6 +80,7 @@ public class BasicAuthService implements AuthService {
         // 알림 이벤트 생성
         applicationEventPublisher.publishEvent(new RoleUpdatedEvent(
                 targetUser.getId(),
+                targetUser.getRole(),
                 roleUpdateRequest.newRole()
         ));
 

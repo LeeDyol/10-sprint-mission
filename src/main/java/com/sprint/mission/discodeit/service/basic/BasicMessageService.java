@@ -69,6 +69,8 @@ public class BasicMessageService implements MessageService {
                 newMessage.getId(),
                 targetChannel.getId(),
                 targetUser.getId(),
+                targetUser.getUsername(),
+                targetChannel.getName(),
                 newMessage.getContent()
         ));
 

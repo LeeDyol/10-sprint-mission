@@ -10,9 +10,9 @@ import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.repository.NotificationRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -28,6 +28,8 @@ public class NotificationEventListener {
     private final UserRepository userRepository;
     private final ReadStatusRepository readStatusRepository;
     private final NotificationRepository notificationRepository;
+
+    private final CacheManager cacheManager;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(MessageCreatedEvent messageCreatedEvent) {
@@ -47,6 +49,11 @@ public class NotificationEventListener {
         // 3. DB에 일괄 저장
         if (!notifications.isEmpty()) {
             notificationRepository.saveAll(notifications);
+
+            // 수신자 캐시 무효화
+            notifications.forEach(notification ->
+                    cacheManager.getCache("notifications").evict(notification.getReceiver().getId())
+            );
         }
     }
 
@@ -61,6 +68,7 @@ public class NotificationEventListener {
         );
 
         notificationRepository.save(notification);
+        cacheManager.getCache("notifications").evict(notification.getReceiver().getId());
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -74,6 +82,7 @@ public class NotificationEventListener {
         );
 
         notificationRepository.save(notification);
+        cacheManager.getCache("notifications").evict(notification.getReceiver().getId());
     }
 
     private UserEntity getUserEntityOrThrow(UUID userId) {

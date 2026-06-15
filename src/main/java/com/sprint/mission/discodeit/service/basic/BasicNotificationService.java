@@ -8,13 +8,17 @@ import com.sprint.mission.discodeit.mapper.NotificationMapper;
 import com.sprint.mission.discodeit.repository.NotificationRepository;
 import com.sprint.mission.discodeit.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BasicNotificationService implements NotificationService {
 
     private NotificationRepository notificationRepository;
@@ -31,6 +35,8 @@ public class BasicNotificationService implements NotificationService {
 
     // 알림 삭제
     @Override
+    @CacheEvict(cacheNames = "notifications", key = "#requesterId")
+    @Transactional
     public void delete(UUID notificationId, UUID userId) {
         NotificationEntity targetNotification = getNotificationEntityOrThrow(notificationId);
 

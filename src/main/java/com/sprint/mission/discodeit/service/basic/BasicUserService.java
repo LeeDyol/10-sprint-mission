@@ -20,6 +20,8 @@ import com.sprint.mission.discodeit.security.jwt.registry.JwtRegistry;
 import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -52,6 +54,7 @@ public class BasicUserService implements UserService {
 
     // 사용자 생성
     @Override
+    @Cacheable(cacheNames = "users", key = "#userId")
     @Transactional
     public UserDto create(UserCreateRequest userCreateRequest, MultipartFile profile) {
         // 유효성 검증 (중복 확인)
@@ -107,6 +110,7 @@ public class BasicUserService implements UserService {
 
     // 사용자 단건 조회
     @Override
+    @Cacheable(cacheNames = "users", key = "#userId")
     public UserDto findById(UUID userId) {
         UserEntity targetUser = getUserEntityOrThrow(userId);
         boolean isOnline = jwtRegistry.hasActiveJwtInformationByUserId(targetUser.getId());
@@ -142,6 +146,7 @@ public class BasicUserService implements UserService {
     // 사용자 정보 수정
     @Override
     @PreAuthorize("@authValidator.isSelf(#userId, authentication.name)")        // 파라미터 값과 현재 로그인 한 사용자의 ID 일치 여부 확인
+    @CacheEvict(cacheNames = "users", key = "#userId")
     @Transactional
     public UserDto update(UUID userId, UserUpdateRequest userUpdateRequest, MultipartFile profile) {
         UserEntity targetUser = getUserEntityOrThrow(userId);
@@ -185,6 +190,7 @@ public class BasicUserService implements UserService {
     // 사용자 삭제
     @Override
     @PreAuthorize("@authValidator.isSelf(#userId, authentication.name)")
+    @CacheEvict(cacheNames = "users", key = "#userId")
     @Transactional
     public void delete(UUID userId) {
         UserEntity targetUser = getUserEntityOrThrow(userId);
